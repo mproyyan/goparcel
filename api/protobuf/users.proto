@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package users;
+
+option go_package = "goparcel/internal/common/genproto/users";
+
+service UserService {
+    // User authentication
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+    rpc RegisterAsOperator(RegisterAsOperatorRequest) returns (google.protobuf.Empty) {}
+    rpc RegisterAsCarrier(RegisterAsCarrierRequest) returns (google.protobuf.Empty) {}
+    rpc RegisterAsCourier(RegisterAsCarrierRequest) returns (google.protobuf.Empty) {}
+}
+
+// Login
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string token = 1;
+}
+
+// RegisterAsOperator
+message RegisterAsOperatorRequest {
+    string name = 1;
+    string email = 2;
+    string password = 3;
+    string location = 4;
+    oneof type {
+        string depot_operator = 5;
+        string warehouse_operator = 6;
+    }
+}
+
+// RegisterAsCourier
+message RegisterAsCourierRequest {
+    string name = 1;
+    string email = 2;
+    string password = 3;
+    string location = 4;
+}
+
+// RegisterAsCarrier
+message RegisterAsCarrierRequest {
+    string name = 1;
+    string email = 2;
+    string password = 3;
+    string location = 4;
+}
