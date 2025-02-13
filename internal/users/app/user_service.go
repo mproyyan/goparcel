@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/mproyyan/goparcel/internal/common/auth"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
+	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 )
 
 type UserService struct {
@@ -26,7 +26,7 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 	}
 
 	if authenticated := auth.CheckPassword(user.Password, password); !authenticated {
-		return "", errors.New("invalid credentials")
+		return "", cuserr.ErrInvalidCredentials
 	}
 
 	return auth.GenerateToken(user.ID, user.ModelID, time.Hour)

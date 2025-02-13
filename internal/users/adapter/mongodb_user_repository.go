@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
+	"github.com/mproyyan/goparcel/internal/users/errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -80,7 +81,7 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 		return modelToDomain(user), nil
 	}
 
-	return nil, fmt.Errorf("user not found")
+	return nil, errors.ErrUserNotFound
 }
 
 // User models
