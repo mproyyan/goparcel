@@ -3,4 +3,5 @@ go 1.23.4
 use (
 	./internal/common
 	./internal/users
+	./internal/gateway
 )
