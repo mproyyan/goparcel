@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"time"
 
@@ -25,8 +26,12 @@ func main() {
 		panic(err)
 	}
 
-	database := client.Database(os.Getenv("MONGO_DATABASE"))
+	err = client.Ping(ctxWithTimeout, nil)
+	if err != nil {
+		log.Fatal("MongoDB not responding:", err)
+	}
 
+	database := client.Database(os.Getenv("MONGO_DATABASE"))
 	userRepository := adapter.NewUserRepository(database)
 	userService := app.NewUserService(userRepository)
 
