@@ -84,6 +84,24 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 	return nil, errors.ErrUserNotFound
 }
 
+func (u *UserRepository) CreateUser(ctx context.Context, user user.User) (string, error) {
+	// Insert new user
+	result, err := u.collection.InsertOne(ctx, bson.M{
+		"_id":          user.ID,
+		"model_id":     user.ModelID,
+		"email":        user.Email,
+		"password":     user.Password,
+		"user_type_id": user.Type.ID,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	// Return inserted id
+	return result.InsertedID.(string), nil
+}
+
 // User models
 type User struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty"`
@@ -91,50 +109,6 @@ type User struct {
 	Email    string             `bson:"email"`
 	Password string             `bson:"password"`
 	UserType UserType           `bson:"user_type"`
-}
-
-type UserType struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Name        string             `bson:"name"`
-	Description string             `bson:"description"`
-	Permission  Permission         `bson:"permission"`
-}
-
-type Permission struct {
-	UserManagement struct {
-		GetUserLocation bool `bson:"get_user_location"`
-		GetUser         bool `bson:"get_user"`
-	} `bson:"user_management"`
-
-	Shipment struct {
-		CreateShipment        bool `bson:"create_shipment"`
-		GetUnroutedShipments  bool `bson:"get_unrouted_shipments"`
-		GetRoutedShipments    bool `bson:"get_routed_shipments"`
-		GetIncomingShipments  bool `bson:"get_incoming_shipments"`
-		ScanArrivingShipments bool `bson:"scan_arriving_shipments"`
-		ShipPackage           bool `bson:"ship_package"`
-		AddItineraryHistory   bool `bson:"add_itinerary_history"`
-		SendPackage           bool `bson:"send_package"`
-		CompleteShipment      bool `bson:"complete_shipment"`
-	} `bson:"shipment"`
-
-	Location struct {
-		GetTransitPlaces                  bool `bson:"get_transit_places"`
-		GetRecommendedShippingDestination bool `bson:"get_recommended_shipping_destination"`
-		GetLocation                       bool `bson:"get_location"`
-	} `bson:"location"`
-
-	Courier struct {
-		GetAvailableCouriers bool `bson:"get_available_couriers"`
-	} `bson:"courier"`
-
-	Cargo struct {
-		GetMatchingCargos   bool `bson:"get_matching_cargos"`
-		RequestLoadShipment bool `bson:"request_load_shipment"`
-		LoadShipment        bool `bson:"load_shipment"`
-		UnloadShipment      bool `bson:"unload_shipment"`
-		MarkArrival         bool `bson:"mark_arrival"`
-	} `bson:"cargo"`
 }
 
 // Helper function to get all granted permissions
