@@ -53,7 +53,9 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 		{
 			{Key: "$project", Value: bson.D{
 				{Key: "_id", Value: 1},
+				{Key: "model_id", Value: 1},
 				{Key: "email", Value: 1},
+				{Key: "password", Value: 1},
 				{Key: "user_type._id", Value: 1},
 				{Key: "user_type.name", Value: 1},
 				{Key: "user_type.description", Value: 1},
