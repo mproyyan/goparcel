@@ -23,7 +23,7 @@ func (u UserService) login(c *fiber.Ctx) error {
 	// Parse request body
 	var loginRequest = requests.LoginRequest{}
 	if err := c.BodyParser(&loginRequest); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service grpc
@@ -33,7 +33,8 @@ func (u UserService) login(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return err
+		code, response := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(response)
 	}
 
 	// send response
@@ -48,7 +49,7 @@ func (u UserService) registerAsOperator(c *fiber.Ctx) error {
 	// Parse request body
 	var registerAsOperatorRequest requests.RegisterAsOperatorRequest
 	if err := c.BodyParser(&registerAsOperatorRequest); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service
@@ -61,10 +62,8 @@ func (u UserService) registerAsOperator(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   "Invalid request body",
-			"message": err.Error(),
-		})
+		code, response := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(response)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -76,10 +75,7 @@ func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
 	// Parse request body
 	var registerAsCarrierRequest requests.RegisterAsCarrierRequest
 	if err := c.BodyParser(&registerAsCarrierRequest); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   "Invalid request body",
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service grpc
@@ -90,10 +86,8 @@ func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   "Invalid request body",
-			"message": err.Error(),
-		})
+		code, response := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(response)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -105,10 +99,7 @@ func (u UserService) registerAsCourier(c *fiber.Ctx) error {
 	// Parse request body
 	var registerAsCourierRequest requests.RegisterAsCourierRequest
 	if err := c.BodyParser(&registerAsCourierRequest); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   "Invalid request body",
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service grpc
@@ -119,10 +110,8 @@ func (u UserService) registerAsCourier(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   "Invalid request body",
-			"message": err.Error(),
-		})
+		code, response := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(response)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
