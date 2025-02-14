@@ -70,7 +70,7 @@ func domainToCourierModel(courier courier.Courier) (*CourierModel, error) {
 		UserID:     userID,
 		Name:       courier.Name,
 		Email:      courier.Email,
-		Status:     courier.Name,
+		Status:     courier.Status,
 		LocationID: locationID,
 	}, nil
 }
