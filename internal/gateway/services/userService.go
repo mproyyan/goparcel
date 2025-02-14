@@ -101,10 +101,40 @@ func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
 	})
 }
 
+func (u UserService) registerAsCourier(c *fiber.Ctx) error {
+	// Parse request body
+	var registerAsCourierRequest requests.RegisterAsCourierRequest
+	if err := c.BodyParser(&registerAsCourierRequest); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Invalid request body",
+			"message": err.Error(),
+		})
+	}
+
+	// Call user service grpc
+	_, err := u.client.RegisterAsCourier(c.Context(), &users.RegisterAsCourierRequest{
+		Name:     registerAsCourierRequest.Name,
+		Email:    registerAsCourierRequest.Email,
+		Password: registerAsCourierRequest.Password,
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Invalid request body",
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "registration as a courier has been successful",
+	})
+}
+
 func (u UserService) Bootstrap() {
 	user := u.router.Group("/users")
 
 	user.Post("/login", u.login)
 	user.Post("/register-as-operator", u.registerAsOperator)
 	user.Post("/register-as-carrier", u.registerAsCarrier)
+	user.Post("/register-as-courier", u.registerAsCourier)
 }
