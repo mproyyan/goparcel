@@ -44,8 +44,37 @@ func (u UserService) login(c *fiber.Ctx) error {
 	return nil
 }
 
+func (u UserService) registerAsOperator(c *fiber.Ctx) error {
+	// Parse request body
+	var registerAsOperatorRequest requests.RegisterAsOperatorRequest
+	if err := c.BodyParser(&registerAsOperatorRequest); err != nil {
+		return err
+	}
+
+	// Call user service
+	_, err := u.client.RegisterAsOperator(c.Context(), &users.RegisterAsOperatorRequest{
+		Name:     registerAsOperatorRequest.Name,
+		Email:    registerAsOperatorRequest.Email,
+		Password: registerAsOperatorRequest.Password,
+		Location: registerAsOperatorRequest.LocationID,
+		Type:     registerAsOperatorRequest.Type,
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Invalid request body",
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "registration as an operator has been successful",
+	})
+}
+
 func (u UserService) Bootstrap() {
 	user := u.router.Group("/users")
 
 	user.Post("/login", u.login)
+	user.Post("/register-as-operator", u.registerAsOperator)
 }
