@@ -5,7 +5,6 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
-	"github.com/mproyyan/goparcel/internal/users/errors"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -82,7 +81,7 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 		return &userDomain, nil
 	}
 
-	return nil, errors.ErrUserNotFound
+	return nil, cuserr.ErrUserNotFound
 }
 
 func (u *UserRepository) CreateUser(ctx context.Context, user user.User) (string, error) {
@@ -101,6 +100,16 @@ func (u *UserRepository) CreateUser(ctx context.Context, user user.User) (string
 	// Return inserted id
 	insertedID := result.InsertedID.(primitive.ObjectID)
 	return insertedID.Hex(), nil
+}
+
+func (u *UserRepository) CheckEmailAvailability(ctx context.Context, email string) (bool, error) {
+	results, err := u.collection.Distinct(ctx, "email", bson.M{"email": email})
+	if err != nil {
+		return false, cuserr.MongoError(err)
+	}
+
+	// If result 0 means email available
+	return len(results) == 0, nil
 }
 
 // User models

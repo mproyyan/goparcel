@@ -12,6 +12,7 @@ var ErrInvalidCredentials = status.Error(codes.Unauthenticated, "invalid credent
 var ErrUserNotFound = status.Error(codes.NotFound, "user not found")
 var ErrInvalidOperatorType = status.Error(codes.InvalidArgument, "invalid operator type, must be depot_operator or warehouse_operator")
 var ErrInvalidHexString = status.Error(codes.InvalidArgument, "invalid hex string")
+var ErrEmailUsed = status.Error(codes.AlreadyExists, "email is already in use")
 
 func MongoError(err error) error {
 	if err == nil {

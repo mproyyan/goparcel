@@ -38,11 +38,13 @@ func NewUserService(
 }
 
 func (u UserService) Login(ctx context.Context, email, password string) (string, error) {
+	// Find user
 	user, err := u.userRepository.FindUserByEmail(ctx, email)
 	if err != nil {
 		return "", err
 	}
 
+	// Compare given password with password stored in db
 	if authenticated := auth.CheckPassword(user.Password, password); !authenticated {
 		return "", cuserr.ErrInvalidCredentials
 	}
@@ -51,6 +53,16 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 }
 
 func (u UserService) RegisterAsOperator(ctx context.Context, name, email, password, location string, operatorType operator.OperatorType) error {
+	// Email cannot be used by another user
+	isAvailable, err := u.userRepository.CheckEmailAvailability(ctx, email)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	if !isAvailable {
+		return cuserr.ErrEmailUsed
+	}
+
 	// Find user type
 	userType, err := u.userTypeRepository.FindUserType(ctx, operatorType.String())
 	if err != nil {
@@ -98,6 +110,16 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 }
 
 func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, password string) error {
+	// Email cannot be used by another user
+	isAvailable, err := u.userRepository.CheckEmailAvailability(ctx, email)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	if !isAvailable {
+		return cuserr.ErrEmailUsed
+	}
+
 	// Find carrier user type
 	userType, err := u.userTypeRepository.FindUserType(ctx, "carrier")
 	if err != nil {
@@ -143,6 +165,16 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 }
 
 func (u UserService) RegisterAsCourier(ctx context.Context, name, email, password string) error {
+	// Email cannot be used by another user
+	isAvailable, err := u.userRepository.CheckEmailAvailability(ctx, email)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	if !isAvailable {
+		return cuserr.ErrEmailUsed
+	}
+
 	// Find carrier user type
 	userType, err := u.userTypeRepository.FindUserType(ctx, "courier")
 	if err != nil {
