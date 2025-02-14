@@ -34,7 +34,7 @@ type UserServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	RegisterAsOperator(ctx context.Context, in *RegisterAsOperatorRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCarrier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	RegisterAsCourier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RegisterAsCourier(ctx context.Context, in *RegisterAsCourierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type userServiceClient struct {
@@ -75,7 +75,7 @@ func (c *userServiceClient) RegisterAsCarrier(ctx context.Context, in *RegisterA
 	return out, nil
 }
 
-func (c *userServiceClient) RegisterAsCourier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *userServiceClient) RegisterAsCourier(ctx context.Context, in *RegisterAsCourierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, UserService_RegisterAsCourier_FullMethodName, in, out, cOpts...)
@@ -93,7 +93,7 @@ type UserServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	RegisterAsOperator(context.Context, *RegisterAsOperatorRequest) (*emptypb.Empty, error)
 	RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
-	RegisterAsCourier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
+	RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -113,7 +113,7 @@ func (UnimplementedUserServiceServer) RegisterAsOperator(context.Context, *Regis
 func (UnimplementedUserServiceServer) RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterAsCarrier not implemented")
 }
-func (UnimplementedUserServiceServer) RegisterAsCourier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error) {
+func (UnimplementedUserServiceServer) RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterAsCourier not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
@@ -192,7 +192,7 @@ func _UserService_RegisterAsCarrier_Handler(srv interface{}, ctx context.Context
 }
 
 func _UserService_RegisterAsCourier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegisterAsCarrierRequest)
+	in := new(RegisterAsCourierRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func _UserService_RegisterAsCourier_Handler(srv interface{}, ctx context.Context
 		FullMethod: UserService_RegisterAsCourier_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).RegisterAsCourier(ctx, req.(*RegisterAsCarrierRequest))
+		return srv.(UserServiceServer).RegisterAsCourier(ctx, req.(*RegisterAsCourierRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

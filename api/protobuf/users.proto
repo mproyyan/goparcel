@@ -11,7 +11,7 @@ service UserService {
     rpc Login(LoginRequest) returns (LoginResponse) {}
     rpc RegisterAsOperator(RegisterAsOperatorRequest) returns (google.protobuf.Empty) {}
     rpc RegisterAsCarrier(RegisterAsCarrierRequest) returns (google.protobuf.Empty) {}
-    rpc RegisterAsCourier(RegisterAsCarrierRequest) returns (google.protobuf.Empty) {}
+    rpc RegisterAsCourier(RegisterAsCourierRequest) returns (google.protobuf.Empty) {}
 }
 
 // Login

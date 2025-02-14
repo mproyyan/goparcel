@@ -56,7 +56,7 @@ func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *users.Regist
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *users.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
+func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *users.RegisterAsCourierRequest) (*emptypb.Empty, error) {
 	err := g.service.RegisterAsCourier(ctx, request.Name, request.Email, request.Password)
 	if err != nil {
 		return nil, err
