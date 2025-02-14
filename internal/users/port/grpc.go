@@ -2,7 +2,6 @@ package port
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/mproyyan/goparcel/internal/common/genproto/users"
 	"github.com/mproyyan/goparcel/internal/users/app"
@@ -32,13 +31,8 @@ func (g GrpcServer) Login(ctx context.Context, request *users.LoginRequest) (*us
 }
 
 func (g GrpcServer) RegisterAsOperator(context context.Context, request *users.RegisterAsOperatorRequest) (*emptypb.Empty, error) {
-	// Check oneof request
-	if request.Type == nil {
-		return nil, cuserr.ErrInvalidOperatorType
-	}
-
 	// Check value of operator type request value to decide operator type
-	operatorTypeRequestValue := fmt.Sprintf("%v", request.Type)
+	operatorTypeRequestValue := request.Type
 	operatorType, err := operator.OperatorTypeFromString(operatorTypeRequestValue)
 	if err != nil {
 		return nil, cuserr.ErrInvalidOperatorType

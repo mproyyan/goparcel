@@ -30,10 +30,7 @@ message RegisterAsOperatorRequest {
     string email = 2;
     string password = 3;
     string location = 4;
-    oneof type {
-        string depot_operator = 5;
-        string warehouse_operator = 6;
-    }
+    string type = 5;
 }
 
 // RegisterAsCourier

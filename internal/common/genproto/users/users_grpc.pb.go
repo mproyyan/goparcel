@@ -30,6 +30,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
+	// User authentication
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	RegisterAsOperator(ctx context.Context, in *RegisterAsOperatorRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCarrier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -88,6 +89,7 @@ func (c *userServiceClient) RegisterAsCourier(ctx context.Context, in *RegisterA
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
+	// User authentication
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	RegisterAsOperator(context.Context, *RegisterAsOperatorRequest) (*emptypb.Empty, error)
 	RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
