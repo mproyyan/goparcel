@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
@@ -31,7 +32,7 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 		{
 			{Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "user_types"},
-				{Key: "localField", Value: "user_type"},
+				{Key: "localField", Value: "user_type_id"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "user_type"},
 			}},
@@ -81,6 +82,7 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 		return &userDomain, nil
 	}
 
+	fmt.Println("user not found")
 	return nil, cuserr.ErrUserNotFound
 }
 
