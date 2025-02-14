@@ -44,7 +44,7 @@ type UserType struct {
 	PermissionID primitive.ObjectID `bson:"permission_id"`
 
 	// Relations
-	Permission *Permission `bson:"permission"`
+	Permission *Permission `bson:"permission,omitempty"`
 }
 
 type Permission struct {
