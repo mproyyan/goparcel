@@ -2,6 +2,8 @@ package adapter
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	"go.mongodb.org/mongo-driver/bson"
@@ -30,7 +32,8 @@ func (u *UserTypeRepository) FindUserType(ctx context.Context, userType string) 
 		return nil, err
 	}
 
-	return UserTypeModelToDomain(&userTypeResult), nil
+	userTypeModel := userTypeModelToDomain(userTypeResult)
+	return &userTypeModel, nil
 }
 
 // models
@@ -39,7 +42,9 @@ type UserType struct {
 	Name         string             `bson:"name"`
 	Description  string             `bson:"description"`
 	PermissionID primitive.ObjectID `bson:"permission_id"`
-	Permission   Permission         `bson:"permission"`
+
+	// Relations
+	Permission *Permission `bson:"permission"`
 }
 
 type Permission struct {
@@ -79,11 +84,67 @@ type Permission struct {
 	} `bson:"cargo"`
 }
 
-func UserTypeModelToDomain(userTypeModel *UserType) *user.UserType {
-	return &user.UserType{
+func (u *UserType) hasPermission() bool {
+	return u.Permission != nil
+}
+
+// Helper function to get all granted permissions as slice
+func (p Permission) grantedPermissions() []string {
+	var permissions []string
+
+	// Use reflect to read each field in a struct
+	v := reflect.ValueOf(p)
+	for i := 0; i < v.NumField(); i++ {
+		category := v.Type().Field(i).Name // Category name (user_management, shipment, etc)
+		subStruct := v.Field(i)
+
+		// Iterate each field in sub-struct
+		for j := 0; j < subStruct.NumField(); j++ {
+			field := subStruct.Type().Field(j).Name // Permission field (get_user, create_shipment, etc)
+			value := subStruct.Field(j).Bool()      // Permission value
+
+			if value {
+				// Only append granted permissionS
+				permissions = append(permissions, fmt.Sprintf("%s.%s", toSnakeCase(category), toSnakeCase(field)))
+			}
+		}
+	}
+
+	return permissions
+}
+
+// Helper function to convert user type model to domain
+func userTypeModelToDomain(userTypeModel UserType) user.UserType {
+	var permissions []string
+	if userTypeModel.hasPermission() {
+		permissions = userTypeModel.Permission.grantedPermissions()
+	}
+
+	return user.UserType{
 		ID:           userTypeModel.ID.Hex(),
 		Name:         userTypeModel.Name,
 		Description:  userTypeModel.Description,
 		PermissionID: userTypeModel.PermissionID.Hex(),
+		Permissions:  permissions,
 	}
+}
+
+// Helper function to convert domain to user type model
+func domainToUserTypeModel(userType user.UserType) (*UserType, error) {
+	userTypeID, err := primitive.ObjectIDFromHex(userType.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	permissionID, err := primitive.ObjectIDFromHex(userType.PermissionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserType{
+		ID:           userTypeID,
+		Name:         userType.Name,
+		Description:  userType.Description,
+		PermissionID: permissionID,
+	}, nil
 }

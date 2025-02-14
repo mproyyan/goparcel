@@ -2,8 +2,6 @@ package adapter
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	"github.com/mproyyan/goparcel/internal/users/errors"
@@ -78,78 +76,90 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 			return nil, err
 		}
 
-		return modelToDomain(user), nil
+		userDomain := userModelToDomain(user)
+		return &userDomain, nil
 	}
 
 	return nil, errors.ErrUserNotFound
 }
 
 func (u *UserRepository) CreateUser(ctx context.Context, user user.User) (string, error) {
-	// Insert new user
-	result, err := u.collection.InsertOne(ctx, bson.M{
-		"_id":          user.ID,
-		"model_id":     user.ModelID,
-		"email":        user.Email,
-		"password":     user.Password,
-		"user_type_id": user.Type.ID,
-	})
+	// Prepare data to insert
+	userModel, err := domainToUserModel(user)
+	if err != nil {
+		return "", err
+	}
 
+	// Insert new user
+	result, err := u.collection.InsertOne(ctx, userModel)
 	if err != nil {
 		return "", err
 	}
 
 	// Return inserted id
-	return result.InsertedID.(string), nil
+	insertedID := result.InsertedID.(primitive.ObjectID)
+	return insertedID.Hex(), nil
 }
 
 // User models
 type User struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty"`
-	ModelID  primitive.ObjectID `bson:"model_id,omitempty"`
-	Email    string             `bson:"email"`
-	Password string             `bson:"password"`
-	UserType UserType           `bson:"user_type"`
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	ModelID    primitive.ObjectID `bson:"model_id,omitempty"`
+	Email      string             `bson:"email"`
+	Password   string             `bson:"password"`
+	UserTypeID primitive.ObjectID `bson:"user_type_id"`
+
+	// Relations
+	UserType *UserType `bson:"user_type,omitempty"`
 }
 
-// Helper function to get all granted permissions
-func (p Permission) GrantedPermissions() []string {
-	var permissions []string
-
-	// Use reflect to read each field in a struct
-	v := reflect.ValueOf(p)
-	for i := 0; i < v.NumField(); i++ {
-		category := v.Type().Field(i).Name // Category name (user_management, shipment, etc)
-		subStruct := v.Field(i)
-
-		// Iterate each field in sub-struct
-		for j := 0; j < subStruct.NumField(); j++ {
-			field := subStruct.Type().Field(j).Name // Permission field (get_user, create_shipment, etc)
-			value := subStruct.Field(j).Bool()      // Permission value
-
-			if value {
-				// Only append granted permission
-				permissions = append(permissions, fmt.Sprintf("%s.%s", toSnakeCase(category), toSnakeCase(field)))
-			}
-		}
-	}
-
-	return permissions
+func (u *User) hasUserType() bool {
+	return u.UserType != nil
 }
 
 // Helper function to convert user model to user domain
-func modelToDomain(userModel User) *user.User {
-	return &user.User{
+func userModelToDomain(userModel User) user.User {
+	// Check if has relation to user type
+	userType := user.UserType{ID: userModel.UserTypeID.Hex()}
+	if userModel.hasUserType() {
+		userType = userTypeModelToDomain(*userModel.UserType)
+	}
+
+	return user.User{
 		ID:       userModel.ID.Hex(),
 		ModelID:  userModel.ModelID.Hex(),
 		Email:    userModel.Email,
 		Password: userModel.Password,
-		Type: user.UserType{
-			ID:          userModel.UserType.ID.Hex(),
-			Name:        userModel.UserType.Name,
-			Description: userModel.UserType.Description,
-			Permissions: userModel.UserType.Permission.GrantedPermissions(),
-		},
+		Type:     userType,
 	}
+}
+
+// Helper function to convert domain to user model
+func domainToUserModel(user user.User) (*User, error) {
+	// Convert string ObjectId to literal ObjectId
+	userID, err := primitive.ObjectIDFromHex(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	modelID, err := primitive.ObjectIDFromHex(user.ModelID)
+	if err != nil {
+		return nil, err
+	}
+
+	userTypeID, err := primitive.ObjectIDFromHex(user.Type.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return user model
+	return &User{
+		ID:         userID,
+		ModelID:    modelID,
+		Email:      user.Email,
+		Password:   user.Password,
+		UserTypeID: userTypeID,
+	}, nil
 }
 
 // Helper function to create snake case for permission name
