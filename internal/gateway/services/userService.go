@@ -72,9 +72,39 @@ func (u UserService) registerAsOperator(c *fiber.Ctx) error {
 	})
 }
 
+func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
+	// Parse request body
+	var registerAsCarrierRequest requests.RegisterAsCarrierRequest
+	if err := c.BodyParser(&registerAsCarrierRequest); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Invalid request body",
+			"message": err.Error(),
+		})
+	}
+
+	// Call user service grpc
+	_, err := u.client.RegisterAsCarrier(c.Context(), &users.RegisterAsCarrierRequest{
+		Name:     registerAsCarrierRequest.Name,
+		Email:    registerAsCarrierRequest.Email,
+		Password: registerAsCarrierRequest.Password,
+	})
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Invalid request body",
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "registration as a carrier has been successful",
+	})
+}
+
 func (u UserService) Bootstrap() {
 	user := u.router.Group("/users")
 
 	user.Post("/login", u.login)
 	user.Post("/register-as-operator", u.registerAsOperator)
+	user.Post("/register-as-carrier", u.registerAsCarrier)
 }
