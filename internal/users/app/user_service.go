@@ -6,6 +6,7 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/auth"
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
+	"github.com/mproyyan/goparcel/internal/users/domain/courier"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
@@ -17,6 +18,7 @@ type UserService struct {
 	userTypeRepository user.UserTypeRepository
 	operatorRepository operator.OperatorRepository
 	carrierRepository  carrier.CarrierRepository
+	courierRepository  courier.CourierRepository
 }
 
 func NewUserService(
@@ -24,12 +26,14 @@ func NewUserService(
 	userTypeRepository user.UserTypeRepository,
 	operatorRepository operator.OperatorRepository,
 	carrierRepository carrier.CarrierRepository,
+	courierRepository courier.CourierRepository,
 ) UserService {
 	return UserService{
 		userRepository:     userRepository,
 		userTypeRepository: userTypeRepository,
 		operatorRepository: operatorRepository,
 		carrierRepository:  carrierRepository,
+		courierRepository:  courierRepository,
 	}
 }
 
@@ -126,6 +130,51 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 	// Create carrier
 	_, err = u.carrierRepository.CreateCarrier(ctx, carrier.Carrier{
 		ID:     carrierId.Hex(),
+		UserID: userId.Hex(),
+		Name:   name,
+		Email:  email,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u UserService) RegisterAsCourier(ctx context.Context, name, email, password string) error {
+	// Find carrier user type
+	userType, err := u.userTypeRepository.FindUserType(ctx, "courier")
+	if err != nil {
+		return err
+	}
+
+	// Define ObjectId for user and carrier
+	userId := primitive.NewObjectID()
+	courierID := primitive.NewObjectID()
+
+	// Encrypt password
+	encryptedPassword, err := auth.HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	// Create user
+	_, err = u.userRepository.CreateUser(ctx, user.User{
+		ID:       userId.Hex(),
+		ModelID:  courierID.Hex(),
+		Email:    email,
+		Password: encryptedPassword,
+		Type:     user.UserType{ID: userType.ID},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Create carrier
+	_, err = u.courierRepository.CreateCourier(ctx, courier.Courier{
+		ID:     courierID.Hex(),
 		UserID: userId.Hex(),
 		Name:   name,
 		Email:  email,

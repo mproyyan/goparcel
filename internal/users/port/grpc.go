@@ -56,8 +56,13 @@ func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *users.Regist
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) RegisterAsCourier(_ context.Context, _ *users.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
-	panic("not implemented") // TODO: Implement
+func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *users.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
+	err := g.service.RegisterAsCourier(ctx, request.Name, request.Email, request.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 func (g GrpcServer) mustEmbedUnimplementedUserServiceServer() {

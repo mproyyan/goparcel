@@ -40,7 +40,14 @@ func main() {
 	userTypeRepository := adapter.NewUserTypeRepository(database)
 	operatorRepository := adapter.NewOperatorRepository(database)
 	carrierRepository := adapter.NewCarrierRepository(database)
-	userService := app.NewUserService(userRepository, userTypeRepository, operatorRepository, carrierRepository)
+	courierRepository := adapter.NewCourierRepository(database)
+	userService := app.NewUserService(
+		userRepository,
+		userTypeRepository,
+		operatorRepository,
+		carrierRepository,
+		courierRepository,
+	)
 
 	server.RunGrpcServer(func(server *grpc.Server) {
 		service := port.NewGrpcServer(userService)
