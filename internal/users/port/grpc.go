@@ -47,8 +47,13 @@ func (g GrpcServer) RegisterAsOperator(context context.Context, request *users.R
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) RegisterAsCarrier(_ context.Context, _ *users.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
-	panic("not implemented") // TODO: Implement
+func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *users.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
+	err := g.service.RegisterAsCarrier(ctx, request.Name, request.Email, request.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 func (g GrpcServer) RegisterAsCourier(_ context.Context, _ *users.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
