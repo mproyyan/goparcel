@@ -5,6 +5,7 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
+	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -28,9 +29,8 @@ func (o *OperatorRepository) CreateOperator(ctx context.Context, operator operat
 
 	// Create new operator
 	result, err := o.collection.InsertOne(ctx, operatorModel)
-
 	if err != nil {
-		return "", err
+		return "", cuserr.MongoError(err)
 	}
 
 	// Return inserted id
@@ -53,17 +53,17 @@ func domainToOperatorModel(operator operator.Operator) (*OperatorModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	id, err := utils.ConvertToObjectId(operator.ID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	userID, err := utils.ConvertToObjectId(operator.UserID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	locationID, err := utils.ConvertToObjectId(operator.LocationID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	return &OperatorModel{

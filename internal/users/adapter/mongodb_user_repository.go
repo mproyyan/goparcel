@@ -6,6 +6,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	"github.com/mproyyan/goparcel/internal/users/errors"
+	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -67,14 +68,14 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 	// Execute query
 	cursor, err := u.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.MongoError(err)
 	}
 	defer cursor.Close(ctx)
 
 	if cursor.Next(ctx) {
 		var user User
 		if err := cursor.Decode(&user); err != nil {
-			return nil, err
+			return nil, cuserr.MongoError(err)
 		}
 
 		userDomain := userModelToDomain(user)
@@ -94,7 +95,7 @@ func (u *UserRepository) CreateUser(ctx context.Context, user user.User) (string
 	// Insert new user
 	result, err := u.collection.InsertOne(ctx, userModel)
 	if err != nil {
-		return "", err
+		return "", cuserr.MongoError(err)
 	}
 
 	// Return inserted id
@@ -140,17 +141,17 @@ func domainToUserModel(user user.User) (*User, error) {
 	// Convert string ObjectId to literal ObjectId
 	userID, err := utils.ConvertToObjectId(user.ID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	modelID, err := utils.ConvertToObjectId(user.ModelID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	userTypeID, err := utils.ConvertToObjectId(user.Type.ID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	// Return user model

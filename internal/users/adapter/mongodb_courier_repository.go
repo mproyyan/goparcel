@@ -5,6 +5,7 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/courier"
+	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -29,7 +30,7 @@ func (c *CourierRepository) CreateCourier(ctx context.Context, courier courier.C
 	// Create new carrier
 	result, err := c.collection.InsertOne(ctx, courierModel)
 	if err != nil {
-		return "", err
+		return "", cuserr.MongoError(err)
 	}
 
 	// Return inserted id
@@ -52,17 +53,17 @@ func domainToCourierModel(courier courier.Courier) (*CourierModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	courierID, err := utils.ConvertToObjectId(courier.ID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	userID, err := utils.ConvertToObjectId(courier.UserID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	locationID, err := utils.ConvertToObjectId(courier.LocationID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	return &CourierModel{

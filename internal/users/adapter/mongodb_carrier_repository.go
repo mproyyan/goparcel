@@ -5,6 +5,7 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
+	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -29,7 +30,7 @@ func (c *CarrierRepository) CreateCarrier(ctx context.Context, carrier carrier.C
 	// Create new carrier
 	result, err := c.collection.InsertOne(ctx, carrierModel)
 	if err != nil {
-		return "", err
+		return "", cuserr.MongoError(err)
 	}
 
 	// Return inserted id
@@ -53,22 +54,22 @@ func domainToCarrierModel(carrier carrier.Carrier) (*CarrierModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	carrierID, err := utils.ConvertToObjectId(carrier.ID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	userID, err := utils.ConvertToObjectId(carrier.UserID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	cargoID, err := utils.ConvertToObjectId(carrier.CargoID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	locationID, err := utils.ConvertToObjectId(carrier.LastKnownLocationID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	return &CarrierModel{

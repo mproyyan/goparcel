@@ -7,6 +7,7 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
+	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,7 +31,7 @@ func (u *UserTypeRepository) FindUserType(ctx context.Context, userType string) 
 	}).Decode(&userTypeResult)
 
 	if err != nil {
-		return nil, err
+		return nil, cuserr.MongoError(err)
 	}
 
 	userTypeModel := userTypeModelToDomain(userTypeResult)
@@ -134,12 +135,12 @@ func userTypeModelToDomain(userTypeModel UserType) user.UserType {
 func domainToUserTypeModel(userType user.UserType) (*UserType, error) {
 	userTypeID, err := utils.ConvertToObjectId(userType.ID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	permissionID, err := utils.ConvertToObjectId(userType.PermissionID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.ErrInvalidHexString
 	}
 
 	return &UserType{
