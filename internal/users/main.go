@@ -50,6 +50,7 @@ func main() {
 	operatorRepository := adapter.NewOperatorRepository(database)
 	carrierRepository := adapter.NewCarrierRepository(database)
 	courierRepository := adapter.NewCourierRepository(database)
+	cacheRepository := adapter.NewCacheRepository(redisClient)
 	transaction := db.NewMongoTransactionManager(client)
 	userService := app.NewUserService(
 		transaction,
@@ -58,7 +59,7 @@ func main() {
 		operatorRepository,
 		carrierRepository,
 		courierRepository,
-		redisClient,
+		cacheRepository,
 	)
 
 	server.RunGrpcServer(func(server *grpc.Server) {

@@ -11,3 +11,7 @@ type UserRepository interface {
 type UserTypeRepository interface {
 	FindUserType(ctx context.Context, userType string) (*UserType, error)
 }
+
+type CacheRepository interface {
+	CacheUserPermissions(ctx context.Context, userID string, permissions Permissions) error
+}
