@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package users;
+
+option go_package = "goparcel/internal/common/genproto/locations";
+
+service LocationService {
+    rpc GetLocation(GetLocationRequest) returns (Location) {}
+    rpc CreateLocation(CreateLocationRequest) returns (google.protobuf.Empty) {}
+}
+
+message GetLocationRequest {
+    string LocationID = 1;
+}
+
+message Location {
+    string name = 1;
+    string type = 2;
+    string warehouse_id = 3;
+    Address address = 4;
+}
+
+message Address {
+    string province = 1;
+    string city = 2;
+    string district = 3;
+    string subdistrict = 4;
+    double latitude = 5;
+    double longitude = 6;
+    string street_address = 7;
+    string zip_code = 8;
+}
+
+message CreateLocationRequest {
+    string name = 1;
+    string type = 2;
+    string warehouse_id = 3;
+    string zip_code = 4;
+    double latitude = 5;
+    double longitude = 6;
+    string street_address = 7;
+}
