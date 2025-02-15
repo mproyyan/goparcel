@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/mproyyan/goparcel/internal/common/auth"
@@ -10,6 +11,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -19,6 +21,7 @@ type UserService struct {
 	operatorRepository operator.OperatorRepository
 	carrierRepository  carrier.CarrierRepository
 	courierRepository  courier.CourierRepository
+	redisClient        *redis.Client
 }
 
 func NewUserService(
@@ -27,6 +30,7 @@ func NewUserService(
 	operatorRepository operator.OperatorRepository,
 	carrierRepository carrier.CarrierRepository,
 	courierRepository courier.CourierRepository,
+	redisClient *redis.Client,
 ) UserService {
 	return UserService{
 		userRepository:     userRepository,
@@ -34,6 +38,7 @@ func NewUserService(
 		operatorRepository: operatorRepository,
 		carrierRepository:  carrierRepository,
 		courierRepository:  courierRepository,
+		redisClient:        redisClient,
 	}
 }
 
@@ -47,6 +52,12 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 	// Compare given password with password stored in db
 	if authenticated := auth.CheckPassword(user.Password, password); !authenticated {
 		return "", cuserr.ErrInvalidCredentials
+	}
+
+	// Save user permissions to redis
+	err = u.redisClient.Set(ctx, user.ID, user.Type.Permissions, time.Hour).Err()
+	if err != nil {
+		log.Printf("failed to cache user permission: %v", err)
 	}
 
 	return auth.GenerateToken(user.ID, user.ModelID, time.Hour)
