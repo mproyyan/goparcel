@@ -174,15 +174,3 @@ func domainToUserModel(user user.User) (*User, error) {
 		UserTypeID: userTypeID,
 	}, nil
 }
-
-// Helper function to create snake case for permission name
-func toSnakeCase(s string) string {
-	result := ""
-	for i, r := range s {
-		if i > 0 && r >= 'A' && r <= 'Z' {
-			result += "_"
-		}
-		result += string(r)
-	}
-	return result
-}

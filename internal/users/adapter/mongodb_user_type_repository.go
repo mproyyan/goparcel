@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/mproyyan/goparcel/internal/common/utils"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
@@ -149,4 +150,17 @@ func domainToUserTypeModel(userType user.UserType) (*UserType, error) {
 		Description:  userType.Description,
 		PermissionID: permissionID,
 	}, nil
+}
+
+// Helper function to create snake case for permission name
+func toSnakeCase(s string) string {
+	result := ""
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result += "_"
+		}
+		result += string(r)
+	}
+
+	return strings.ToLower(result)
 }
