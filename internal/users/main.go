@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/common/genproto/users"
 	"github.com/mproyyan/goparcel/internal/common/server"
 	"github.com/mproyyan/goparcel/internal/users/adapter"
@@ -49,7 +50,9 @@ func main() {
 	operatorRepository := adapter.NewOperatorRepository(database)
 	carrierRepository := adapter.NewCarrierRepository(database)
 	courierRepository := adapter.NewCourierRepository(database)
+	transaction := db.NewMongoTransactionManager(client)
 	userService := app.NewUserService(
+		transaction,
 		userRepository,
 		userTypeRepository,
 		operatorRepository,

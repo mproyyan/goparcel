@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mproyyan/goparcel/internal/common/utils"
+	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 
@@ -150,17 +150,17 @@ func userModelToDomain(userModel User) user.User {
 // Helper function to convert domain to user model
 func domainToUserModel(user user.User) (*User, error) {
 	// Convert string ObjectId to literal ObjectId
-	userID, err := utils.ConvertToObjectId(user.ID)
+	userID, err := db.ConvertToObjectId(user.ID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	modelID, err := utils.ConvertToObjectId(user.ModelID)
+	modelID, err := db.ConvertToObjectId(user.ModelID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	userTypeID, err := utils.ConvertToObjectId(user.Type.ID)
+	userTypeID, err := db.ConvertToObjectId(user.Type.ID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}

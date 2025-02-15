@@ -24,5 +24,11 @@ func MongoError(err error) error {
 		return status.Errorf(codes.NotFound, "document not found")
 	}
 
+	// Handle transaction error
+	var commandErr mongo.CommandError
+	if errors.As(err, &commandErr) && commandErr.HasErrorLabel("TransientTransactionError") {
+		return status.Errorf(codes.Aborted, "transaction aborted: %v", err)
+	}
+
 	return status.Errorf(codes.Internal, "unexpected database error: %v", err)
 }

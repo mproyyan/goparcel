@@ -3,7 +3,7 @@ package adapter
 import (
 	"context"
 
-	"github.com/mproyyan/goparcel/internal/common/utils"
+	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/users/domain/courier"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -51,17 +51,17 @@ type CourierModel struct {
 // Helper function to convert domain to model
 func domainToCourierModel(courier courier.Courier) (*CourierModel, error) {
 	// Convert string ObjectId to literal ObjectId
-	courierID, err := utils.ConvertToObjectId(courier.ID)
+	courierID, err := db.ConvertToObjectId(courier.ID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	userID, err := utils.ConvertToObjectId(courier.UserID)
+	userID, err := db.ConvertToObjectId(courier.UserID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	locationID, err := utils.ConvertToObjectId(courier.LocationID)
+	locationID, err := db.ConvertToObjectId(courier.LocationID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}

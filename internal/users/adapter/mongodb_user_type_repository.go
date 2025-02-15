@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mproyyan/goparcel/internal/common/utils"
+	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -134,12 +134,12 @@ func userTypeModelToDomain(userTypeModel UserType) user.UserType {
 
 // Helper function to convert domain to user type model
 func domainToUserTypeModel(userType user.UserType) (*UserType, error) {
-	userTypeID, err := utils.ConvertToObjectId(userType.ID)
+	userTypeID, err := db.ConvertToObjectId(userType.ID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	permissionID, err := utils.ConvertToObjectId(userType.PermissionID)
+	permissionID, err := db.ConvertToObjectId(userType.PermissionID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}

@@ -3,7 +3,7 @@ package adapter
 import (
 	"context"
 
-	"github.com/mproyyan/goparcel/internal/common/utils"
+	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -51,17 +51,17 @@ type OperatorModel struct {
 // Helper function to convert domain to operator model
 func domainToOperatorModel(operator operator.Operator) (*OperatorModel, error) {
 	// Convert string ObjectId to literal ObjectId
-	id, err := utils.ConvertToObjectId(operator.ID)
+	id, err := db.ConvertToObjectId(operator.ID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	userID, err := utils.ConvertToObjectId(operator.UserID)
+	userID, err := db.ConvertToObjectId(operator.UserID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	locationID, err := utils.ConvertToObjectId(operator.LocationID)
+	locationID, err := db.ConvertToObjectId(operator.LocationID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}

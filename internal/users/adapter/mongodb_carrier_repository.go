@@ -3,7 +3,7 @@ package adapter
 import (
 	"context"
 
-	"github.com/mproyyan/goparcel/internal/common/utils"
+	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
 	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -52,22 +52,22 @@ type CarrierModel struct {
 // Helper function to convert domain to model
 func domainToCarrierModel(carrier carrier.Carrier) (*CarrierModel, error) {
 	// Convert string ObjectId to literal ObjectId
-	carrierID, err := utils.ConvertToObjectId(carrier.ID)
+	carrierID, err := db.ConvertToObjectId(carrier.ID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	userID, err := utils.ConvertToObjectId(carrier.UserID)
+	userID, err := db.ConvertToObjectId(carrier.UserID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	cargoID, err := utils.ConvertToObjectId(carrier.CargoID)
+	cargoID, err := db.ConvertToObjectId(carrier.CargoID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}
 
-	locationID, err := utils.ConvertToObjectId(carrier.LastKnownLocationID)
+	locationID, err := db.ConvertToObjectId(carrier.LastKnownLocationID)
 	if err != nil {
 		return nil, cuserr.ErrInvalidHexString
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mproyyan/goparcel/internal/common/auth"
+	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
 	"github.com/mproyyan/goparcel/internal/users/domain/courier"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
@@ -16,6 +17,7 @@ import (
 )
 
 type UserService struct {
+	transaction        db.TransactionManager
 	userRepository     user.UserRepository
 	userTypeRepository user.UserTypeRepository
 	operatorRepository operator.OperatorRepository
@@ -25,6 +27,7 @@ type UserService struct {
 }
 
 func NewUserService(
+	transaction db.TransactionManager,
 	userRepository user.UserRepository,
 	userTypeRepository user.UserTypeRepository,
 	operatorRepository operator.OperatorRepository,
@@ -33,6 +36,7 @@ func NewUserService(
 	redisClient *redis.Client,
 ) UserService {
 	return UserService{
+		transaction:        transaction,
 		userRepository:     userRepository,
 		userTypeRepository: userTypeRepository,
 		operatorRepository: operatorRepository,
@@ -80,41 +84,51 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 		return err
 	}
 
-	// Define ObjectId for user and operator
-	userId := primitive.NewObjectID()
-	operatorId := primitive.NewObjectID()
+	// Run transaction
+	// Create user and model (operator)
+	err = u.transaction.Execute(ctx, func(ctx context.Context) error {
+		// Define ObjectId for user and operator
+		userId := primitive.NewObjectID()
+		operatorId := primitive.NewObjectID()
 
-	// Encrypt password
-	encryptedPassword, err := auth.HashPassword(password)
-	if err != nil {
-		return err
-	}
+		// Encrypt password
+		encryptedPassword, err := auth.HashPassword(password)
+		if err != nil {
+			return err
+		}
 
-	// Create user
-	_, err = u.userRepository.CreateUser(ctx, user.User{
-		ID:       userId.Hex(),
-		ModelID:  operatorId.Hex(),
-		Email:    email,
-		Password: encryptedPassword,
-		Type:     user.UserType{ID: userType.ID},
+		// Create user
+		_, err = u.userRepository.CreateUser(ctx, user.User{
+			ID:       userId.Hex(),
+			ModelID:  operatorId.Hex(),
+			Email:    email,
+			Password: encryptedPassword,
+			Type:     user.UserType{ID: userType.ID},
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// Create operator
+		_, err = u.operatorRepository.CreateOperator(ctx, operator.Operator{
+			ID:         operatorId.Hex(),
+			UserID:     userId.Hex(),
+			Type:       operatorType,
+			Name:       name,
+			Email:      email,
+			LocationID: location,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// Create operator
-	_, err = u.operatorRepository.CreateOperator(ctx, operator.Operator{
-		ID:         operatorId.Hex(),
-		UserID:     userId.Hex(),
-		Type:       operatorType,
-		Name:       name,
-		Email:      email,
-		LocationID: location,
-	})
-
-	if err != nil {
-		return err
+		return cuserr.MongoError(err)
 	}
 
 	return nil
@@ -137,39 +151,49 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 		return err
 	}
 
-	// Define ObjectId for user and carrier
-	userId := primitive.NewObjectID()
-	carrierId := primitive.NewObjectID()
+	// Run transaction
+	// Create user and model (carrier)
+	err = u.transaction.Execute(ctx, func(ctx context.Context) error {
+		// Define ObjectId for user and carrier
+		userId := primitive.NewObjectID()
+		carrierId := primitive.NewObjectID()
 
-	// Encrypt password
-	encryptedPassword, err := auth.HashPassword(password)
-	if err != nil {
-		return err
-	}
+		// Encrypt password
+		encryptedPassword, err := auth.HashPassword(password)
+		if err != nil {
+			return err
+		}
 
-	// Create user
-	_, err = u.userRepository.CreateUser(ctx, user.User{
-		ID:       userId.Hex(),
-		ModelID:  carrierId.Hex(),
-		Email:    email,
-		Password: encryptedPassword,
-		Type:     user.UserType{ID: userType.ID},
+		// Create user
+		_, err = u.userRepository.CreateUser(ctx, user.User{
+			ID:       userId.Hex(),
+			ModelID:  carrierId.Hex(),
+			Email:    email,
+			Password: encryptedPassword,
+			Type:     user.UserType{ID: userType.ID},
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// Create carrier
+		_, err = u.carrierRepository.CreateCarrier(ctx, carrier.Carrier{
+			ID:     carrierId.Hex(),
+			UserID: userId.Hex(),
+			Name:   name,
+			Email:  email,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// Create carrier
-	_, err = u.carrierRepository.CreateCarrier(ctx, carrier.Carrier{
-		ID:     carrierId.Hex(),
-		UserID: userId.Hex(),
-		Name:   name,
-		Email:  email,
-	})
-
-	if err != nil {
-		return err
+		return cuserr.MongoError(err)
 	}
 
 	return nil
@@ -192,39 +216,49 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 		return err
 	}
 
-	// Define ObjectId for user and carrier
-	userId := primitive.NewObjectID()
-	courierID := primitive.NewObjectID()
+	// Run transaction
+	// Create user and model (courier)
+	err = u.transaction.Execute(ctx, func(ctx context.Context) error {
+		// Define ObjectId for user and carrier
+		userId := primitive.NewObjectID()
+		courierID := primitive.NewObjectID()
 
-	// Encrypt password
-	encryptedPassword, err := auth.HashPassword(password)
-	if err != nil {
-		return err
-	}
+		// Encrypt password
+		encryptedPassword, err := auth.HashPassword(password)
+		if err != nil {
+			return err
+		}
 
-	// Create user
-	_, err = u.userRepository.CreateUser(ctx, user.User{
-		ID:       userId.Hex(),
-		ModelID:  courierID.Hex(),
-		Email:    email,
-		Password: encryptedPassword,
-		Type:     user.UserType{ID: userType.ID},
+		// Create user
+		_, err = u.userRepository.CreateUser(ctx, user.User{
+			ID:       userId.Hex(),
+			ModelID:  courierID.Hex(),
+			Email:    email,
+			Password: encryptedPassword,
+			Type:     user.UserType{ID: userType.ID},
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// Create carrier
+		_, err = u.courierRepository.CreateCourier(ctx, courier.Courier{
+			ID:     courierID.Hex(),
+			UserID: userId.Hex(),
+			Name:   name,
+			Email:  email,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// Create carrier
-	_, err = u.courierRepository.CreateCourier(ctx, courier.Courier{
-		ID:     courierID.Hex(),
-		UserID: userId.Hex(),
-		Name:   name,
-		Email:  email,
-	})
-
-	if err != nil {
-		return err
+		return cuserr.MongoError(err)
 	}
 
 	return nil
