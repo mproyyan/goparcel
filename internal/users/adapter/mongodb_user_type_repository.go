@@ -117,7 +117,7 @@ func (p Permission) grantedPermissions() []string {
 
 // Helper function to convert user type model to domain
 func userTypeModelToDomain(userTypeModel UserType) user.UserType {
-	var permissions []string
+	var permissions user.Permissions
 	if userTypeModel.hasPermission() {
 		permissions = userTypeModel.Permission.grantedPermissions()
 	}
