@@ -1,6 +1,9 @@
 package operator
 
-import cuserr "github.com/mproyyan/goparcel/internal/users/errors"
+import (
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
 
 type Operator struct {
 	ID         string
@@ -37,5 +40,5 @@ func OperatorTypeFromString(stringType string) (OperatorType, error) {
 		return WarehouseOperator, nil
 	}
 
-	return 0, cuserr.ErrInvalidOperatorType
+	return 0, status.Errorf(codes.InvalidArgument, "invalid location type")
 }
