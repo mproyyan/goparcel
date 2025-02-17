@@ -29,7 +29,7 @@ func (l LocationService) CreateLocation(ctx context.Context, location domain.Loc
 	// Find region detail by zipcode
 	region, err := l.regionService.GetRegion(ctx, location.Address.ZipCode)
 	if err != nil {
-		return err
+		return cuserr.Decorate(err, "RegionService failed")
 	}
 
 	// Fill location address with region data
@@ -37,6 +37,11 @@ func (l LocationService) CreateLocation(ctx context.Context, location domain.Loc
 	location.Address.City = region.City
 	location.Address.District = region.District
 	location.Address.Subdistrict = region.Subdistrict
+
+	// Error when location is not either depot or warehouse
+	if location.InvalidType() {
+		return status.Error(codes.InvalidArgument, "invalid location type, must be depot or warehouse")
+	}
 
 	// If location type is depot then must have warehouse id
 	if location.IsDepot() {

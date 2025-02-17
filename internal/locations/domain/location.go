@@ -47,6 +47,10 @@ func (l Location) IsWarehouse() bool {
 	return l.Type == Warehouse
 }
 
+func (l Location) InvalidType() bool {
+	return !l.IsDepot() && !l.IsWarehouse()
+}
+
 func LocationTypeFromString(locationType string) LocationType {
 	switch locationType {
 	case "depot":
