@@ -3,6 +3,7 @@ package port
 import (
 	"context"
 
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
 	"github.com/mproyyan/goparcel/internal/locations/app"
 	"github.com/mproyyan/goparcel/internal/locations/domain"
@@ -23,7 +24,7 @@ func NewGrpcServer(service app.LocationService) GrpcServer {
 func (g GrpcServer) GetLocation(ctx context.Context, request *locations.GetLocationRequest) (*locations.Location, error) {
 	location, err := g.service.GetLocation(ctx, request.LocationID)
 	if err != nil {
-		return nil, err
+		return nil, cuserr.Decorate(err, "service GetLocation failed")
 	}
 
 	return &locations.Location{
@@ -57,7 +58,7 @@ func (g GrpcServer) CreateLocation(ctx context.Context, request *locations.Creat
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, cuserr.Decorate(err, "service CreateLocation failed")
 	}
 
 	return &emptypb.Empty{}, nil

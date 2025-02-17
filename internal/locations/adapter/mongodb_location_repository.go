@@ -2,13 +2,15 @@ package adapter
 
 import (
 	"context"
-	"errors"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/locations/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type LocationRepository struct {
@@ -25,17 +27,14 @@ func (l *LocationRepository) FindLocation(ctx context.Context, locationID string
 	// Convert string ObjectId to literal ObjectId
 	objID, err := primitive.ObjectIDFromHex(locationID)
 	if err != nil {
-		return nil, errors.New("invalid location ID format")
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
 	// Execute query
 	var model LocationModel
 	err = l.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&model)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("location not found")
-		}
-		return nil, err
+		return nil, cuserr.MongoError(err)
 	}
 
 	// Convert model to domain
@@ -46,13 +45,13 @@ func (l *LocationRepository) FindLocation(ctx context.Context, locationID string
 func (l *LocationRepository) CreateLocation(ctx context.Context, location domain.Location) (string, error) {
 	model, err := domainToLocationModel(location)
 	if err != nil {
-		return "", err
+		return "", cuserr.Decorate(err, "failed to convert domain to location model")
 	}
 
 	// Insert model
 	result, err := l.collection.InsertOne(ctx, model)
 	if err != nil {
-		return "", err
+		return "", cuserr.MongoError(err)
 	}
 
 	// Ambil ID hasil insert
@@ -104,12 +103,12 @@ func domainToLocationModel(location domain.Location) (*LocationModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	locationID, err := db.ConvertToObjectId(location.ID)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
 	warehouseID, err := db.ConvertToObjectId(location.WarehouseID)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, "warehouse_id is not valid object id")
 	}
 
 	return &LocationModel{

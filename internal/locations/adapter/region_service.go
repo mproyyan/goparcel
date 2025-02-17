@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/mproyyan/goparcel/internal/locations/domain"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type RegionService struct {
@@ -26,7 +28,7 @@ func (r *RegionService) GetRegion(ctx context.Context, zipcode string) (*domain.
 	url := fmt.Sprintf("https://rajaongkir.komerce.id/api/v1/destination/domestic-destination?search=%s", zipcode)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, status.Errorf(codes.Internal, "failed to create http request: %s", err.Error())
 	}
 
 	// Add api key
@@ -36,13 +38,13 @@ func (r *RegionService) GetRegion(ctx context.Context, zipcode string) (*domain.
 	// Send request
 	resp, err := r.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
+		return nil, status.Errorf(codes.Internal, "failed to send request: %s", err.Error())
 	}
 	defer resp.Body.Close()
 
 	// Check http statis code
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, status.Errorf(codes.Internal, "unexpected status code: %d", resp.StatusCode)
 	}
 
 	// Parsing JSON response
@@ -51,12 +53,12 @@ func (r *RegionService) GetRegion(ctx context.Context, zipcode string) (*domain.
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+		return nil, status.Errorf(codes.Internal, "failed to decode response: %s", err.Error())
 	}
 
 	// If no data found
 	if len(result.Data) == 0 {
-		return nil, fmt.Errorf("no region found for zipcode: %s", zipcode)
+		return nil, status.Errorf(codes.InvalidArgument, "no region found for zipcode: %s", zipcode)
 	}
 
 	// If only one data found then include subdistrict
