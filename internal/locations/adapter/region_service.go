@@ -30,7 +30,7 @@ func (r *RegionService) GetRegion(ctx context.Context, zipcode string) (*domain.
 	}
 
 	// Add api key
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", r.apiKey))
+	req.Header.Set("key", r.apiKey)
 	req.Header.Set("Content-Type", "application/json")
 
 	// Send request
