@@ -26,18 +26,6 @@ type RegionService interface {
 }
 
 func (l LocationService) CreateLocation(ctx context.Context, location domain.Location) error {
-	// Find region detail by zipcode
-	region, err := l.regionService.GetRegion(ctx, location.Address.ZipCode)
-	if err != nil {
-		return cuserr.Decorate(err, "RegionService failed")
-	}
-
-	// Fill location address with region data
-	location.Address.Province = region.Province
-	location.Address.City = region.City
-	location.Address.District = region.District
-	location.Address.Subdistrict = region.Subdistrict
-
 	// Error when location is not either depot or warehouse
 	if location.InvalidType() {
 		return status.Error(codes.InvalidArgument, "invalid location type, must be depot or warehouse")
@@ -56,6 +44,18 @@ func (l LocationService) CreateLocation(ctx context.Context, location domain.Loc
 			return status.Error(codes.InvalidArgument, "warehouse type location cannot contain another warehouse id")
 		}
 	}
+
+	// Find region detail by zipcode
+	region, err := l.regionService.GetRegion(ctx, location.Address.ZipCode)
+	if err != nil {
+		return cuserr.Decorate(err, "RegionService failed")
+	}
+
+	// Fill location address with region data
+	location.Address.Province = region.Province
+	location.Address.City = region.City
+	location.Address.District = region.District
+	location.Address.Subdistrict = region.Subdistrict
 
 	// Create new location
 	_, err = l.locationRepository.CreateLocation(ctx, location)
