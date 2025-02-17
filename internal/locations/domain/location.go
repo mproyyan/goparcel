@@ -31,7 +31,7 @@ func (l LocationType) String() string {
 	case Depot:
 		return "depot"
 	case Warehouse:
-		return "warehosue"
+		return "warehouse"
 	}
 
 	return ""
@@ -47,8 +47,8 @@ func (l Location) IsWarehouse() bool {
 	return l.Type == Warehouse
 }
 
-func LocationTypeFromString(locaationType string) LocationType {
-	switch locaationType {
+func LocationTypeFromString(locationType string) LocationType {
+	switch locationType {
 	case "depot":
 		return Depot
 	case "warehouse":
