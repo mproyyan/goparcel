@@ -24,9 +24,19 @@ func main() {
 	}
 	defer close()
 
+	// Connect to location service
+	locationServiceClient, close, err := client.NewLocationServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to user service", err)
+	}
+	defer close()
+
 	// Bootstrap services
 	userService := services.NewUserService(api, userServiceClient)
+	locationService := services.NewLocationService(api, locationServiceClient)
+
 	userService.Bootstrap()
+	locationService.Bootstrap()
 
 	// Run server
 	log.Fatal(app.Listen(addr))
