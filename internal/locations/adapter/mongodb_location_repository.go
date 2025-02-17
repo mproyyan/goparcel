@@ -94,6 +94,7 @@ func locationModelToDomain(model LocationModel) domain.Location {
 			Latitude:      model.Address.Latitude,
 			Longitude:     model.Address.Longitude,
 			StreetAddress: model.Address.StreetAddress,
+			ZipCode:       model.Address.ZipCode,
 		},
 	}
 }
