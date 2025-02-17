@@ -7,12 +7,14 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/auth"
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
 	"github.com/mproyyan/goparcel/internal/users/domain/courier"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
-	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type UserService struct {
@@ -49,12 +51,12 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 	// Find user
 	user, err := u.userRepository.FindUserByEmail(ctx, email)
 	if err != nil {
-		return "", err
+		return "", cuserr.Decorate(err, "failed to find user by email")
 	}
 
 	// Compare given password with password stored in db
 	if authenticated := auth.CheckPassword(user.Password, password); !authenticated {
-		return "", cuserr.ErrInvalidCredentials
+		return "", status.Error(codes.Unauthenticated, "invalid credentials")
 	}
 
 	// Cache user permission
@@ -63,7 +65,13 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 		log.Printf("failed to cache user permission: %v", err)
 	}
 
-	return auth.GenerateToken(user.ID, user.ModelID, time.Hour)
+	// Generate JWT token
+	token, err := auth.GenerateToken(user.ID, user.ModelID, time.Hour)
+	if err != nil {
+		return "", status.Error(codes.Internal, "failed to generate jwt token")
+	}
+
+	return token, nil
 }
 
 func (u UserService) RegisterAsOperator(ctx context.Context, name, email, password, location string, operatorType operator.OperatorType) error {
@@ -74,13 +82,13 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 	}
 
 	if !isAvailable {
-		return cuserr.ErrEmailUsed
+		return status.Error(codes.AlreadyExists, "email already in use")
 	}
 
 	// Find user type
 	userType, err := u.userTypeRepository.FindUserType(ctx, operatorType.String())
 	if err != nil {
-		return err
+		return cuserr.Decorate(err, "failed to find user type")
 	}
 
 	// Run transaction
@@ -93,7 +101,7 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 		// Encrypt password
 		encryptedPassword, err := auth.HashPassword(password)
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to hash password")
 		}
 
 		// Create user
@@ -106,7 +114,7 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 		})
 
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to create new user")
 		}
 
 		// Create operator
@@ -120,7 +128,7 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 		})
 
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to create new operator")
 		}
 
 		return nil
@@ -141,13 +149,13 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 	}
 
 	if !isAvailable {
-		return cuserr.ErrEmailUsed
+		return status.Error(codes.AlreadyExists, "email already in use")
 	}
 
 	// Find carrier user type
 	userType, err := u.userTypeRepository.FindUserType(ctx, "carrier")
 	if err != nil {
-		return err
+		return cuserr.Decorate(err, "failed to find user type")
 	}
 
 	// Run transaction
@@ -160,7 +168,7 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 		// Encrypt password
 		encryptedPassword, err := auth.HashPassword(password)
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to hash password")
 		}
 
 		// Create user
@@ -173,7 +181,7 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 		})
 
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to create new user")
 		}
 
 		// Create carrier
@@ -185,7 +193,7 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 		})
 
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to create new carrier")
 		}
 
 		return nil
@@ -206,17 +214,17 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 	}
 
 	if !isAvailable {
-		return cuserr.ErrEmailUsed
+		return status.Error(codes.AlreadyExists, "email already in use")
 	}
 
 	// Find carrier user type
 	userType, err := u.userTypeRepository.FindUserType(ctx, "courier")
 	if err != nil {
-		return err
+		return cuserr.Decorate(err, "failed to find user type")
 	}
 
 	// Run transaction
-	// Create user and model (courier)
+	// Create user and model (carrier)
 	err = u.transaction.Execute(ctx, func(ctx context.Context) error {
 		// Define ObjectId for user and carrier
 		userId := primitive.NewObjectID()
@@ -225,7 +233,7 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 		// Encrypt password
 		encryptedPassword, err := auth.HashPassword(password)
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to hash password")
 		}
 
 		// Create user
@@ -238,7 +246,7 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 		})
 
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to create new user")
 		}
 
 		// Create carrier
@@ -250,7 +258,7 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 		})
 
 		if err != nil {
-			return err
+			return cuserr.Decorate(err, "failed to create new courier")
 		}
 
 		return nil

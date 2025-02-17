@@ -7,11 +7,13 @@ import (
 	"strings"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
-	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type UserTypeRepository struct {
@@ -136,12 +138,12 @@ func userTypeModelToDomain(userTypeModel UserType) user.UserType {
 func domainToUserTypeModel(userType user.UserType) (*UserType, error) {
 	userTypeID, err := db.ConvertToObjectId(userType.ID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "user_type_id is not valid object id")
 	}
 
 	permissionID, err := db.ConvertToObjectId(userType.PermissionID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "permission_id is not valid object id")
 	}
 
 	return &UserType{

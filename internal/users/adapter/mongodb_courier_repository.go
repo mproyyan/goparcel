@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/courier"
-	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type CourierRepository struct {
@@ -24,7 +26,7 @@ func (c *CourierRepository) CreateCourier(ctx context.Context, courier courier.C
 	// Prepare data to insert
 	courierModel, err := domainToCourierModel(courier)
 	if err != nil {
-		return "", err
+		return "", cuserr.Decorate(err, "failed to convert domain to courier model")
 	}
 
 	// Create new carrier
@@ -53,17 +55,17 @@ func domainToCourierModel(courier courier.Courier) (*CourierModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	courierID, err := db.ConvertToObjectId(courier.ID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
 	}
 
 	userID, err := db.ConvertToObjectId(courier.UserID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "user_id is not valid object id")
 	}
 
 	locationID, err := db.ConvertToObjectId(courier.LocationID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
 	return &CourierModel{

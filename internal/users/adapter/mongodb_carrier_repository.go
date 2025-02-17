@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
-	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type CarrierRepository struct {
@@ -24,7 +26,7 @@ func (c *CarrierRepository) CreateCarrier(ctx context.Context, carrier carrier.C
 	// Prepare data to insert
 	carrierModel, err := domainToCarrierModel(carrier)
 	if err != nil {
-		return "", err
+		return "", cuserr.Decorate(err, "failed to convert domain to carrier model")
 	}
 
 	// Create new carrier
@@ -54,22 +56,22 @@ func domainToCarrierModel(carrier carrier.Carrier) (*CarrierModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	carrierID, err := db.ConvertToObjectId(carrier.ID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
 	}
 
 	userID, err := db.ConvertToObjectId(carrier.UserID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "user_id is not valid object id")
 	}
 
 	cargoID, err := db.ConvertToObjectId(carrier.CargoID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "cargo_id is not valid object id")
 	}
 
 	locationID, err := db.ConvertToObjectId(carrier.LastKnownLocationID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
 	return &CarrierModel{

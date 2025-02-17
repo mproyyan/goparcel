@@ -2,11 +2,12 @@ package adapter
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
-	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -82,15 +83,14 @@ func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*us
 		return &userDomain, nil
 	}
 
-	fmt.Println("user not found")
-	return nil, cuserr.ErrUserNotFound
+	return nil, status.Errorf(codes.NotFound, "user with email %s not found", email)
 }
 
 func (u *UserRepository) CreateUser(ctx context.Context, user user.User) (string, error) {
 	// Prepare data to insert
 	userModel, err := domainToUserModel(user)
 	if err != nil {
-		return "", err
+		return "", cuserr.Decorate(err, "failed to convert domain to user model")
 	}
 
 	// Insert new user
@@ -152,17 +152,17 @@ func domainToUserModel(user user.User) (*User, error) {
 	// Convert string ObjectId to literal ObjectId
 	userID, err := db.ConvertToObjectId(user.ID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "permission_id is not valid object id")
 	}
 
 	modelID, err := db.ConvertToObjectId(user.ModelID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "model_id is not valid object id")
 	}
 
 	userTypeID, err := db.ConvertToObjectId(user.Type.ID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "user_type_id is not valid object id")
 	}
 
 	// Return user model

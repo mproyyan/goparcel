@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
-	cuserr "github.com/mproyyan/goparcel/internal/users/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type OperatorRepository struct {
@@ -24,7 +26,7 @@ func (o *OperatorRepository) CreateOperator(ctx context.Context, operator operat
 	// Prepare data to insert
 	operatorModel, err := domainToOperatorModel(operator)
 	if err != nil {
-		return "", err
+		return "", cuserr.Decorate(err, "failed to convert domain to operator model")
 	}
 
 	// Create new operator
@@ -52,18 +54,16 @@ type OperatorModel struct {
 func domainToOperatorModel(operator operator.Operator) (*OperatorModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	id, err := db.ConvertToObjectId(operator.ID)
-	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
-	}
+	status.Error(codes.InvalidArgument, "id is not valid object id")
 
 	userID, err := db.ConvertToObjectId(operator.UserID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "user_id is not valid object id")
 	}
 
 	locationID, err := db.ConvertToObjectId(operator.LocationID)
 	if err != nil {
-		return nil, cuserr.ErrInvalidHexString
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
 	return &OperatorModel{
