@@ -20,8 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LocationService_GetLocation_FullMethodName    = "/users.LocationService/GetLocation"
-	LocationService_CreateLocation_FullMethodName = "/users.LocationService/CreateLocation"
+	LocationService_GetLocation_FullMethodName    = "/protobuf.LocationService/GetLocation"
+	LocationService_CreateLocation_FullMethodName = "/protobuf.LocationService/CreateLocation"
 )
 
 // LocationServiceClient is the client API for LocationService service.
@@ -143,7 +143,7 @@ func _LocationService_CreateLocation_Handler(srv interface{}, ctx context.Contex
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var LocationService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "users.LocationService",
+	ServiceName: "protobuf.LocationService",
 	HandlerType: (*LocationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

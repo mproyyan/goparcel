@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-package users;
+package protobuf;
 
 option go_package = "goparcel/internal/common/genproto/locations";
 

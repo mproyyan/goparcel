@@ -12,6 +12,7 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	locations "goparcel/internal/common/genproto/locations"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -20,10 +21,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_Login_FullMethodName              = "/users.UserService/Login"
-	UserService_RegisterAsOperator_FullMethodName = "/users.UserService/RegisterAsOperator"
-	UserService_RegisterAsCarrier_FullMethodName  = "/users.UserService/RegisterAsCarrier"
-	UserService_RegisterAsCourier_FullMethodName  = "/users.UserService/RegisterAsCourier"
+	UserService_Login_FullMethodName              = "/protobuf.UserService/Login"
+	UserService_RegisterAsOperator_FullMethodName = "/protobuf.UserService/RegisterAsOperator"
+	UserService_RegisterAsCarrier_FullMethodName  = "/protobuf.UserService/RegisterAsCarrier"
+	UserService_RegisterAsCourier_FullMethodName  = "/protobuf.UserService/RegisterAsCourier"
+	UserService_GetUserLocation_FullMethodName    = "/protobuf.UserService/GetUserLocation"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -35,6 +37,7 @@ type UserServiceClient interface {
 	RegisterAsOperator(ctx context.Context, in *RegisterAsOperatorRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCarrier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCourier(ctx context.Context, in *RegisterAsCourierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetUserLocation(ctx context.Context, in *GetUserLocationRequest, opts ...grpc.CallOption) (*locations.Location, error)
 }
 
 type userServiceClient struct {
@@ -85,6 +88,16 @@ func (c *userServiceClient) RegisterAsCourier(ctx context.Context, in *RegisterA
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserLocation(ctx context.Context, in *GetUserLocationRequest, opts ...grpc.CallOption) (*locations.Location, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(locations.Location)
+	err := c.cc.Invoke(ctx, UserService_GetUserLocation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -94,6 +107,7 @@ type UserServiceServer interface {
 	RegisterAsOperator(context.Context, *RegisterAsOperatorRequest) (*emptypb.Empty, error)
 	RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
 	RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error)
+	GetUserLocation(context.Context, *GetUserLocationRequest) (*locations.Location, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -115,6 +129,9 @@ func (UnimplementedUserServiceServer) RegisterAsCarrier(context.Context, *Regist
 }
 func (UnimplementedUserServiceServer) RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterAsCourier not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserLocation(context.Context, *GetUserLocationRequest) (*locations.Location, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserLocation not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -209,11 +226,29 @@ func _UserService_RegisterAsCourier_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserLocationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserLocation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUserLocation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserLocation(ctx, req.(*GetUserLocationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "users.UserService",
+	ServiceName: "protobuf.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -231,6 +266,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterAsCourier",
 			Handler:    _UserService_RegisterAsCourier_Handler,
+		},
+		{
+			MethodName: "GetUserLocation",
+			Handler:    _UserService_GetUserLocation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
