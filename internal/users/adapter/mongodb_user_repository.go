@@ -114,6 +114,64 @@ func (u *UserRepository) CheckEmailAvailability(ctx context.Context, email strin
 	return len(results) == 0, nil
 }
 
+func (u *UserRepository) FetchUserEntity(ctx context.Context, userID string, entity string) (*user.UserEntity, error) {
+	// Validate entity
+	entityName := user.StringToUserEntityName(entity)
+	if entityName == user.Unknown {
+		return nil, status.Error(codes.InvalidArgument, "invalid entity")
+	}
+
+	// Convert userID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user_id is not valid object id")
+	}
+
+	// Get collection name to lookup from current entity name
+	collectionName := entityName.CollectionName()
+
+	// Define aggregation pipeline with lookup
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.D{{Key: "_id", Value: objID}}}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: collectionName},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "user_id"},
+			{Key: "as", Value: "entity"},
+		}}},
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$entity"},
+			{Key: "preserveNullAndEmptyArrays", Value: false},
+		}}},
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: "$entity._id"},
+			{Key: "user_id", Value: "$_id"},
+			{Key: "name", Value: "$entity.name"},
+			{Key: "email", Value: "$entity.email"},
+			{Key: "location_id", Value: "$entity.location_id"},
+		}}},
+	}
+
+	// Execute aggregation
+	cursor, err := u.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	// Parse result
+	var result user.UserEntity
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to decode user entity: %v", err)
+		}
+	} else {
+		return nil, status.Error(codes.NotFound, "user entity not found")
+	}
+
+	return &result, nil
+}
+
 // User models
 type User struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty"`
@@ -124,6 +182,14 @@ type User struct {
 
 	// Relations
 	UserType *UserType `bson:"user_type,omitempty"`
+}
+
+type UserEntity struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	UserID     primitive.ObjectID `bson:"user_id"`
+	Name       string             `bson:"name"`
+	Email      string             `bson:"email"`
+	LocationID primitive.ObjectID `bson:"location_id"`
 }
 
 func (u *User) hasUserType() bool {
@@ -173,4 +239,15 @@ func domainToUserModel(user user.User) (*User, error) {
 		Password:   user.Password,
 		UserTypeID: userTypeID,
 	}, nil
+}
+
+// Helper function to conver user entity model to user entity domain
+func userEntityModelToDomain(userEntity UserEntity) user.UserEntity {
+	return user.UserEntity{
+		ID:         userEntity.ID.Hex(),
+		UserID:     userEntity.UserID.Hex(),
+		Name:       userEntity.Name,
+		Email:      userEntity.Email,
+		LocationID: userEntity.LocationID.Hex(),
+	}
 }
