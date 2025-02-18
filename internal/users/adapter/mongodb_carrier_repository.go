@@ -42,13 +42,13 @@ func (c *CarrierRepository) CreateCarrier(ctx context.Context, carrier carrier.C
 
 // Models
 type CarrierModel struct {
-	ID                  primitive.ObjectID `bson:"_id,omitempty"`
-	UserID              primitive.ObjectID `bson:"user_id,omitempty"`
-	Name                string             `bson:"name"`
-	Email               string             `bson:"email"`
-	CargoID             primitive.ObjectID `bson:"cargo_id,omitempty"`
-	Status              string             `bson:"status"`
-	LastKnownLocationID primitive.ObjectID `bson:"last_known_location_id,omitempty"`
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	UserID     primitive.ObjectID `bson:"user_id,omitempty"`
+	Name       string             `bson:"name"`
+	Email      string             `bson:"email"`
+	CargoID    primitive.ObjectID `bson:"cargo_id,omitempty"`
+	Status     string             `bson:"status"`
+	LocationID primitive.ObjectID `bson:"location_id,omitempty"`
 }
 
 // Helper function to convert domain to model
@@ -69,18 +69,18 @@ func domainToCarrierModel(carrier carrier.Carrier) (*CarrierModel, error) {
 		return nil, status.Error(codes.InvalidArgument, "cargo_id is not valid object id")
 	}
 
-	locationID, err := db.ConvertToObjectId(carrier.LastKnownLocationID)
+	locationID, err := db.ConvertToObjectId(carrier.LocationID)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
 	return &CarrierModel{
-		ID:                  carrierID,
-		UserID:              userID,
-		Name:                carrier.Name,
-		Email:               carrier.Email,
-		CargoID:             cargoID,
-		Status:              carrier.Name,
-		LastKnownLocationID: locationID,
+		ID:         carrierID,
+		UserID:     userID,
+		Name:       carrier.Name,
+		Email:      carrier.Email,
+		CargoID:    cargoID,
+		Status:     carrier.Name,
+		LocationID: locationID,
 	}, nil
 }
