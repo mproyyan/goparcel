@@ -16,10 +16,11 @@ message GetLocationRequest {
 }
 
 message Location {
-    string name = 1;
-    string type = 2;
-    string warehouse_id = 3;
-    Address address = 4;
+    string id = 1;
+    string name = 2;
+    string type = 3;
+    string warehouse_id = 4;
+    Address address = 5;
 }
 
 message Address {

@@ -28,6 +28,7 @@ func (g GrpcServer) GetLocation(ctx context.Context, request *locations.GetLocat
 	}
 
 	return &locations.Location{
+		Id:          location.ID,
 		Name:        location.Name,
 		Type:        location.Type.String(),
 		WarehouseId: location.WarehouseID,
