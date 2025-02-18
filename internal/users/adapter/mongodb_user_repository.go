@@ -114,10 +114,9 @@ func (u *UserRepository) CheckEmailAvailability(ctx context.Context, email strin
 	return len(results) == 0, nil
 }
 
-func (u *UserRepository) FetchUserEntity(ctx context.Context, userID string, entity string) (*user.UserEntity, error) {
+func (u *UserRepository) FetchUserEntity(ctx context.Context, userID string, entity user.UserEntityName) (*user.UserEntity, error) {
 	// Validate entity
-	entityName := user.StringToUserEntityName(entity)
-	if entityName == user.Unknown {
+	if entity == user.Unknown {
 		return nil, status.Error(codes.InvalidArgument, "invalid entity")
 	}
 
@@ -128,7 +127,7 @@ func (u *UserRepository) FetchUserEntity(ctx context.Context, userID string, ent
 	}
 
 	// Get collection name to lookup from current entity name
-	collectionName := entityName.CollectionName()
+	collectionName := entity.CollectionName()
 
 	// Define aggregation pipeline with lookup
 	pipeline := mongo.Pipeline{
@@ -160,7 +159,7 @@ func (u *UserRepository) FetchUserEntity(ctx context.Context, userID string, ent
 	defer cursor.Close(ctx)
 
 	// Parse result
-	var result user.UserEntity
+	var result UserEntity
 	if cursor.Next(ctx) {
 		if err := cursor.Decode(&result); err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to decode user entity: %v", err)
@@ -169,7 +168,8 @@ func (u *UserRepository) FetchUserEntity(ctx context.Context, userID string, ent
 		return nil, status.Error(codes.NotFound, "user entity not found")
 	}
 
-	return &result, nil
+	userEntityModel := userEntityModelToDomain(result)
+	return &userEntityModel, nil
 }
 
 // User models
