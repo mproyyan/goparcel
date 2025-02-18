@@ -10,6 +10,12 @@ import (
 
 var secretKey = os.Getenv("JWT_SECRET_KEY")
 
+func init() {
+	if secretKey == "" {
+		secretKey = "secret_key_for_testing_purpose"
+	}
+}
+
 type Claims struct {
 	UserID  string `json:"user_id"`
 	ModelID string `json:"model_id"`
@@ -33,7 +39,7 @@ func GenerateToken(userID string, modelID string, expirationTime time.Duration) 
 func Authenticate(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-		return secretKey, nil
+		return []byte(secretKey), nil
 	})
 
 	if err != nil {
