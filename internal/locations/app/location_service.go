@@ -1,3 +1,5 @@
+//go:generate mockgen -source=./location_service.go -destination=../mock/mock_external_service.go -package=mock
+
 package app
 
 import (

@@ -1,3 +1,5 @@
+//go:generate mockgen -source=./repository.go -destination=../../mock/mock_operator.go -package=mock
+
 package operator
 
 import "context"
