@@ -119,11 +119,53 @@ func (u UserService) registerAsCourier(c *fiber.Ctx) error {
 	})
 }
 
+func (u UserService) userLocation(c *fiber.Ctx) error {
+	// Parse request body
+	var request requests.UserLocationRequest
+	if err := c.BodyParser(&request); err != nil {
+		code, errResponse := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(errResponse)
+	}
+
+	// Call GetUserLocation RPC
+	location, err := u.client.GetUserLocation(c.Context(), &users.GetUserLocationRequest{
+		UserId: request.UserID,
+		Entity: request.Entity,
+	})
+
+	if err != nil {
+		code, errResponse := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(errResponse)
+	}
+
+	// Build response
+	locationResponse := responses.LocationResponse{
+		Name:        location.Name,
+		Type:        location.Type,
+		WarehouseID: location.WarehouseId,
+		Address: responses.Address{
+			Province:      location.Address.Province,
+			City:          location.Address.City,
+			District:      location.Address.District,
+			Subdistrict:   location.Address.Subdistrict,
+			Latitude:      location.Address.Latitude,
+			Longitude:     location.Address.Longitude,
+			StreetAddress: location.Address.StreetAddress,
+			ZipCode:       location.Address.ZipCode,
+		},
+	}
+
+	return c.Status(fiber.StatusOK).JSON(locationResponse)
+}
+
 func (u UserService) Bootstrap() {
 	user := u.router.Group("/users")
 
+	// Auths
 	user.Post("/login", u.login)
 	user.Post("/register-as-operator", u.registerAsOperator)
 	user.Post("/register-as-carrier", u.registerAsCarrier)
 	user.Post("/register-as-courier", u.registerAsCourier)
+
+	user.Post("/location", u.userLocation)
 }
