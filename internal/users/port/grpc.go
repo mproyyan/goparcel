@@ -4,6 +4,7 @@ import (
 	"context"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
 	"github.com/mproyyan/goparcel/internal/common/genproto/users"
 	"github.com/mproyyan/goparcel/internal/users/app"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
@@ -65,4 +66,28 @@ func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *users.Regist
 	}
 
 	return &emptypb.Empty{}, nil
+}
+
+func (g GrpcServer) GetUserLocation(ctx context.Context, request *users.GetUserLocationRequest) (*locations.Location, error) {
+	location, err := g.service.UserLocation(ctx, request.UserId, request.Entity)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "rpc GetUserLocation failed")
+	}
+
+	return &locations.Location{
+		Id:          location.ID,
+		Name:        location.Name,
+		Type:        location.Type,
+		WarehouseId: location.WarehouseID,
+		Address: &locations.Address{
+			ZipCode:       location.Address.ZipCode,
+			Province:      location.Address.Province,
+			City:          location.Address.City,
+			District:      location.Address.District,
+			Subdistrict:   location.Address.Subdistrict,
+			Latitude:      location.Address.Latitude,
+			Longitude:     location.Address.Longitude,
+			StreetAddress: location.Address.StreetAddress,
+		},
+	}, nil
 }

@@ -25,6 +25,7 @@ type UserService struct {
 	carrierRepository  carrier.CarrierRepository
 	courierRepository  courier.CourierRepository
 	cacheRepository    user.CacheRepository
+	locationService    LocationService
 }
 
 func NewUserService(
@@ -35,6 +36,7 @@ func NewUserService(
 	carrierRepository carrier.CarrierRepository,
 	courierRepository courier.CourierRepository,
 	cacheRepository user.CacheRepository,
+	locationService LocationService,
 ) UserService {
 	return UserService{
 		transaction:        transaction,
@@ -44,7 +46,12 @@ func NewUserService(
 		carrierRepository:  carrierRepository,
 		courierRepository:  courierRepository,
 		cacheRepository:    cacheRepository,
+		locationService:    locationService,
 	}
+}
+
+type LocationService interface {
+	GetLocation(ctx context.Context, locationID string) (*user.Location, error)
 }
 
 func (u UserService) Login(ctx context.Context, email, password string) (string, error) {
@@ -269,4 +276,19 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 	}
 
 	return nil
+}
+
+func (u UserService) UserLocation(ctx context.Context, userID, entity string) (*user.Location, error) {
+	entityName := user.StringToUserEntityName(entity)
+	userEntity, err := u.userRepository.FetchUserEntity(ctx, userID, entityName)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to fetch user entity")
+	}
+
+	location, err := u.locationService.GetLocation(ctx, userEntity.LocationID)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get location using location service")
+	}
+
+	return location, nil
 }

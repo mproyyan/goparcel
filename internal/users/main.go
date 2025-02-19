@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mproyyan/goparcel/internal/common/client"
 	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/common/genproto/users"
 	"github.com/mproyyan/goparcel/internal/common/server"
@@ -25,13 +26,13 @@ func main() {
 	defer cancel()
 
 	// Connect to database
-	client, err := mongo.Connect(ctxWithTimeout, clientOptions)
+	databaseClient, err := mongo.Connect(ctxWithTimeout, clientOptions)
 	if err != nil {
 		log.Fatalf("cannot connect to database: %v", err)
 	}
 
 	// Wait for connection
-	err = client.Ping(ctxWithTimeout, nil)
+	err = databaseClient.Ping(ctxWithTimeout, nil)
 	if err != nil {
 		log.Fatalf("MongoDB not responding: %v", err)
 	}
@@ -43,15 +44,23 @@ func main() {
 		log.Fatalf("Cant connect to redis: %v", err)
 	}
 
+	// Connect to location service
+	grpcLocationServiceClient, close, err := client.NewLocationServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to user service", err)
+	}
+	defer close()
+
 	// Dependency
-	database := client.Database(os.Getenv("MONGO_DATABASE"))
+	database := databaseClient.Database(os.Getenv("MONGO_DATABASE"))
 	userRepository := adapter.NewUserRepository(database)
 	userTypeRepository := adapter.NewUserTypeRepository(database)
 	operatorRepository := adapter.NewOperatorRepository(database)
 	carrierRepository := adapter.NewCarrierRepository(database)
 	courierRepository := adapter.NewCourierRepository(database)
 	cacheRepository := adapter.NewCacheRepository(redisClient)
-	transaction := db.NewMongoTransactionManager(client)
+	transaction := db.NewMongoTransactionManager(databaseClient)
+	locationService := adapter.NewLocationService(grpcLocationServiceClient)
 	userService := app.NewUserService(
 		transaction,
 		userRepository,
@@ -60,6 +69,7 @@ func main() {
 		carrierRepository,
 		courierRepository,
 		cacheRepository,
+		locationService,
 	)
 
 	server.RunGrpcServer(func(server *grpc.Server) {
