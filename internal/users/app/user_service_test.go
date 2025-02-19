@@ -25,7 +25,7 @@ func TestLogin(t *testing.T) {
 
 	userRepo := mock.NewMockUserRepository(ctrl)
 	cacheRepo := mock.NewMockCacheRepository(ctrl)
-	userService := NewUserService(nil, userRepo, nil, nil, nil, nil, cacheRepo)
+	userService := NewUserService(nil, userRepo, nil, nil, nil, nil, cacheRepo, nil)
 	ctx := context.Background()
 
 	tests := []struct {
@@ -112,7 +112,7 @@ func TestRegisterAsOperator(t *testing.T) {
 	mockUserTypeRepo := mock.NewMockUserTypeRepository(ctrl)
 	mockOperatorRepo := mock.NewMockOperatorRepository(ctrl)
 	mockTransaction := db.NewMockTransactionManager(ctrl)
-	userService := NewUserService(mockTransaction, mockUserRepo, mockUserTypeRepo, mockOperatorRepo, nil, nil, nil)
+	userService := NewUserService(mockTransaction, mockUserRepo, mockUserTypeRepo, mockOperatorRepo, nil, nil, nil, nil)
 	ctx := context.Background()
 
 	tests := []struct {
@@ -224,7 +224,7 @@ func TestRegisterAsCarrier(t *testing.T) {
 	mockUserTypeRepo := mock.NewMockUserTypeRepository(ctrl)
 	mockCarrier := mock.NewMockCarrierRepository(ctrl)
 	mockTransaction := db.NewMockTransactionManager(ctrl)
-	userService := NewUserService(mockTransaction, mockUserRepo, mockUserTypeRepo, nil, mockCarrier, nil, nil)
+	userService := NewUserService(mockTransaction, mockUserRepo, mockUserTypeRepo, nil, mockCarrier, nil, nil, nil)
 	ctx := context.Background()
 
 	tests := []struct {
@@ -336,7 +336,7 @@ func TestRegisterAsCourier(t *testing.T) {
 	mockUserTypeRepo := mock.NewMockUserTypeRepository(ctrl)
 	mockCourier := mock.NewMockCourierRepository(ctrl)
 	mockTransaction := db.NewMockTransactionManager(ctrl)
-	userService := NewUserService(mockTransaction, mockUserRepo, mockUserTypeRepo, nil, nil, mockCourier, nil)
+	userService := NewUserService(mockTransaction, mockUserRepo, mockUserTypeRepo, nil, nil, mockCourier, nil, nil)
 	ctx := context.Background()
 
 	tests := []struct {

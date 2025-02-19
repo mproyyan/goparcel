@@ -71,6 +71,21 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(ctx, user any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), ctx, user)
 }
 
+// FetchUserEntity mocks base method.
+func (m *MockUserRepository) FetchUserEntity(ctx context.Context, userID string, entity user.UserEntityName) (*user.UserEntity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchUserEntity", ctx, userID, entity)
+	ret0, _ := ret[0].(*user.UserEntity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchUserEntity indicates an expected call of FetchUserEntity.
+func (mr *MockUserRepositoryMockRecorder) FetchUserEntity(ctx, userID, entity any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserEntity", reflect.TypeOf((*MockUserRepository)(nil).FetchUserEntity), ctx, userID, entity)
+}
+
 // FindUserByEmail mocks base method.
 func (m *MockUserRepository) FindUserByEmail(ctx context.Context, email string) (*user.User, error) {
 	m.ctrl.T.Helper()
