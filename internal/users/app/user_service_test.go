@@ -440,6 +440,71 @@ func TestRegisterAsCourier(t *testing.T) {
 	}
 }
 
+func TestGetUserLocation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepo := mock.NewMockUserRepository(ctrl)
+	locationService := mock.NewMockLocationService(ctrl)
+	userService := NewUserService(nil, userRepo, nil, nil, nil, nil, nil, locationService)
+	ctx := context.Background()
+
+	tests := []struct {
+		name          string
+		entity        user.UserEntityName
+		userID        string
+		setupMock     func(entity user.UserEntityName, userID string)
+		expectedError error
+	}{
+		// Get user location success
+		{
+			name:   "Get user location success",
+			entity: user.Operator,
+			userID: "123",
+			setupMock: func(e user.UserEntityName, uid string) {
+				userRepo.EXPECT().FetchUserEntity(ctx, uid, e).Return(&user.UserEntity{UserID: uid, Entity: e, LocationID: "x"}, nil)
+				locationService.EXPECT().GetLocation(ctx, "x").Return(&user.Location{ID: "x"}, nil)
+			},
+		},
+		// Fetch user entity failed
+		{
+			name:   "Fetch user entity failed",
+			entity: user.Operator,
+			userID: "123",
+			setupMock: func(e user.UserEntityName, uid string) {
+				userRepo.EXPECT().FetchUserEntity(ctx, uid, e).Return(nil, errors.New("entity not found"))
+			},
+			expectedError: cuserr.Decorate(errors.New("entity not found"), "failed to fetch user entity"),
+		},
+		// Location not found
+		{
+			name:   "Location not found",
+			entity: user.Operator,
+			userID: "123",
+			setupMock: func(e user.UserEntityName, uid string) {
+				userRepo.EXPECT().FetchUserEntity(ctx, uid, e).Return(&user.UserEntity{UserID: uid, Entity: e, LocationID: "x"}, nil)
+				locationService.EXPECT().GetLocation(ctx, "x").Return(nil, errors.New("location not found"))
+			},
+			expectedError: cuserr.Decorate(errors.New("location not found"), "failed to get location using location service"),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setupMock(test.entity, test.userID)
+			location, err := userService.UserLocation(ctx, test.userID, test.entity.String())
+
+			if test.expectedError != nil {
+				assert.Error(t, err)
+				assert.EqualError(t, test.expectedError, err.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, location)
+			}
+		})
+	}
+}
+
 func newDataTestUser() *user.User {
 	return &user.User{
 		ID:       "xyz",
