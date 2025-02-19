@@ -11,7 +11,7 @@ import (
 type ErrorResponse struct {
 	Error      string       `json:"error"`
 	Message    string       `json:"message"`
-	StackTrace []StackTrace `json:"stack_trace"`
+	StackTrace []StackTrace `json:"stack_trace,omitempty"`
 }
 
 type StackTrace struct {
