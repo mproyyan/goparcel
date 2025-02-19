@@ -5,7 +5,7 @@ import "locations.proto";
 
 package protobuf;
 
-option go_package = "goparcel/internal/common/genproto/users";
+option go_package = "github.com/mproyyan/goparcel/internal/common/genproto/users";
 
 service UserService {
     // User authentication
