@@ -13,7 +13,7 @@ import (
 type Permissions []string
 
 func (p Permissions) Empty() bool {
-	return len(p) > 0
+	return len(p) < 1
 }
 
 func PermissionMiddleware(client *redis.Client) fiber.Handler {
@@ -59,7 +59,7 @@ func PermissionMiddleware(client *redis.Client) fiber.Handler {
 		if permissions.Empty() {
 			return c.Status(fiber.StatusForbidden).JSON(responses.ErrorResponse{
 				Error:   fiber.ErrForbidden.Message,
-				Message: cuserr.Decorate(err, "Missing permission").Error(),
+				Message: "Missing permission",
 			})
 		}
 
