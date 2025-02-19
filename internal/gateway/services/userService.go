@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mproyyan/goparcel/internal/common/genproto/users"
+	"github.com/mproyyan/goparcel/internal/gateway/middlewares"
 	"github.com/mproyyan/goparcel/internal/gateway/requests"
 	"github.com/mproyyan/goparcel/internal/gateway/responses"
 )
@@ -167,5 +168,5 @@ func (u UserService) Bootstrap() {
 	user.Post("/register-as-carrier", u.registerAsCarrier)
 	user.Post("/register-as-courier", u.registerAsCourier)
 
-	user.Post("/location", u.userLocation)
+	user.Post("/location", middlewares.AuthMiddleware(), u.userLocation)
 }
