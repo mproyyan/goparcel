@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package protobuf;
+
+option go_package = "github.com/mproyyan/goparcel/internal/common/genproto/shipments";
+
+service ShipmentService {
+    rpc CreateShipment(CreateShipmentRequest) returns (google.protobuf.Empty) {}
+}
+
+message CreateShipmentRequest {
+    string origin = 1;
+    Entity sender = 2;
+    Entity recipient = 3;
+    repeated Package package = 4;
+}
+
+message Entity {
+    string name = 1;
+    string phone_number = 2;
+    string zip_code = 3;
+    string street_address = 4;
+}
+
+message Package {
+    string name = 1;
+    int32 amount = 2;
+    int32 weight = 3;
+    Volume volume = 4;
+}
+
+message Volume {
+    int32 length = 1;
+    int32 width = 2;
+    int32 height = 3;
+}
+
