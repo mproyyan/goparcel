@@ -1,3 +1,5 @@
+//go:generate mockgen -source shipment_service.go -destination ../mock/mock_external_service.go -package mock
+
 package app
 
 import (
@@ -12,6 +14,18 @@ type ShipmentService struct {
 	transaction        db.TransactionManager
 	shipmentRepository domain.ShipmentRepository
 	locationService    LocationService
+}
+
+func NewShipmentService(
+	transaction db.TransactionManager,
+	shipmentRepository domain.ShipmentRepository,
+	locationService LocationService,
+) ShipmentService {
+	return ShipmentService{
+		transaction:        transaction,
+		shipmentRepository: shipmentRepository,
+		locationService:    locationService,
+	}
 }
 
 type LocationService interface {
