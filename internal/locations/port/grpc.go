@@ -22,7 +22,7 @@ func NewGrpcServer(service app.LocationService) GrpcServer {
 }
 
 func (g GrpcServer) GetLocation(ctx context.Context, request *locations.GetLocationRequest) (*locations.Location, error) {
-	location, err := g.service.GetLocation(ctx, request.LocationID)
+	location, err := g.service.GetLocation(ctx, request.LocationId)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "service GetLocation failed")
 	}

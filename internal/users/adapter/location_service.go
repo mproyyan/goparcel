@@ -20,7 +20,7 @@ func NewLocationService(client locations.LocationServiceClient) *LocationService
 
 func (l *LocationService) GetLocation(ctx context.Context, locationID string) (*user.Location, error) {
 	location, err := l.client.GetLocation(ctx, &locations.GetLocationRequest{
-		LocationID: locationID,
+		LocationId: locationID,
 	})
 
 	if err != nil {

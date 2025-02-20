@@ -13,7 +13,7 @@ service LocationService {
 }
 
 message GetLocationRequest {
-    string LocationID = 1;
+    string location_id = 1;
 }
 
 message Location {

@@ -56,7 +56,7 @@ func (l LocationService) findLocations(c *fiber.Ctx) error {
 
 	// Call GetLocation RPC
 	location, err := l.client.GetLocation(c.Context(), &locations.GetLocationRequest{
-		LocationID: locationID,
+		LocationId: locationID,
 	})
 
 	if err != nil {
