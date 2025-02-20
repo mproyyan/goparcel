@@ -5,4 +5,5 @@ use (
 	./internal/gateway
 	./internal/locations
 	./internal/users
+	./internal/shipments
 )
