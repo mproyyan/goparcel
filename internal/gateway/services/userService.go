@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mproyyan/goparcel/internal/common/genproto/users"
 	"github.com/mproyyan/goparcel/internal/gateway/middlewares"
-	"github.com/mproyyan/goparcel/internal/gateway/requests"
 	"github.com/mproyyan/goparcel/internal/gateway/responses"
 )
 
@@ -22,51 +21,37 @@ func NewUserService(router fiber.Router, client users.UserServiceClient) UserSer
 
 func (u UserService) login(c *fiber.Ctx) error {
 	// Parse request body
-	var loginRequest = requests.LoginRequest{}
-	if err := c.BodyParser(&loginRequest); err != nil {
+	var request users.LoginRequest
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service grpc
-	response, err := u.client.Login(c.Context(), &users.LoginRequest{
-		Email:    loginRequest.Email,
-		Password: loginRequest.Password,
-	})
-
+	response, err := u.client.Login(c.Context(), &request)
 	if err != nil {
 		code, response := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(response)
 	}
 
-	// send response
-	c.JSON(responses.LoginResponse{
-		Token: response.Token,
-	})
-
-	return nil
+	// Send response
+	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 func (u UserService) registerAsOperator(c *fiber.Ctx) error {
 	// Parse request body
-	var registerAsOperatorRequest requests.RegisterAsOperatorRequest
-	if err := c.BodyParser(&registerAsOperatorRequest); err != nil {
+	var request users.RegisterAsOperatorRequest
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service
-	_, err := u.client.RegisterAsOperator(c.Context(), &users.RegisterAsOperatorRequest{
-		Name:     registerAsOperatorRequest.Name,
-		Email:    registerAsOperatorRequest.Email,
-		Password: registerAsOperatorRequest.Password,
-		Location: registerAsOperatorRequest.LocationID,
-		Type:     registerAsOperatorRequest.Type,
-	})
-
+	_, err := u.client.RegisterAsOperator(c.Context(), &request)
 	if err != nil {
 		code, response := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(response)
 	}
 
+	// Send response
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "registration as an operator has been successful",
 	})
@@ -74,23 +59,19 @@ func (u UserService) registerAsOperator(c *fiber.Ctx) error {
 
 func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
 	// Parse request body
-	var registerAsCarrierRequest requests.RegisterAsCarrierRequest
-	if err := c.BodyParser(&registerAsCarrierRequest); err != nil {
+	var request users.RegisterAsCarrierRequest
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service grpc
-	_, err := u.client.RegisterAsCarrier(c.Context(), &users.RegisterAsCarrierRequest{
-		Name:     registerAsCarrierRequest.Name,
-		Email:    registerAsCarrierRequest.Email,
-		Password: registerAsCarrierRequest.Password,
-	})
-
+	_, err := u.client.RegisterAsCarrier(c.Context(), &request)
 	if err != nil {
 		code, response := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(response)
 	}
 
+	// Send response
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "registration as a carrier has been successful",
 	})
@@ -98,23 +79,19 @@ func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
 
 func (u UserService) registerAsCourier(c *fiber.Ctx) error {
 	// Parse request body
-	var registerAsCourierRequest requests.RegisterAsCourierRequest
-	if err := c.BodyParser(&registerAsCourierRequest); err != nil {
+	var request users.RegisterAsCourierRequest
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
 
 	// Call user service grpc
-	_, err := u.client.RegisterAsCourier(c.Context(), &users.RegisterAsCourierRequest{
-		Name:     registerAsCourierRequest.Name,
-		Email:    registerAsCourierRequest.Email,
-		Password: registerAsCourierRequest.Password,
-	})
-
+	_, err := u.client.RegisterAsCourier(c.Context(), &request)
 	if err != nil {
 		code, response := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(response)
 	}
 
+	// Send response
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "registration as a courier has been successful",
 	})
@@ -122,41 +99,21 @@ func (u UserService) registerAsCourier(c *fiber.Ctx) error {
 
 func (u UserService) userLocation(c *fiber.Ctx) error {
 	// Parse request body
-	var request requests.UserLocationRequest
+	var request users.GetUserLocationRequest
 	if err := c.BodyParser(&request); err != nil {
 		code, errResponse := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(errResponse)
 	}
 
 	// Call GetUserLocation RPC
-	location, err := u.client.GetUserLocation(c.Context(), &users.GetUserLocationRequest{
-		UserId: request.UserID,
-		Entity: request.Entity,
-	})
-
+	location, err := u.client.GetUserLocation(c.Context(), &request)
 	if err != nil {
 		code, errResponse := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(errResponse)
 	}
 
-	// Build response
-	locationResponse := responses.LocationResponse{
-		Name:        location.Name,
-		Type:        location.Type,
-		WarehouseID: location.WarehouseId,
-		Address: responses.Address{
-			Province:      location.Address.Province,
-			City:          location.Address.City,
-			District:      location.Address.District,
-			Subdistrict:   location.Address.Subdistrict,
-			Latitude:      location.Address.Latitude,
-			Longitude:     location.Address.Longitude,
-			StreetAddress: location.Address.StreetAddress,
-			ZipCode:       location.Address.ZipCode,
-		},
-	}
-
-	return c.Status(fiber.StatusOK).JSON(locationResponse)
+	// Send response
+	return c.Status(fiber.StatusOK).JSON(location)
 }
 
 func (u UserService) Bootstrap() {
