@@ -262,3 +262,52 @@ func TestGetLocation(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRegion(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRegionService := mock.NewMockRegionService(ctrl)
+	locationService := NewLocationService(mockRegionService, nil)
+	ctx := context.Background()
+
+	tests := []struct {
+		name          string
+		zipcode       string
+		setupMock     func(zipcode string)
+		expectedError error
+	}{
+		// Get region success
+		{
+			name:    "Get region success",
+			zipcode: "11111",
+			setupMock: func(zipcode string) {
+				mockRegionService.EXPECT().GetRegion(ctx, zipcode).Return(&domain.Region{ZipCode: zipcode}, nil)
+			},
+		},
+		// Get region failed
+		{
+			name:    "Get region failed",
+			zipcode: "55555",
+			setupMock: func(zipcode string) {
+				mockRegionService.EXPECT().GetRegion(ctx, zipcode).Return(nil, errors.New("region not found"))
+			},
+			expectedError: cuserr.Decorate(errors.New("region not found"), "RegionService failed"),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.setupMock(test.zipcode)
+			region, err := locationService.GetRegion(ctx, test.zipcode)
+
+			if test.expectedError != nil {
+				assert.Error(t, err)
+				assert.EqualError(t, test.expectedError, err.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, test.zipcode, region.ZipCode)
+			}
+		})
+	}
+}

@@ -76,3 +76,12 @@ func (l LocationService) GetLocation(ctx context.Context, locationID string) (*d
 
 	return location, nil
 }
+
+func (l LocationService) GetRegion(ctx context.Context, zipcode string) (*domain.Region, error) {
+	region, err := l.regionService.GetRegion(ctx, zipcode)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "RegionService failed")
+	}
+
+	return region, nil
+}

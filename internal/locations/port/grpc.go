@@ -64,3 +64,18 @@ func (g GrpcServer) CreateLocation(ctx context.Context, request *locations.Creat
 
 	return &emptypb.Empty{}, nil
 }
+
+func (g GrpcServer) GetRegion(ctx context.Context, request *locations.GetRegionRequest) (*locations.Region, error) {
+	region, err := g.service.GetRegion(ctx, request.Zipcode)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "GetRegion failed")
+	}
+
+	return &locations.Region{
+		Province:    region.Province,
+		City:        region.City,
+		District:    region.District,
+		Subdistrict: region.Subdistrict,
+		ZipCode:     region.ZipCode,
+	}, nil
+}

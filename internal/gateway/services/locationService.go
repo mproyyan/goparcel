@@ -84,9 +84,32 @@ func (l LocationService) findLocations(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(locationResponse)
 }
 
+func (l LocationService) getRegion(c *fiber.Ctx) error {
+	// Get zipcode from url parameter
+	zipcode := c.Params("zipcode")
+
+	region, err := l.client.GetRegion(c.Context(), &locations.GetRegionRequest{
+		Zipcode: zipcode,
+	})
+
+	if err != nil {
+		code, errResponse := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(errResponse)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(responses.RegionResponse{
+		ZipCode:     region.ZipCode,
+		Province:    region.Province,
+		City:        region.City,
+		District:    region.District,
+		Subdistrict: region.Subdistrict,
+	})
+}
+
 func (l LocationService) Bootstrap() {
 	location := l.router.Group("/locations")
 
 	location.Post("/", l.createLocation)
 	location.Get("/:id", l.findLocations)
+	location.Get("/region/:zipcode", l.getRegion)
 }

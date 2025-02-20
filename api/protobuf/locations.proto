@@ -9,6 +9,7 @@ option go_package = "github.com/mproyyan/goparcel/internal/common/genproto/locat
 service LocationService {
     rpc GetLocation(GetLocationRequest) returns (Location) {}
     rpc CreateLocation(CreateLocationRequest) returns (google.protobuf.Empty) {}
+    rpc GetRegion(GetRegionRequest) returns (Region) {}
 }
 
 message GetLocationRequest {
@@ -42,4 +43,16 @@ message CreateLocationRequest {
     double latitude = 5;
     double longitude = 6;
     string street_address = 7;
+}
+
+message GetRegionRequest {
+    string zipcode = 1;
+}
+
+message Region {
+    string province = 1;
+    string city = 2;
+    string district = 3;
+    string subdistrict = 4;
+    string zip_code = 5;
 }
