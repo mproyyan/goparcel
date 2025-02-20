@@ -4,6 +4,6 @@ use (
 	./internal/common
 	./internal/gateway
 	./internal/locations
-	./internal/users
 	./internal/shipments
+	./internal/users
 )
