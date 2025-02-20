@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
+	"github.com/mproyyan/goparcel/internal/common/genproto/shipments"
 	"github.com/mproyyan/goparcel/internal/common/genproto/users"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -48,4 +49,24 @@ func NewLocationServiceClient() (client locations.LocationServiceClient, close f
 
 	// Create user service client and return it
 	return locations.NewLocationServiceClient(conn), conn.Close, nil
+}
+
+func NewShipmentServiceClient() (client shipments.ShipmentServiceClient, close func() error, err error) {
+	// Get address from env
+	grpcAddr := os.Getenv("SHIPMENT_SERVICE_ADDR")
+	if grpcAddr == "" {
+		return nil, func() error { return nil }, errors.New("empty env SHIPMENT_SERVICE_ADDR")
+	}
+
+	// Setup new client with insecure connection
+	conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(
+		insecure.NewCredentials(),
+	))
+
+	if err != nil {
+		return nil, func() error { return nil }, err
+	}
+
+	// Create shipment service client and return it
+	return shipments.NewShipmentServiceClient(conn), conn.Close, nil
 }
