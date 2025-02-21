@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
+	"github.com/mproyyan/goparcel/internal/gateway/middlewares"
 	"github.com/mproyyan/goparcel/internal/gateway/responses"
 )
 
@@ -37,8 +38,24 @@ func (s ShipmentService) createShipment(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "successfully made the shipment"})
 }
 
+func (s ShipmentService) getUnroutedShipments(c *fiber.Ctx) error {
+	// Get location id from param
+	request := genproto.GetUnroutedShipmentRequest{LocationId: c.Params("locationId")}
+
+	// Call GetUnroutedShipment rpc
+	shipments, err := s.client.GetUnroutedShipment(c.Context(), &request)
+	if err != nil {
+		code, errResponse := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(errResponse)
+	}
+
+	// Send response
+	return c.Status(fiber.StatusOK).JSON(shipments)
+}
+
 func (s ShipmentService) Bootstrap() {
 	shipment := s.router.Group("/shipments")
 
-	shipment.Post("/", s.createShipment)
+	shipment.Post("/", middlewares.AuthMiddleware(), s.createShipment)
+	shipment.Get("/:locationId/unrouted", middlewares.AuthMiddleware(), s.getUnroutedShipments)
 }

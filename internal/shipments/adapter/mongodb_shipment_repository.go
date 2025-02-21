@@ -113,22 +113,20 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 
 	// Create pipeline
 	pipeline := mongo.Pipeline{
-		// Filter shipments with routing_status "not_routed"
-		{{Key: "$match", Value: bson.M{"routing_status": "not_routed"}}},
-
-		// Filter shipments whose last location is in itinerary_logs.location
+		// Step 1: Filter shipments where the last itinerary log's location matches the given locationObjID
 		{
 			{Key: "$match", Value: bson.M{
+				"routing_status": routingStatus.String(),
 				"$expr": bson.M{
 					"$eq": bson.A{
-						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}}, // Last location of itinerary_logs
-						locationObjID,
+						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}}, // Get last location
+						locationObjID, // Compare with the given location ID
 					},
 				},
 			}},
 		},
 
-		// Lookup in the locations collection to get origin details
+		// Step 2: Lookup origin location details from the "locations" collection
 		{
 			{Key: "$lookup", Value: bson.M{
 				"from":         "locations",
@@ -139,7 +137,7 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 		},
 		{{Key: "$unwind", Value: bson.M{"path": "$origin_location", "preserveNullAndEmptyArrays": true}}},
 
-		// Lookup in the locations collection to get destination details
+		// Step 3: Lookup destination location details from the "locations" collection
 		{
 			{Key: "$lookup", Value: bson.M{
 				"from":         "locations",
@@ -150,17 +148,46 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 		},
 		{{Key: "$unwind", Value: bson.M{"path": "$destination_location", "preserveNullAndEmptyArrays": true}}},
 
-		// Lookup to locations to get location details from each itinerary_log
+		// Step 4: Lookup all location details for each itinerary log's location
 		{
 			{Key: "$lookup", Value: bson.M{
 				"from":         "locations",
 				"localField":   "itinerary_logs.location",
 				"foreignField": "_id",
-				"as":           "itinerary_logs.location_detail",
+				"as":           "location_details",
 			}},
 		},
 
-		// Final project results
+		// Step 5: Merge location_details into itinerary_logs
+		{
+			{Key: "$set", Value: bson.M{
+				"itinerary_logs": bson.M{
+					"$map": bson.M{
+						"input": "$itinerary_logs",
+						"as":    "log",
+						"in": bson.M{
+							"activity_type": "$$log.activity_type",
+							"timestamp":     "$$log.timestamp",
+							"location":      "$$log.location",
+							"location_detail": bson.M{
+								"$arrayElemAt": bson.A{
+									bson.M{
+										"$filter": bson.M{
+											"input": "$location_details",
+											"as":    "detail",
+											"cond":  bson.M{"$eq": bson.A{"$$detail._id", "$$log.location"}},
+										},
+									},
+									0, // Get the first matching location detail
+								},
+							},
+						},
+					},
+				},
+			}},
+		},
+
+		// Step 6: Project the final fields to return
 		{
 			{Key: "$project", Value: bson.M{
 				"_id":                  1,
@@ -172,7 +199,7 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 				"recipient_detail":     1,
 				"origin":               1,
 				"destination":          1,
-				"itinerary_logs":       1,
+				"itinerary_logs":       1, // Now contains merged location_detail
 				"origin_location":      1,
 				"destination_location": 1,
 			}},
