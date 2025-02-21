@@ -4,10 +4,9 @@
 // 	protoc        v5.29.3
 // source: shipments.proto
 
-package shipments
+package genproto
 
 import (
-	locations "github.com/mproyyan/goparcel/internal/common/genproto/locations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -380,7 +379,7 @@ type ItineraryLog struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ActivityType  string                 `protobuf:"bytes,1,opt,name=activity_type,json=activityType,proto3" json:"activity_type,omitempty"`
 	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Location      *locations.Location    `protobuf:"bytes,3,opt,name=location,proto3" json:"location,omitempty"`
+	Location      *Location              `protobuf:"bytes,3,opt,name=location,proto3" json:"location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -429,7 +428,7 @@ func (x *ItineraryLog) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *ItineraryLog) GetLocation() *locations.Location {
+func (x *ItineraryLog) GetLocation() *Location {
 	if x != nil {
 		return x.Location
 	}
@@ -445,8 +444,8 @@ type Shipment struct {
 	Items           []*Item                `protobuf:"bytes,5,rep,name=items,proto3" json:"items,omitempty"`
 	Sender          *EntityDetail          `protobuf:"bytes,6,opt,name=sender,proto3" json:"sender,omitempty"`
 	Recipient       *EntityDetail          `protobuf:"bytes,7,opt,name=recipient,proto3" json:"recipient,omitempty"`
-	Origin          *locations.Location    `protobuf:"bytes,8,opt,name=origin,proto3" json:"origin,omitempty"`
-	Destination     *locations.Location    `protobuf:"bytes,9,opt,name=destination,proto3" json:"destination,omitempty"`
+	Origin          *Location              `protobuf:"bytes,8,opt,name=origin,proto3" json:"origin,omitempty"`
+	Destination     *Location              `protobuf:"bytes,9,opt,name=destination,proto3" json:"destination,omitempty"`
 	ItineraryLogs   []*ItineraryLog        `protobuf:"bytes,10,rep,name=itinerary_logs,json=itineraryLogs,proto3" json:"itinerary_logs,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -531,14 +530,14 @@ func (x *Shipment) GetRecipient() *EntityDetail {
 	return nil
 }
 
-func (x *Shipment) GetOrigin() *locations.Location {
+func (x *Shipment) GetOrigin() *Location {
 	if x != nil {
 		return x.Origin
 	}
 	return nil
 }
 
-func (x *Shipment) GetDestination() *locations.Location {
+func (x *Shipment) GetDestination() *Location {
 	if x != nil {
 		return x.Destination
 	}
@@ -624,7 +623,7 @@ type EntityDetail struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Contact       string                 `protobuf:"bytes,2,opt,name=contact,proto3" json:"contact,omitempty"`
-	Address       *locations.Address     `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Address       *Address               `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -673,7 +672,7 @@ func (x *EntityDetail) GetContact() string {
 	return ""
 }
 
-func (x *EntityDetail) GetAddress() *locations.Address {
+func (x *EntityDetail) GetAddress() *Address {
 	if x != nil {
 		return x.Address
 	}
@@ -792,12 +791,11 @@ var file_shipments_proto_rawDesc = string([]byte{
 	0x75, 0x66, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x6e, 0x72, 0x6f, 0x75, 0x74, 0x65, 0x64, 0x53, 0x68,
 	0x69, 0x70, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x68, 0x69, 0x70, 0x6d, 0x65, 0x6e,
-	0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x41, 0x5a, 0x3f, 0x67,
+	0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x37, 0x5a, 0x35, 0x67,
 	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6d, 0x70, 0x72, 0x6f, 0x79, 0x79,
 	0x61, 0x6e, 0x2f, 0x67, 0x6f, 0x70, 0x61, 0x72, 0x63, 0x65, 0x6c, 0x2f, 0x69, 0x6e, 0x74, 0x65,
 	0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2f, 0x67, 0x65, 0x6e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x73, 0x68, 0x69, 0x70, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -825,8 +823,8 @@ var file_shipments_proto_goTypes = []any{
 	(*Item)(nil),                       // 8: protobuf.Item
 	(*EntityDetail)(nil),               // 9: protobuf.EntityDetail
 	(*timestamppb.Timestamp)(nil),      // 10: google.protobuf.Timestamp
-	(*locations.Location)(nil),         // 11: protobuf.Location
-	(*locations.Address)(nil),          // 12: protobuf.Address
+	(*Location)(nil),                   // 11: protobuf.Location
+	(*Address)(nil),                    // 12: protobuf.Address
 	(*emptypb.Empty)(nil),              // 13: google.protobuf.Empty
 }
 var file_shipments_proto_depIdxs = []int32{
@@ -860,6 +858,7 @@ func file_shipments_proto_init() {
 	if File_shipments_proto != nil {
 		return
 	}
+	file_locations_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -2,16 +2,16 @@ package services
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/mproyyan/goparcel/internal/common/genproto/shipments"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/gateway/responses"
 )
 
 type ShipmentService struct {
 	router fiber.Router
-	client shipments.ShipmentServiceClient
+	client genproto.ShipmentServiceClient
 }
 
-func NewShipmentService(router fiber.Router, client shipments.ShipmentServiceClient) ShipmentService {
+func NewShipmentService(router fiber.Router, client genproto.ShipmentServiceClient) ShipmentService {
 	return ShipmentService{
 		router: router,
 		client: client,
@@ -20,7 +20,7 @@ func NewShipmentService(router fiber.Router, client shipments.ShipmentServiceCli
 
 func (s ShipmentService) createShipment(c *fiber.Ctx) error {
 	// Parse request body
-	var request shipments.CreateShipmentRequest
+	var request genproto.CreateShipmentRequest
 	if err := c.BodyParser(&request); err != nil {
 		errResponse := responses.NewInvalidRequestBodyErrorResponse(err)
 		return c.Status(fiber.StatusBadRequest).JSON(errResponse)

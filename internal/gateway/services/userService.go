@@ -2,17 +2,17 @@ package services
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/mproyyan/goparcel/internal/common/genproto/users"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/gateway/middlewares"
 	"github.com/mproyyan/goparcel/internal/gateway/responses"
 )
 
 type UserService struct {
 	router fiber.Router
-	client users.UserServiceClient
+	client genproto.UserServiceClient
 }
 
-func NewUserService(router fiber.Router, client users.UserServiceClient) UserService {
+func NewUserService(router fiber.Router, client genproto.UserServiceClient) UserService {
 	return UserService{
 		router: router,
 		client: client,
@@ -21,7 +21,7 @@ func NewUserService(router fiber.Router, client users.UserServiceClient) UserSer
 
 func (u UserService) login(c *fiber.Ctx) error {
 	// Parse request body
-	var request users.LoginRequest
+	var request genproto.LoginRequest
 	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
@@ -39,7 +39,7 @@ func (u UserService) login(c *fiber.Ctx) error {
 
 func (u UserService) registerAsOperator(c *fiber.Ctx) error {
 	// Parse request body
-	var request users.RegisterAsOperatorRequest
+	var request genproto.RegisterAsOperatorRequest
 	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
@@ -59,7 +59,7 @@ func (u UserService) registerAsOperator(c *fiber.Ctx) error {
 
 func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
 	// Parse request body
-	var request users.RegisterAsCarrierRequest
+	var request genproto.RegisterAsCarrierRequest
 	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
@@ -79,7 +79,7 @@ func (u UserService) registerAsCarrier(c *fiber.Ctx) error {
 
 func (u UserService) registerAsCourier(c *fiber.Ctx) error {
 	// Parse request body
-	var request users.RegisterAsCourierRequest
+	var request genproto.RegisterAsCourierRequest
 	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(responses.NewInvalidRequestBodyErrorResponse(err))
 	}
@@ -99,7 +99,7 @@ func (u UserService) registerAsCourier(c *fiber.Ctx) error {
 
 func (u UserService) userLocation(c *fiber.Ctx) error {
 	// Parse request body
-	var request users.GetUserLocationRequest
+	var request genproto.GetUserLocationRequest
 	if err := c.BodyParser(&request); err != nil {
 		code, errResponse := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(errResponse)

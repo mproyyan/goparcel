@@ -4,7 +4,7 @@ import "google/protobuf/empty.proto";
 
 package protobuf;
 
-option go_package = "github.com/mproyyan/goparcel/internal/common/genproto/locations";
+option go_package = "github.com/mproyyan/goparcel/internal/common/genproto";
 
 service LocationService {
     rpc GetLocation(GetLocationRequest) returns (Location) {}

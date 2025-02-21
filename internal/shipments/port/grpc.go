@@ -4,8 +4,7 @@ import (
 	"context"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
-	"github.com/mproyyan/goparcel/internal/common/genproto/shipments"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/shipments/app"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -14,14 +13,14 @@ import (
 
 type GrpcServer struct {
 	service app.ShipmentService
-	shipments.UnimplementedShipmentServiceServer
+	genproto.UnimplementedShipmentServiceServer
 }
 
 func NewGrpcServer(service app.ShipmentService) GrpcServer {
 	return GrpcServer{service: service}
 }
 
-func (g GrpcServer) CreateShipment(ctx context.Context, request *shipments.CreateShipmentRequest) (*emptypb.Empty, error) {
+func (g GrpcServer) CreateShipment(ctx context.Context, request *genproto.CreateShipmentRequest) (*emptypb.Empty, error) {
 	// Build sender detail
 	sender := domain.Entity{
 		Name:    request.Sender.Name,
@@ -54,7 +53,7 @@ func (g GrpcServer) CreateShipment(ctx context.Context, request *shipments.Creat
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) GetUnroutedShipment(ctx context.Context, request *shipments.GetUnroutedShipmentRequest) (*shipments.ShipmentResponse, error) {
+func (g GrpcServer) GetUnroutedShipment(ctx context.Context, request *genproto.GetUnroutedShipmentRequest) (*genproto.ShipmentResponse, error) {
 	shipments, err := g.service.UnroutedShipments(ctx, request.LocationId)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get unrouted shipments")
@@ -63,7 +62,7 @@ func (g GrpcServer) GetUnroutedShipment(ctx context.Context, request *shipments.
 	return shipmentsToProtoResponse(shipments), nil
 }
 
-func protoRequestToItems(packages []*shipments.Package) []domain.Item {
+func protoRequestToItems(packages []*genproto.Package) []domain.Item {
 	var items []domain.Item
 	for _, pkg := range packages {
 		volume := int32(0)
@@ -83,11 +82,11 @@ func protoRequestToItems(packages []*shipments.Package) []domain.Item {
 }
 
 // shipmentsToProtoResponse converts a slice of domain.Shipment to *proto.ShipmentResponse
-func shipmentsToProtoResponse(domainShipments []domain.Shipment) *shipments.ShipmentResponse {
-	var protoShipments []*shipments.Shipment
+func shipmentsToProtoResponse(domainShipments []domain.Shipment) *genproto.ShipmentResponse {
+	var protoShipments []*genproto.Shipment
 
 	for _, s := range domainShipments {
-		protoShipments = append(protoShipments, &shipments.Shipment{
+		protoShipments = append(protoShipments, &genproto.Shipment{
 			Id:              s.ID,
 			AirwayBill:      s.AirwayBill,
 			TransportStatus: s.TransportStatus.String(),
@@ -101,15 +100,15 @@ func shipmentsToProtoResponse(domainShipments []domain.Shipment) *shipments.Ship
 		})
 	}
 
-	return &shipments.ShipmentResponse{
+	return &genproto.ShipmentResponse{
 		Shipment: protoShipments,
 	}
 }
 
-func itemsToProtoResponse(items []domain.Item) []*shipments.Item {
-	var protoItems []*shipments.Item
+func itemsToProtoResponse(items []domain.Item) []*genproto.Item {
+	var protoItems []*genproto.Item
 	for _, item := range items {
-		protoItems = append(protoItems, &shipments.Item{
+		protoItems = append(protoItems, &genproto.Item{
 			Name:   item.Name,
 			Amount: int32(item.Amount),
 			Weight: item.Weight,
@@ -119,16 +118,16 @@ func itemsToProtoResponse(items []domain.Item) []*shipments.Item {
 	return protoItems
 }
 
-func entityToProtoResponse(e domain.Entity) *shipments.EntityDetail {
-	return &shipments.EntityDetail{
+func entityToProtoResponse(e domain.Entity) *genproto.EntityDetail {
+	return &genproto.EntityDetail{
 		Name:    e.Name,
 		Contact: e.Contact,
 		Address: addressToProtoResponse(e.Address),
 	}
 }
 
-func addressToProtoResponse(a domain.Address) *locations.Address {
-	return &locations.Address{
+func addressToProtoResponse(a domain.Address) *genproto.Address {
+	return &genproto.Address{
 		Province:      a.Province,
 		City:          a.City,
 		District:      a.District,
@@ -138,18 +137,18 @@ func addressToProtoResponse(a domain.Address) *locations.Address {
 	}
 }
 
-func locationToProtoResponse(l domain.Location) *locations.Location {
-	return &locations.Location{
+func locationToProtoResponse(l domain.Location) *genproto.Location {
+	return &genproto.Location{
 		Id:   l.ID,
 		Name: l.Name,
 		Type: l.Type,
 	}
 }
 
-func itineraryToProtoResponse(logs []domain.ItineraryLog) []*shipments.ItineraryLog {
-	var protoLogs []*shipments.ItineraryLog
+func itineraryToProtoResponse(logs []domain.ItineraryLog) []*genproto.ItineraryLog {
+	var protoLogs []*genproto.ItineraryLog
 	for _, log := range logs {
-		protoLogs = append(protoLogs, &shipments.ItineraryLog{
+		protoLogs = append(protoLogs, &genproto.ItineraryLog{
 			ActivityType: log.ActivityType.String(),
 			Timestamp:    timestamppb.New(log.Timestamp),
 			Location:     locationToProtoResponse(log.Location),

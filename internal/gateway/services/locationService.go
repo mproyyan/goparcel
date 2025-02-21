@@ -2,16 +2,16 @@ package services
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/gateway/responses"
 )
 
 type LocationService struct {
 	router fiber.Router
-	client locations.LocationServiceClient
+	client genproto.LocationServiceClient
 }
 
-func NewLocationService(router fiber.Router, client locations.LocationServiceClient) LocationService {
+func NewLocationService(router fiber.Router, client genproto.LocationServiceClient) LocationService {
 	return LocationService{
 		router: router,
 		client: client,
@@ -20,7 +20,7 @@ func NewLocationService(router fiber.Router, client locations.LocationServiceCli
 
 func (l LocationService) createLocation(c *fiber.Ctx) error {
 	// Parse request body
-	var request locations.CreateLocationRequest
+	var request genproto.CreateLocationRequest
 	if err := c.BodyParser(&request); err != nil {
 		errResponse := responses.NewInvalidRequestBodyErrorResponse(err)
 		return c.Status(fiber.StatusBadRequest).JSON(errResponse)
@@ -44,7 +44,7 @@ func (l LocationService) findLocations(c *fiber.Ctx) error {
 	locationID := c.Params("id")
 
 	// Call GetLocation RPC
-	location, err := l.client.GetLocation(c.Context(), &locations.GetLocationRequest{LocationId: locationID})
+	location, err := l.client.GetLocation(c.Context(), &genproto.GetLocationRequest{LocationId: locationID})
 	if err != nil {
 		code, errResponse := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(errResponse)
@@ -59,7 +59,7 @@ func (l LocationService) getRegion(c *fiber.Ctx) error {
 	zipcode := c.Params("zipcode")
 
 	// Call GetRegion rpc
-	region, err := l.client.GetRegion(c.Context(), &locations.GetRegionRequest{Zipcode: zipcode})
+	region, err := l.client.GetRegion(c.Context(), &genproto.GetRegionRequest{Zipcode: zipcode})
 	if err != nil {
 		code, errResponse := responses.NewErrorResponse(err)
 		return c.Status(code).JSON(errResponse)

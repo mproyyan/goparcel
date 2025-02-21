@@ -4,11 +4,10 @@
 // - protoc             v5.29.3
 // source: users.proto
 
-package users
+package genproto
 
 import (
 	context "context"
-	locations "github.com/mproyyan/goparcel/internal/common/genproto/locations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -37,7 +36,7 @@ type UserServiceClient interface {
 	RegisterAsOperator(ctx context.Context, in *RegisterAsOperatorRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCarrier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCourier(ctx context.Context, in *RegisterAsCourierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetUserLocation(ctx context.Context, in *GetUserLocationRequest, opts ...grpc.CallOption) (*locations.Location, error)
+	GetUserLocation(ctx context.Context, in *GetUserLocationRequest, opts ...grpc.CallOption) (*Location, error)
 }
 
 type userServiceClient struct {
@@ -88,9 +87,9 @@ func (c *userServiceClient) RegisterAsCourier(ctx context.Context, in *RegisterA
 	return out, nil
 }
 
-func (c *userServiceClient) GetUserLocation(ctx context.Context, in *GetUserLocationRequest, opts ...grpc.CallOption) (*locations.Location, error) {
+func (c *userServiceClient) GetUserLocation(ctx context.Context, in *GetUserLocationRequest, opts ...grpc.CallOption) (*Location, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(locations.Location)
+	out := new(Location)
 	err := c.cc.Invoke(ctx, UserService_GetUserLocation_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -107,7 +106,7 @@ type UserServiceServer interface {
 	RegisterAsOperator(context.Context, *RegisterAsOperatorRequest) (*emptypb.Empty, error)
 	RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
 	RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error)
-	GetUserLocation(context.Context, *GetUserLocationRequest) (*locations.Location, error)
+	GetUserLocation(context.Context, *GetUserLocationRequest) (*Location, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -130,7 +129,7 @@ func (UnimplementedUserServiceServer) RegisterAsCarrier(context.Context, *Regist
 func (UnimplementedUserServiceServer) RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterAsCourier not implemented")
 }
-func (UnimplementedUserServiceServer) GetUserLocation(context.Context, *GetUserLocationRequest) (*locations.Location, error) {
+func (UnimplementedUserServiceServer) GetUserLocation(context.Context, *GetUserLocationRequest) (*Location, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserLocation not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}

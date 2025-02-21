@@ -4,7 +4,7 @@
 // - protoc             v5.29.3
 // source: shipments.proto
 
-package shipments
+package genproto
 
 import (
 	context "context"

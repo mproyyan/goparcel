@@ -4,22 +4,22 @@ import (
 	"context"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
 )
 
 type LocationService struct {
-	client locations.LocationServiceClient
+	client genproto.LocationServiceClient
 }
 
-func NewLocationService(client locations.LocationServiceClient) *LocationService {
+func NewLocationService(client genproto.LocationServiceClient) *LocationService {
 	return &LocationService{
 		client: client,
 	}
 }
 
 func (l *LocationService) GetLocation(ctx context.Context, locationID string) (*user.Location, error) {
-	location, err := l.client.GetLocation(ctx, &locations.GetLocationRequest{
+	location, err := l.client.GetLocation(ctx, &genproto.GetLocationRequest{
 		LocationId: locationID,
 	})
 

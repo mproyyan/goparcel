@@ -4,14 +4,12 @@ import (
 	"errors"
 	"os"
 
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
-	"github.com/mproyyan/goparcel/internal/common/genproto/shipments"
-	"github.com/mproyyan/goparcel/internal/common/genproto/users"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func NewUserServiceClient() (client users.UserServiceClient, close func() error, err error) {
+func NewUserServiceClient() (client genproto.UserServiceClient, close func() error, err error) {
 	// Get address from env
 	grpcAddr := os.Getenv("USER_SERVICE_ADDR")
 	if grpcAddr == "" {
@@ -28,10 +26,10 @@ func NewUserServiceClient() (client users.UserServiceClient, close func() error,
 	}
 
 	// Create user service client and return it
-	return users.NewUserServiceClient(conn), conn.Close, nil
+	return genproto.NewUserServiceClient(conn), conn.Close, nil
 }
 
-func NewLocationServiceClient() (client locations.LocationServiceClient, close func() error, err error) {
+func NewLocationServiceClient() (client genproto.LocationServiceClient, close func() error, err error) {
 	// Get address from env
 	grpcAddr := os.Getenv("LOCATION_SERVICE_ADDR")
 	if grpcAddr == "" {
@@ -48,10 +46,10 @@ func NewLocationServiceClient() (client locations.LocationServiceClient, close f
 	}
 
 	// Create user service client and return it
-	return locations.NewLocationServiceClient(conn), conn.Close, nil
+	return genproto.NewLocationServiceClient(conn), conn.Close, nil
 }
 
-func NewShipmentServiceClient() (client shipments.ShipmentServiceClient, close func() error, err error) {
+func NewShipmentServiceClient() (client genproto.ShipmentServiceClient, close func() error, err error) {
 	// Get address from env
 	grpcAddr := os.Getenv("SHIPMENT_SERVICE_ADDR")
 	if grpcAddr == "" {
@@ -68,5 +66,5 @@ func NewShipmentServiceClient() (client shipments.ShipmentServiceClient, close f
 	}
 
 	// Create shipment service client and return it
-	return shipments.NewShipmentServiceClient(conn), conn.Close, nil
+	return genproto.NewShipmentServiceClient(conn), conn.Close, nil
 }

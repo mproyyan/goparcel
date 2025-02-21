@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/common/server"
 	"github.com/mproyyan/goparcel/internal/locations/adapter"
 	"github.com/mproyyan/goparcel/internal/locations/app"
@@ -47,6 +47,6 @@ func main() {
 	// Run grpc server
 	server.RunGrpcServer(func(server *grpc.Server) {
 		service := port.NewGrpcServer(locationService)
-		locations.RegisterLocationServiceServer(server, service)
+		genproto.RegisterLocationServiceServer(server, service)
 	})
 }

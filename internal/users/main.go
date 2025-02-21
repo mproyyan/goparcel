@@ -8,7 +8,7 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/client"
 	"github.com/mproyyan/goparcel/internal/common/db"
-	"github.com/mproyyan/goparcel/internal/common/genproto/users"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/common/server"
 	"github.com/mproyyan/goparcel/internal/users/adapter"
 	"github.com/mproyyan/goparcel/internal/users/app"
@@ -74,6 +74,6 @@ func main() {
 
 	server.RunGrpcServer(func(server *grpc.Server) {
 		service := port.NewGrpcServer(userService)
-		users.RegisterUserServiceServer(server, service)
+		genproto.RegisterUserServiceServer(server, service)
 	})
 }

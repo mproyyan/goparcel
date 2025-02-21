@@ -6,7 +6,7 @@ import "locations.proto";
 
 package protobuf;
 
-option go_package = "github.com/mproyyan/goparcel/internal/common/genproto/shipments";
+option go_package = "github.com/mproyyan/goparcel/internal/common/genproto";
 
 service ShipmentService {
     rpc CreateShipment(CreateShipmentRequest) returns (google.protobuf.Empty) {}

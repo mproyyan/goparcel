@@ -4,8 +4,7 @@ import (
 	"context"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
-	"github.com/mproyyan/goparcel/internal/common/genproto/users"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/users/app"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
 	"google.golang.org/grpc/codes"
@@ -15,7 +14,7 @@ import (
 
 type GrpcServer struct {
 	service app.UserService
-	users.UnimplementedUserServiceServer
+	genproto.UnimplementedUserServiceServer
 }
 
 func NewGrpcServer(service app.UserService) GrpcServer {
@@ -24,16 +23,16 @@ func NewGrpcServer(service app.UserService) GrpcServer {
 	}
 }
 
-func (g GrpcServer) Login(ctx context.Context, request *users.LoginRequest) (*users.LoginResponse, error) {
+func (g GrpcServer) Login(ctx context.Context, request *genproto.LoginRequest) (*genproto.LoginResponse, error) {
 	token, err := g.service.Login(ctx, request.Email, request.Password)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to login")
 	}
 
-	return &users.LoginResponse{Token: token}, nil
+	return &genproto.LoginResponse{Token: token}, nil
 }
 
-func (g GrpcServer) RegisterAsOperator(context context.Context, request *users.RegisterAsOperatorRequest) (*emptypb.Empty, error) {
+func (g GrpcServer) RegisterAsOperator(context context.Context, request *genproto.RegisterAsOperatorRequest) (*emptypb.Empty, error) {
 	// Check value of operator type request value to decide operator type
 	operatorTypeRequestValue := request.Type
 	operatorType, err := operator.OperatorTypeFromString(operatorTypeRequestValue)
@@ -50,7 +49,7 @@ func (g GrpcServer) RegisterAsOperator(context context.Context, request *users.R
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *users.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
+func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *genproto.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
 	err := g.service.RegisterAsCarrier(ctx, request.Name, request.Email, request.Password)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to register as carrier")
@@ -59,7 +58,7 @@ func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *users.Regist
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *users.RegisterAsCourierRequest) (*emptypb.Empty, error) {
+func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *genproto.RegisterAsCourierRequest) (*emptypb.Empty, error) {
 	err := g.service.RegisterAsCourier(ctx, request.Name, request.Email, request.Password)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to register as operator")
@@ -68,18 +67,18 @@ func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *users.Regist
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) GetUserLocation(ctx context.Context, request *users.GetUserLocationRequest) (*locations.Location, error) {
+func (g GrpcServer) GetUserLocation(ctx context.Context, request *genproto.GetUserLocationRequest) (*genproto.Location, error) {
 	location, err := g.service.UserLocation(ctx, request.UserId, request.Entity)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "rpc GetUserLocation failed")
 	}
 
-	return &locations.Location{
+	return &genproto.Location{
 		Id:          location.ID,
 		Name:        location.Name,
 		Type:        location.Type,
 		WarehouseId: location.WarehouseID,
-		Address: &locations.Address{
+		Address: &genproto.Address{
 			ZipCode:       location.Address.ZipCode,
 			Province:      location.Address.Province,
 			City:          location.Address.City,

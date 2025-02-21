@@ -4,7 +4,7 @@ import (
 	"context"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/locations/app"
 	"github.com/mproyyan/goparcel/internal/locations/domain"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -12,7 +12,7 @@ import (
 
 type GrpcServer struct {
 	service app.LocationService
-	locations.UnimplementedLocationServiceServer
+	genproto.UnimplementedLocationServiceServer
 }
 
 func NewGrpcServer(service app.LocationService) GrpcServer {
@@ -21,18 +21,18 @@ func NewGrpcServer(service app.LocationService) GrpcServer {
 	}
 }
 
-func (g GrpcServer) GetLocation(ctx context.Context, request *locations.GetLocationRequest) (*locations.Location, error) {
+func (g GrpcServer) GetLocation(ctx context.Context, request *genproto.GetLocationRequest) (*genproto.Location, error) {
 	location, err := g.service.GetLocation(ctx, request.LocationId)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "service GetLocation failed")
 	}
 
-	return &locations.Location{
+	return &genproto.Location{
 		Id:          location.ID,
 		Name:        location.Name,
 		Type:        location.Type.String(),
 		WarehouseId: location.WarehouseID,
-		Address: &locations.Address{
+		Address: &genproto.Address{
 			Province:      location.Address.Province,
 			City:          location.Address.City,
 			District:      location.Address.District,
@@ -45,7 +45,7 @@ func (g GrpcServer) GetLocation(ctx context.Context, request *locations.GetLocat
 	}, nil
 }
 
-func (g GrpcServer) CreateLocation(ctx context.Context, request *locations.CreateLocationRequest) (*emptypb.Empty, error) {
+func (g GrpcServer) CreateLocation(ctx context.Context, request *genproto.CreateLocationRequest) (*emptypb.Empty, error) {
 	err := g.service.CreateLocation(ctx, domain.Location{
 		Name:        request.Name,
 		Type:        domain.LocationTypeFromString(request.Type),
@@ -65,13 +65,13 @@ func (g GrpcServer) CreateLocation(ctx context.Context, request *locations.Creat
 	return &emptypb.Empty{}, nil
 }
 
-func (g GrpcServer) GetRegion(ctx context.Context, request *locations.GetRegionRequest) (*locations.Region, error) {
+func (g GrpcServer) GetRegion(ctx context.Context, request *genproto.GetRegionRequest) (*genproto.Region, error) {
 	region, err := g.service.GetRegion(ctx, request.Zipcode)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "GetRegion failed")
 	}
 
-	return &locations.Region{
+	return &genproto.Region{
 		Province:    region.Province,
 		City:        region.City,
 		District:    region.District,

@@ -4,22 +4,22 @@ import (
 	"context"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
-	"github.com/mproyyan/goparcel/internal/common/genproto/locations"
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
 )
 
 type LocationService struct {
-	client locations.LocationServiceClient
+	client genproto.LocationServiceClient
 }
 
-func NewLocationService(client locations.LocationServiceClient) *LocationService {
+func NewLocationService(client genproto.LocationServiceClient) *LocationService {
 	return &LocationService{
 		client: client,
 	}
 }
 
 func (l *LocationService) ResolveAddress(ctx context.Context, zipcode string) (*domain.Address, error) {
-	region, err := l.client.GetRegion(ctx, &locations.GetRegionRequest{Zipcode: zipcode})
+	region, err := l.client.GetRegion(ctx, &genproto.GetRegionRequest{Zipcode: zipcode})
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to call GetRegion")
 	}

@@ -4,7 +4,7 @@
 // - protoc             v5.29.3
 // source: locations.proto
 
-package locations
+package genproto
 
 import (
 	context "context"
