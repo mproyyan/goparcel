@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package protobuf;
+
+option go_package = "github.com/mproyyan/goparcel/internal/common/genproto";
+
+service CourierService {
+    rpc GetAvailableCouriers(GetAvailableCourierRequest) returns(CourierResponse) {}
+}
+
+message GetAvailableCourierRequest {
+    string location_id = 1;
+}
+
+message CourierResponse {
+    repeated Courier couriers = 1;
+}
+
+message Courier {
+    string id = 1;         
+	string UserID = 2; 
+	string name = 3;      
+	string email = 4; 
+	string status = 5;
+	string location_id = 6;
+}
