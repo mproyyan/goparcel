@@ -20,7 +20,7 @@ message CourierResponse {
 
 message Courier {
     string id = 1;         
-	string UserID = 2; 
+	string user_id = 2; 
 	string name = 3;      
 	string email = 4; 
 	string status = 5;

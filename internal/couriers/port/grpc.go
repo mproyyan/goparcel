@@ -32,7 +32,7 @@ func couriersToProtoResponse(couriers []domain.Courier) []*genproto.Courier {
 	for _, c := range couriers {
 		protoCouriers = append(protoCouriers, &genproto.Courier{
 			Id:         c.ID,
-			UserID:     c.UserID,
+			UserId:     c.UserID,
 			Name:       c.Name,
 			Email:      c.Email,
 			Status:     c.Status.String(),
