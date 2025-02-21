@@ -81,3 +81,13 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 
 	return nil
 }
+
+func (s ShipmentService) UnroutedShipments(ctx context.Context, locationID string) ([]domain.Shipment, error) {
+	// Get unrouted shipments
+	shipments, err := s.shipmentRepository.RetrieveShipmentsFromLocations(ctx, locationID, domain.NotRouted)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to retrieve shipments from location")
+	}
+
+	return shipments, nil
+}

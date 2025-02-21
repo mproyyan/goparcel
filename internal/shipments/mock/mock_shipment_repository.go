@@ -69,3 +69,18 @@ func (mr *MockShipmentRepositoryMockRecorder) LogItinerary(ctx, shipmentID, loca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogItinerary", reflect.TypeOf((*MockShipmentRepository)(nil).LogItinerary), ctx, shipmentID, locationID, activityType)
 }
+
+// RetrieveShipmentsFromLocations mocks base method.
+func (m *MockShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus domain.RoutingStatus) ([]domain.Shipment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RetrieveShipmentsFromLocations", ctx, locationsID, routingStatus)
+	ret0, _ := ret[0].([]domain.Shipment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RetrieveShipmentsFromLocations indicates an expected call of RetrieveShipmentsFromLocations.
+func (mr *MockShipmentRepositoryMockRecorder) RetrieveShipmentsFromLocations(ctx, locationsID, routingStatus any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveShipmentsFromLocations", reflect.TypeOf((*MockShipmentRepository)(nil).RetrieveShipmentsFromLocations), ctx, locationsID, routingStatus)
+}

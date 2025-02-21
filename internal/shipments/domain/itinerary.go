@@ -51,5 +51,5 @@ func StringToActivityType(s string) ActivityType {
 type ItineraryLog struct {
 	ActivityType string
 	Timestamp    time.Time
-	Location     string
+	Location     Location
 }

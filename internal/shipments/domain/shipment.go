@@ -22,6 +22,12 @@ type Address struct {
 	ZipCode       string
 }
 
+type Location struct {
+	ID   string
+	Name string
+	Type string
+}
+
 type Shipment struct {
 	ID              string
 	AirwayBill      string
@@ -30,8 +36,8 @@ type Shipment struct {
 	Items           []Item
 	Sender          Entity
 	Recipient       Entity
-	Origin          string
-	Destination     string
+	Origin          Location
+	Destination     Location
 	ItineraryLogs   []ItineraryLog
 }
 
@@ -113,4 +119,9 @@ func StringToRoutingStatus(s string) RoutingStatus {
 	default:
 		return RoutingUnknown
 	}
+}
+
+func (s Shipment) LatestItinerary() ItineraryLog {
+	index := len(s.ItineraryLogs) - 1
+	return s.ItineraryLogs[index]
 }
