@@ -27,12 +27,19 @@ func main() {
 	// Connect to location service
 	locationServiceClient, close, err := client.NewLocationServiceClient()
 	if err != nil {
-		log.Fatal("cannot connect to user service", err)
+		log.Fatal("cannot connect to location service", err)
 	}
 	defer close()
 
-	// Connect to location service
+	// Connect to shipment service
 	shipmentServiceClient, close, err := client.NewShipmentServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to shipment service", err)
+	}
+	defer close()
+
+	// Connect to courier service
+	courierServiceClient, close, err := client.NewCourierServiceClient()
 	if err != nil {
 		log.Fatal("cannot connect to user service", err)
 	}
@@ -42,10 +49,12 @@ func main() {
 	userService := services.NewUserService(api, userServiceClient)
 	locationService := services.NewLocationService(api, locationServiceClient)
 	shipmentService := services.NewShipmentService(api, shipmentServiceClient)
+	courierService := services.NewCourierService(api, courierServiceClient)
 
 	userService.Bootstrap()
 	locationService.Bootstrap()
 	shipmentService.Bootstrap()
+	courierService.Bootstrap()
 
 	// Run server
 	log.Fatal(app.Listen(addr))
