@@ -42,12 +42,12 @@ func (c *CourierRepository) CreateCourier(ctx context.Context, courier courier.C
 
 // Models
 type CourierModel struct {
-	ID         primitive.ObjectID
-	UserID     primitive.ObjectID
-	Name       string
-	Email      string
-	Status     string
-	LocationID primitive.ObjectID
+	ID         primitive.ObjectID  `bson:"_id,omitempty"`
+	UserID     *primitive.ObjectID `bson:"user_id,omitempty"`
+	Name       string              `bson:"name"`
+	Email      string              `bson:"email"`
+	Status     string              `bson:"status"`
+	LocationID *primitive.ObjectID `bson:"location_id,omitempty"`
 }
 
 // Helper function to convert domain to model
@@ -70,10 +70,10 @@ func domainToCourierModel(courier courier.Courier) (*CourierModel, error) {
 
 	return &CourierModel{
 		ID:         courierID,
-		UserID:     userID,
+		UserID:     &userID,
 		Name:       courier.Name,
 		Email:      courier.Email,
-		Status:     courier.Status,
-		LocationID: locationID,
+		Status:     courier.Status.String(), // default not_available
+		LocationID: &locationID,
 	}, nil
 }
