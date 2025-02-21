@@ -1,6 +1,8 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "locations.proto";
 
 package protobuf;
 
@@ -8,6 +10,7 @@ option go_package = "github.com/mproyyan/goparcel/internal/common/genproto/shipm
 
 service ShipmentService {
     rpc CreateShipment(CreateShipmentRequest) returns (google.protobuf.Empty) {}
+    rpc GetUnroutedShipment(GetUnroutedShipmentRequest) returns (ShipmentResponse) {}
 }
 
 message CreateShipmentRequest {
@@ -37,3 +40,42 @@ message Volume {
     int32 height = 3;
 }
 
+message GetUnroutedShipmentRequest {
+    string location_id = 1;
+}
+
+message ShipmentResponse {
+    repeated Shipment shipment = 1;
+}
+  
+message ItineraryLog {
+    string activity_type = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    Location location = 3;
+}
+  
+message Shipment {
+    string id = 1;
+    string airway_bill = 2;
+    string transport_status = 3;
+    string routing_status = 4;
+    repeated Item items = 5;
+    EntityDetail sender = 6;
+    EntityDetail recipient = 7;
+    Location origin = 8;
+    Location destination = 9;
+    repeated ItineraryLog itinerary_logs = 10;
+}
+
+message Item {
+    string name = 1;
+    int32 amount = 2;
+    int32 weight = 3;
+    int32 volume = 4;
+}
+  
+message EntityDetail {
+    string name = 1;
+    string contact = 2;
+    Address address = 3;
+}

@@ -18,6 +18,10 @@ type ShipmentModel struct {
 	Origin          primitive.ObjectID `bson:"origin,omitempty"`
 	Destination     primitive.ObjectID `bson:"destination,omitempty"`
 	ItineraryLogs   []ItineraryLog     `bson:"itinerary_logs"`
+
+	// relations
+	OriginLocation      *Location `bson:"origin_location"`
+	DestinationLocation *Location `bson:"destination_location"`
 }
 
 type Item struct {
@@ -42,6 +46,15 @@ type ItineraryLog struct {
 	ActivityType string             `bson:"activity_type"`
 	Timestamp    time.Time          `bson:"timestamp"`
 	Location     primitive.ObjectID `bson:"location"`
+
+	// relations
+	LocationDetail *Location `bson:"location_detail"`
+}
+
+type Location struct {
+	ID   primitive.ObjectID `bson:"_id"`
+	Name string             `bson:"name"`
+	Type string             `bson:"type"`
 }
 
 func domainToItemModel(domainItems []domain.Item) []Item {

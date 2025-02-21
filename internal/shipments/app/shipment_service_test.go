@@ -176,7 +176,7 @@ func newShipmentDataTest() *domain.Shipment {
 		},
 		ItineraryLogs: []domain.ItineraryLog{
 			{
-				ActivityType: domain.Receive.String(),
+				ActivityType: domain.Receive,
 				Location: domain.Location{
 					ID: "jakarta",
 				},

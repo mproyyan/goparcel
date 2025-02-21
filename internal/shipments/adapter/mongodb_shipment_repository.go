@@ -104,6 +104,95 @@ func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentID string
 	return nil
 }
 
+func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus domain.RoutingStatus) ([]domain.Shipment, error) {
+	// Conver location id to object id
+	locationObjID, err := primitive.ObjectIDFromHex(locationsID)
+	if err != nil {
+		return []domain.Shipment{}, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
+	// Create pipeline
+	pipeline := mongo.Pipeline{
+		// Filter shipments with routing_status "not_routed"
+		{{Key: "$match", Value: bson.M{"routing_status": "not_routed"}}},
+
+		// Filter shipments whose last location is in itinerary_logs.location
+		{
+			{Key: "$match", Value: bson.M{
+				"$expr": bson.M{
+					"$eq": bson.A{
+						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}}, // Last location of itinerary_logs
+						locationObjID,
+					},
+				},
+			}},
+		},
+
+		// Lookup in the locations collection to get origin details
+		{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "locations",
+				"localField":   "origin",
+				"foreignField": "_id",
+				"as":           "origin_location",
+			}},
+		},
+		{{Key: "$unwind", Value: bson.M{"path": "$origin_location", "preserveNullAndEmptyArrays": true}}},
+
+		// Lookup in the locations collection to get destination details
+		{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "locations",
+				"localField":   "destination",
+				"foreignField": "_id",
+				"as":           "destination_location",
+			}},
+		},
+		{{Key: "$unwind", Value: bson.M{"path": "$destination_location", "preserveNullAndEmptyArrays": true}}},
+
+		// Lookup to locations to get location details from each itinerary_log
+		{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "locations",
+				"localField":   "itinerary_logs.location",
+				"foreignField": "_id",
+				"as":           "itinerary_logs.location_detail",
+			}},
+		},
+
+		// Final project results
+		{
+			{Key: "$project", Value: bson.M{
+				"_id":                  1,
+				"airway_bill":          1,
+				"transport_status":     1,
+				"routing_status":       1,
+				"items":                1,
+				"sender_detail":        1,
+				"recipient_detail":     1,
+				"origin":               1,
+				"destination":          1,
+				"itinerary_logs":       1,
+				"origin_location":      1,
+				"destination_location": 1,
+			}},
+		},
+	}
+
+	cursor, err := s.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var shipments []ShipmentModel
+	if err := cursor.All(ctx, &shipments); err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	return shipmentModelToDomain(shipments), nil
+}
+
 // generateAWB generates a unique Airway Bill (AWB) number
 func generateAWB(length int) string {
 	src := rand.NewSource(time.Now().UnixNano())
@@ -113,4 +202,76 @@ func generateAWB(length int) string {
 
 	awbNumber := fmt.Sprintf("%s%0*d", "GP", length-2, randomNumber)
 	return awbNumber
+}
+
+func shipmentModelToDomain(models []ShipmentModel) []domain.Shipment {
+	var shipments []domain.Shipment
+
+	for _, model := range models {
+		shipments = append(shipments, domain.Shipment{
+			ID:              model.ID.Hex(),
+			AirwayBill:      model.AirwayBill,
+			TransportStatus: domain.StringToTransportStatus(model.TransportStatus),
+			RoutingStatus:   domain.StringToRoutingStatus(model.RoutingStatus),
+			Items:           itemModelToDomain(model.Items),
+			Sender:          entityModelToDomain(model.SenderDetail),
+			Recipient:       entityModelToDomain(model.RecipientDetail),
+			Origin:          locationModelToDomain(model.OriginLocation),
+			Destination:     locationModelToDomain(model.DestinationLocation),
+			ItineraryLogs:   itineraryModelToDomain(model.ItineraryLogs),
+		})
+	}
+
+	return shipments
+}
+
+func itemModelToDomain(items []Item) []domain.Item {
+	var domainItems []domain.Item
+	for _, item := range items {
+		domainItems = append(domainItems, domain.Item{
+			Name:   item.Name,
+			Amount: item.Amount,
+			Weight: item.Weight,
+			Volume: item.Volume,
+		})
+	}
+	return domainItems
+}
+
+func entityModelToDomain(detail EntityDetail) domain.Entity {
+	return domain.Entity{
+		Name:    detail.Name,
+		Contact: detail.Contact,
+		Address: domain.Address{
+			Province:      detail.Province,
+			City:          detail.City,
+			District:      detail.District,
+			Subdistrict:   detail.Subdistrict,
+			StreetAddress: detail.Address,
+			ZipCode:       detail.ZipCode,
+		},
+	}
+}
+
+func locationModelToDomain(location *Location) domain.Location {
+	if location == nil {
+		return domain.Location{}
+	}
+	return domain.Location{
+		ID:   location.ID.Hex(),
+		Name: location.Name,
+		Type: location.Type,
+	}
+}
+
+func itineraryModelToDomain(logs []ItineraryLog) []domain.ItineraryLog {
+	var domainLogs []domain.ItineraryLog
+	for _, log := range logs {
+		domainLogs = append(domainLogs, domain.ItineraryLog{
+			ActivityType: domain.StringToActivityType(log.ActivityType),
+			Timestamp:    log.Timestamp,
+			Location:     locationModelToDomain(log.LocationDetail),
+		})
+	}
+	return domainLogs
 }

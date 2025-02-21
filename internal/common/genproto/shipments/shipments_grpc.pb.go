@@ -20,7 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ShipmentService_CreateShipment_FullMethodName = "/protobuf.ShipmentService/CreateShipment"
+	ShipmentService_CreateShipment_FullMethodName      = "/protobuf.ShipmentService/CreateShipment"
+	ShipmentService_GetUnroutedShipment_FullMethodName = "/protobuf.ShipmentService/GetUnroutedShipment"
 )
 
 // ShipmentServiceClient is the client API for ShipmentService service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShipmentServiceClient interface {
 	CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetUnroutedShipment(ctx context.Context, in *GetUnroutedShipmentRequest, opts ...grpc.CallOption) (*ShipmentResponse, error)
 }
 
 type shipmentServiceClient struct {
@@ -48,11 +50,22 @@ func (c *shipmentServiceClient) CreateShipment(ctx context.Context, in *CreateSh
 	return out, nil
 }
 
+func (c *shipmentServiceClient) GetUnroutedShipment(ctx context.Context, in *GetUnroutedShipmentRequest, opts ...grpc.CallOption) (*ShipmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ShipmentResponse)
+	err := c.cc.Invoke(ctx, ShipmentService_GetUnroutedShipment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShipmentServiceServer is the server API for ShipmentService service.
 // All implementations must embed UnimplementedShipmentServiceServer
 // for forward compatibility.
 type ShipmentServiceServer interface {
 	CreateShipment(context.Context, *CreateShipmentRequest) (*emptypb.Empty, error)
+	GetUnroutedShipment(context.Context, *GetUnroutedShipmentRequest) (*ShipmentResponse, error)
 	mustEmbedUnimplementedShipmentServiceServer()
 }
 
@@ -65,6 +78,9 @@ type UnimplementedShipmentServiceServer struct{}
 
 func (UnimplementedShipmentServiceServer) CreateShipment(context.Context, *CreateShipmentRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateShipment not implemented")
+}
+func (UnimplementedShipmentServiceServer) GetUnroutedShipment(context.Context, *GetUnroutedShipmentRequest) (*ShipmentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUnroutedShipment not implemented")
 }
 func (UnimplementedShipmentServiceServer) mustEmbedUnimplementedShipmentServiceServer() {}
 func (UnimplementedShipmentServiceServer) testEmbeddedByValue()                         {}
@@ -105,6 +121,24 @@ func _ShipmentService_CreateShipment_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShipmentService_GetUnroutedShipment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUnroutedShipmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShipmentServiceServer).GetUnroutedShipment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShipmentService_GetUnroutedShipment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShipmentServiceServer).GetUnroutedShipment(ctx, req.(*GetUnroutedShipmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShipmentService_ServiceDesc is the grpc.ServiceDesc for ShipmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +149,10 @@ var ShipmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateShipment",
 			Handler:    _ShipmentService_CreateShipment_Handler,
+		},
+		{
+			MethodName: "GetUnroutedShipment",
+			Handler:    _ShipmentService_GetUnroutedShipment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
