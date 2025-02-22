@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
+	"github.com/mproyyan/goparcel/internal/gateway/middlewares"
 	"github.com/mproyyan/goparcel/internal/gateway/responses"
 )
 
@@ -69,10 +70,26 @@ func (l LocationService) getRegion(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(region)
 }
 
+func (l LocationService) getTransitPlaces(c *fiber.Ctx) error {
+	// Get location id from parameter
+	request := genproto.GetTransitPlacesRequest{LocationId: c.Params("locationId")}
+
+	// Call rpc
+	locations, err := l.client.GetTransitPlaces(c.Context(), &request)
+	if err != nil {
+		code, errResponse := responses.NewErrorResponse(err)
+		return c.Status(code).JSON(errResponse)
+	}
+
+	// Send response
+	return c.Status(fiber.StatusOK).JSON(locations)
+}
+
 func (l LocationService) Bootstrap() {
 	location := l.router.Group("/locations")
 
 	location.Post("/", l.createLocation)
 	location.Get("/:id", l.findLocations)
 	location.Get("/region/:zipcode", l.getRegion)
+	location.Get("/transit/:locationId", middlewares.AuthMiddleware(), l.getTransitPlaces)
 }

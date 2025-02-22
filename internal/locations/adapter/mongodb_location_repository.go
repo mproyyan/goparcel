@@ -78,9 +78,15 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 
 		// Create filter
 		filter := bson.M{
-			"type":         domain.Warehouse,
-			"_id":          bson.M{"$ne": locationID}, // Exclude the current depot
-			"warehouse_id": warehouseObjId,            // Same warehouse
+			"$and": []bson.M{
+				{"_id": bson.M{"$ne": locationID}}, // Exclude the current location
+				{
+					"$or": []bson.M{
+						{"_id": warehouseObjId},          // Get warehouse that belong to this depot
+						{"warehouse_id": warehouseObjId}, // Get depots in the same warehouse
+					},
+				},
+			},
 		}
 
 		cursor, err := l.collection.Find(ctx, filter)
@@ -97,7 +103,7 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 	// Fetch depot that belong to this warehouse
 	if location.IsWarehouse() {
 		filter := bson.M{
-			"type":         "depot",
+			"type":         domain.Depot,
 			"warehouse_id": locationID, // Depots belonging to this warehouse
 		}
 
