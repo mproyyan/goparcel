@@ -4,6 +4,7 @@ use (
 	./internal/common
 	./internal/couriers
 	./internal/gateway
+	./internal/graphql
 	./internal/locations
 	./internal/shipments
 	./internal/users
