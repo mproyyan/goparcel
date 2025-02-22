@@ -2,9 +2,14 @@
 
 package domain
 
-import "context"
+import (
+	"context"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type LocationRepository interface {
 	FindLocation(ctx context.Context, locationID string) (*Location, error)
 	CreateLocation(ctx context.Context, location Location) (string, error)
+	FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]Location, error)
 }

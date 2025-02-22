@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	domain "github.com/mproyyan/goparcel/internal/locations/domain"
+	primitive "go.mongodb.org/mongo-driver/bson/primitive"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -69,4 +70,19 @@ func (m *MockLocationRepository) FindLocation(ctx context.Context, locationID st
 func (mr *MockLocationRepositoryMockRecorder) FindLocation(ctx, locationID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindLocation", reflect.TypeOf((*MockLocationRepository)(nil).FindLocation), ctx, locationID)
+}
+
+// FindTransitPlaces mocks base method.
+func (m *MockLocationRepository) FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]domain.Location, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindTransitPlaces", ctx, locationID)
+	ret0, _ := ret[0].([]domain.Location)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindTransitPlaces indicates an expected call of FindTransitPlaces.
+func (mr *MockLocationRepositoryMockRecorder) FindTransitPlaces(ctx, locationID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindTransitPlaces", reflect.TypeOf((*MockLocationRepository)(nil).FindTransitPlaces), ctx, locationID)
 }

@@ -7,6 +7,7 @@ import (
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/locations/domain"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -84,4 +85,19 @@ func (l LocationService) GetRegion(ctx context.Context, zipcode string) (*domain
 	}
 
 	return region, nil
+}
+
+func (l LocationService) TransitPlaces(ctx context.Context, locationID string) ([]domain.Location, error) {
+	// Convert to object id
+	locationObjId, err := primitive.ObjectIDFromHex(locationID)
+	if err != nil {
+		return []domain.Location{}, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
+	locations, err := l.locationRepository.FindTransitPlaces(ctx, locationObjId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to find transit places")
+	}
+
+	return locations, nil
 }

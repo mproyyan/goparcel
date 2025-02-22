@@ -9,6 +9,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/locations/domain"
 	"github.com/mproyyan/goparcel/internal/locations/mock"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -307,6 +308,67 @@ func TestGetRegion(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, test.zipcode, region.ZipCode)
+			}
+		})
+	}
+}
+
+func TestGetTransitPlaces(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock.NewMockLocationRepository(ctrl)
+	service := NewLocationService(nil, mockRepo)
+
+	tests := []struct {
+		name         string
+		locationID   string
+		prepareMock  func(locationID string)
+		expectResult []domain.Location
+		expectError  error
+	}{
+		{
+			name:       "Success - Found Transit Places",
+			locationID: primitive.NewObjectID().Hex(),
+			prepareMock: func(locationID string) {
+				objID, _ := primitive.ObjectIDFromHex(locationID)
+				mockRepo.EXPECT().FindTransitPlaces(gomock.Any(), objID).Return([]domain.Location{{Name: "Place 1"}}, nil)
+			},
+			expectResult: []domain.Location{{Name: "Place 1"}},
+			expectError:  nil,
+		},
+		{
+			name:         "Error - Invalid ObjectID",
+			locationID:   "invalid-id",
+			prepareMock:  func(locationID string) {}, // Tidak perlu mock karena gagal validasi di awal
+			expectResult: []domain.Location{},
+			expectError:  errors.New("rpc error: code = InvalidArgument desc = location_id is not valid object id"),
+		},
+		{
+			name:       "Error - Repository Failure",
+			locationID: primitive.NewObjectID().Hex(),
+			prepareMock: func(locationID string) {
+				objID, _ := primitive.ObjectIDFromHex(locationID)
+				mockRepo.EXPECT().FindTransitPlaces(gomock.Any(), objID).Return(nil, errors.New("repository error"))
+			},
+			expectResult: nil,
+			expectError:  errors.New("repository error"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			tt.prepareMock(tt.locationID)
+
+			result, err := service.TransitPlaces(ctx, tt.locationID)
+
+			assert.Equal(t, tt.expectResult, result)
+			if tt.expectError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectError.Error())
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}
