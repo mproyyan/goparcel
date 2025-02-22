@@ -59,6 +59,62 @@ func (l *LocationRepository) CreateLocation(ctx context.Context, location domain
 	return insertedID.Hex(), nil
 }
 
+func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]domain.Location, error) {
+	// Fetch current location
+	location, err := l.FindLocation(ctx, locationID.Hex())
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to find current location")
+	}
+
+	var transitPlaces []LocationModel
+
+	// Fetch warehouse and depot that belongs to the warehouse except the current depot location
+	if location.IsDepot() {
+		// Cconvert warehouse_id to object id
+		warehouseObjId, err := primitive.ObjectIDFromHex(location.WarehouseID)
+		if err != nil {
+			return []domain.Location{}, status.Error(codes.InvalidArgument, "warehouse_id is not valid object id")
+		}
+
+		// Create filter
+		filter := bson.M{
+			"type":         domain.Warehouse,
+			"_id":          bson.M{"$ne": locationID}, // Exclude the current depot
+			"warehouse_id": warehouseObjId,            // Same warehouse
+		}
+
+		cursor, err := l.collection.Find(ctx, filter)
+		if err != nil {
+			return nil, cuserr.MongoError(err)
+		}
+		defer cursor.Close(ctx)
+
+		if err := cursor.All(ctx, &transitPlaces); err != nil {
+			return nil, cuserr.Decorate(err, "failed to decode warehouse transit places")
+		}
+	}
+
+	// Fetch depot that belong to this warehouse
+	if location.IsWarehouse() {
+		filter := bson.M{
+			"type":         "depot",
+			"warehouse_id": locationID, // Depots belonging to this warehouse
+		}
+
+		cursor, err := l.collection.Find(ctx, filter)
+		if err != nil {
+			return nil, cuserr.Decorate(err, "failed to find depot transit places")
+		}
+		defer cursor.Close(ctx)
+
+		if err := cursor.All(ctx, &transitPlaces); err != nil {
+			return nil, cuserr.Decorate(err, "failed to decode depot transit places")
+		}
+	}
+
+	return locationsModelToDomain(transitPlaces), nil
+}
+
 // Models
 type LocationModel struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
@@ -96,6 +152,16 @@ func locationModelToDomain(model LocationModel) domain.Location {
 			ZipCode:       model.Address.ZipCode,
 		},
 	}
+}
+
+func locationsModelToDomain(models []LocationModel) []domain.Location {
+	var locations []domain.Location
+	for _, model := range models {
+		location := locationModelToDomain(model)
+		locations = append(locations, location)
+	}
+
+	return locations
 }
 
 // Helper function to convert domain to model

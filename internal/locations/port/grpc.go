@@ -79,3 +79,38 @@ func (g GrpcServer) GetRegion(ctx context.Context, request *genproto.GetRegionRe
 		ZipCode:     region.ZipCode,
 	}, nil
 }
+
+func (g GrpcServer) GetTransitPlaces(ctx context.Context, request *genproto.GetTransitPlacesRequest) (*genproto.LocationResponse, error) {
+	locations, err := g.service.TransitPlaces(ctx, request.LocationId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get transit places using location service")
+	}
+
+	locationsResponse := locationToProtoResponse(locations)
+	return &genproto.LocationResponse{Locations: locationsResponse}, nil
+}
+
+func locationToProtoResponse(locations []domain.Location) []*genproto.Location {
+	var protoLocations []*genproto.Location
+
+	for _, loc := range locations {
+		protoLocations = append(protoLocations, &genproto.Location{
+			Id:          loc.ID,
+			Name:        loc.Name,
+			Type:        loc.Type.String(),
+			WarehouseId: loc.WarehouseID,
+			Address: &genproto.Address{
+				ZipCode:       loc.Address.ZipCode,
+				Province:      loc.Address.Province,
+				City:          loc.Address.City,
+				District:      loc.Address.District,
+				Subdistrict:   loc.Address.Subdistrict,
+				Latitude:      loc.Address.Latitude,
+				Longitude:     loc.Address.Longitude,
+				StreetAddress: loc.Address.StreetAddress,
+			},
+		})
+	}
+
+	return protoLocations
+}
