@@ -11,6 +11,7 @@ service LocationService {
     rpc CreateLocation(CreateLocationRequest) returns (google.protobuf.Empty) {}
     rpc GetRegion(GetRegionRequest) returns (Region) {}
     rpc GetTransitPlaces(GetTransitPlacesRequest) returns (LocationResponse) {}
+    rpc GetLocations(GetLocationsRequest) returns (LocationResponse) {}
 }
 
 message GetLocationRequest {
@@ -64,4 +65,8 @@ message GetTransitPlacesRequest {
 
 message LocationResponse {
     repeated Location locations = 1;
+}
+
+message GetLocationsRequest {
+    repeated string location_ids = 1;
 }

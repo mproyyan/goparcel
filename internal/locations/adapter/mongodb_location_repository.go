@@ -121,13 +121,35 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 	return locationsModelToDomain(transitPlaces), nil
 }
 
+func (l *LocationRepository) GetLocations(ctx context.Context, locationIds []primitive.ObjectID) ([]domain.Location, error) {
+	filter := bson.M{}
+
+	// If location ids not empty then fetch location based on the location ids
+	if len(locationIds) > 0 {
+		filter["_id"] = bson.M{"$in": locationIds}
+	}
+
+	cursor, err := l.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var locationModel []LocationModel
+	if err := cursor.All(ctx, &locationModel); err != nil {
+		return nil, err
+	}
+
+	return locationsModelToDomain(locationModel), nil
+}
+
 // Models
 type LocationModel struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Name        string             `bson:"name"`
-	Type        string             `bson:"type"`
-	WarehouseID primitive.ObjectID `bson:"warehouse_id,omitempty"`
-	Address     Address            `bson:"address"`
+	ID          primitive.ObjectID  `bson:"_id,omitempty"`
+	Name        string              `bson:"name"`
+	Type        string              `bson:"type"`
+	WarehouseID *primitive.ObjectID `bson:"warehouse_id,omitempty"`
+	Address     Address             `bson:"address"`
 }
 
 type Address struct {
@@ -187,7 +209,7 @@ func domainToLocationModel(location domain.Location) (*LocationModel, error) {
 		ID:          locationID,
 		Name:        location.Name,
 		Type:        location.Type.String(),
-		WarehouseID: warehouseID,
+		WarehouseID: &warehouseID,
 		Address: Address{
 			ZipCode:       location.Address.ZipCode,
 			Province:      location.Address.Province,

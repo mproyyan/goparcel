@@ -90,6 +90,16 @@ func (g GrpcServer) GetTransitPlaces(ctx context.Context, request *genproto.GetT
 	return &genproto.LocationResponse{Locations: locationsResponse}, nil
 }
 
+func (g GrpcServer) GetLocations(ctx context.Context, request *genproto.GetLocationsRequest) (*genproto.LocationResponse, error) {
+	locations, err := g.service.GetLocations(ctx, request.LocationIds)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "shipment service failed to get locations")
+	}
+
+	locationResponse := locationToProtoResponse(locations)
+	return &genproto.LocationResponse{Locations: locationResponse}, nil
+}
+
 func locationToProtoResponse(locations []domain.Location) []*genproto.Location {
 	var protoLocations []*genproto.Location
 

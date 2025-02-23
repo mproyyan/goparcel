@@ -86,3 +86,18 @@ func (mr *MockLocationRepositoryMockRecorder) FindTransitPlaces(ctx, locationID 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindTransitPlaces", reflect.TypeOf((*MockLocationRepository)(nil).FindTransitPlaces), ctx, locationID)
 }
+
+// GetLocations mocks base method.
+func (m *MockLocationRepository) GetLocations(ctx context.Context, locationIds []primitive.ObjectID) ([]domain.Location, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLocations", ctx, locationIds)
+	ret0, _ := ret[0].([]domain.Location)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLocations indicates an expected call of GetLocations.
+func (mr *MockLocationRepositoryMockRecorder) GetLocations(ctx, locationIds any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocations", reflect.TypeOf((*MockLocationRepository)(nil).GetLocations), ctx, locationIds)
+}

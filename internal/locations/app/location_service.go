@@ -101,3 +101,22 @@ func (l LocationService) TransitPlaces(ctx context.Context, locationID string) (
 
 	return locations, nil
 }
+
+func (l LocationService) GetLocations(ctx context.Context, locationIds []string) ([]domain.Location, error) {
+	// Convert all ids to object id
+	var locationObjIds []primitive.ObjectID
+	for _, id := range locationIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return []domain.Location{}, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+		}
+		locationObjIds = append(locationObjIds, objId)
+	}
+
+	locations, err := l.locationRepository.GetLocations(ctx, locationObjIds)
+	if err != nil {
+		return []domain.Location{}, cuserr.Decorate(err, "shipment repository failed to get locations")
+	}
+
+	return locations, nil
+}
