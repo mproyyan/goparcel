@@ -176,6 +176,7 @@ func (u *UserRepository) FetchUserEntity(ctx context.Context, userID string, ent
 type User struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty"`
 	ModelID    primitive.ObjectID `bson:"model_id,omitempty"`
+	Entity     string             `bson:"entity"`
 	Email      string             `bson:"email"`
 	Password   string             `bson:"password"`
 	UserTypeID primitive.ObjectID `bson:"user_type_id"`
@@ -207,6 +208,7 @@ func userModelToDomain(userModel User) user.User {
 	return user.User{
 		ID:       userModel.ID.Hex(),
 		ModelID:  userModel.ModelID.Hex(),
+		Entity:   userModel.Entity,
 		Email:    userModel.Email,
 		Password: userModel.Password,
 		Type:     userType,
@@ -235,6 +237,7 @@ func domainToUserModel(user user.User) (*User, error) {
 	return &User{
 		ID:         userID,
 		ModelID:    modelID,
+		Entity:     user.Entity,
 		Email:      user.Email,
 		Password:   user.Password,
 		UserTypeID: userTypeID,

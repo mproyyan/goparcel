@@ -117,6 +117,7 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 		_, err = u.userRepository.CreateUser(ctx, user.User{
 			ID:       userId.Hex(),
 			ModelID:  operatorId.Hex(),
+			Entity:   "operator",
 			Email:    email,
 			Password: encryptedPassword,
 			Type:     user.UserType{ID: userType.ID},
@@ -184,6 +185,7 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 		_, err = u.userRepository.CreateUser(ctx, user.User{
 			ID:       userId.Hex(),
 			ModelID:  carrierId.Hex(),
+			Entity:   "carrier",
 			Email:    email,
 			Password: encryptedPassword,
 			Type:     user.UserType{ID: userType.ID},
@@ -249,6 +251,7 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 		_, err = u.userRepository.CreateUser(ctx, user.User{
 			ID:       userId.Hex(),
 			ModelID:  courierID.Hex(),
+			Entity:   "courier",
 			Email:    email,
 			Password: encryptedPassword,
 			Type:     user.UserType{ID: userType.ID},
