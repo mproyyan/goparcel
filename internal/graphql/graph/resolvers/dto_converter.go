@@ -140,3 +140,24 @@ func regionToGraphResponse(reg *genproto.Region) *model.Region {
 		ZipCode:     reg.ZipCode,
 	}
 }
+
+func courierToGraphResponse(courier *genproto.Courier) *model.Courier {
+	return &model.Courier{
+		ID:       courier.Id,
+		UserID:   courier.UserId,
+		Name:     courier.Name,
+		Email:    courier.Email,
+		Status:   courier.Status,
+		Location: &model.Location{ID: courier.LocationId},
+	}
+}
+
+func couriersToGraphResponse(couriers []*genproto.Courier) []*model.Courier {
+	var courierResponse []*model.Courier
+	for _, courier := range couriers {
+		c := courierToGraphResponse(courier)
+		courierResponse = append(courierResponse, c)
+	}
+
+	return courierResponse
+}

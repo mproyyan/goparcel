@@ -1,0 +1,12 @@
+type Courier {
+    id: ID!
+    user_id: ID!
+    name: String!
+    email: String!
+    status: String!
+    location: Location!
+}
+
+extend type Query {
+    GetAvailableCouriers(location_id: ID!): [Courier!]!
+}

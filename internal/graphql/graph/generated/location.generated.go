@@ -1103,6 +1103,10 @@ func (ec *executionContext) _Region(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNLocation2githubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐLocation(ctx context.Context, sel ast.SelectionSet, v model.Location) graphql.Marshaler {
+	return ec._Location(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNLocation2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐLocationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Location) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup

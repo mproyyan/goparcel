@@ -22,15 +22,18 @@ type Resolver struct {
 	// GRPC Clients
 	locationService genproto.LocationServiceClient
 	shipmentService genproto.ShipmentServiceClient
+	courierService  genproto.CourierServiceClient
 }
 
 func NewResolver(
 	locationService genproto.LocationServiceClient,
 	shipmentService genproto.ShipmentServiceClient,
+	courierService genproto.CourierServiceClient,
 ) *Resolver {
 	resolver := &Resolver{
 		locationService: locationService,
 		shipmentService: shipmentService,
+		courierService:  courierService,
 	}
 
 	// Initiate dataloader

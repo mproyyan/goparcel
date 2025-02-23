@@ -143,6 +143,11 @@ models:
     fields:
       location: # Need resolver for location field
         resolver: true
+  
+  Courier:
+    fields:
+      location: # Need resolver for location field
+        resolver: true
 
   ID:
     model:

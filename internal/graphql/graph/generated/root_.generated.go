@@ -33,6 +33,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Courier() CourierResolver
 	ItineraryLog() ItineraryLogResolver
 	Location() LocationResolver
 	Mutation() MutationResolver
@@ -44,6 +45,15 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Courier struct {
+		Email    func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Location func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Status   func(childComplexity int) int
+		UserID   func(childComplexity int) int
+	}
+
 	Item struct {
 		Amount func(childComplexity int) int
 		Name   func(childComplexity int) int
@@ -93,6 +103,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		GetAvailableCouriers func(childComplexity int, locationID string) int
 		GetLocation          func(childComplexity int, id string) int
 		GetRegion            func(childComplexity int, zipCode string) int
 		GetTransitPlaces     func(childComplexity int, id string) int
@@ -139,6 +150,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Courier.email":
+		if e.complexity.Courier.Email == nil {
+			break
+		}
+
+		return e.complexity.Courier.Email(childComplexity), true
+
+	case "Courier.id":
+		if e.complexity.Courier.ID == nil {
+			break
+		}
+
+		return e.complexity.Courier.ID(childComplexity), true
+
+	case "Courier.location":
+		if e.complexity.Courier.Location == nil {
+			break
+		}
+
+		return e.complexity.Courier.Location(childComplexity), true
+
+	case "Courier.name":
+		if e.complexity.Courier.Name == nil {
+			break
+		}
+
+		return e.complexity.Courier.Name(childComplexity), true
+
+	case "Courier.status":
+		if e.complexity.Courier.Status == nil {
+			break
+		}
+
+		return e.complexity.Courier.Status(childComplexity), true
+
+	case "Courier.user_id":
+		if e.complexity.Courier.UserID == nil {
+			break
+		}
+
+		return e.complexity.Courier.UserID(childComplexity), true
 
 	case "Item.amount":
 		if e.complexity.Item.Amount == nil {
@@ -359,6 +412,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PartyDetail.ZipCode(childComplexity), true
+
+	case "Query.GetAvailableCouriers":
+		if e.complexity.Query.GetAvailableCouriers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetAvailableCouriers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAvailableCouriers(childComplexity, args["location_id"].(string)), true
 
 	case "Query.GetLocation":
 		if e.complexity.Query.GetLocation == nil {
@@ -623,6 +688,18 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schemas/courier.graphqls", Input: `type Courier {
+    id: ID!
+    user_id: ID!
+    name: String!
+    email: String!
+    status: String!
+    location: Location!
+}
+
+extend type Query {
+    GetAvailableCouriers(location_id: ID!): [Courier!]!
+}`, BuiltIn: false},
 	{Name: "../schemas/location.graphqls", Input: `type LocationAddress {
     province: String
     city: String

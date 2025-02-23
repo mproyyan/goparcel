@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+type Courier struct {
+	ID       string    `json:"id"`
+	UserID   string    `json:"user_id"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Status   string    `json:"status"`
+	Location *Location `json:"location"`
+}
+
 type CreateLocationInput struct {
 	Name          string       `json:"name"`
 	Type          LocationType `json:"type"`
