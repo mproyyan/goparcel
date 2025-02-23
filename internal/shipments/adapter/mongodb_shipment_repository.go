@@ -57,7 +57,7 @@ func (s *ShipmentRepository) CreateShipment(ctx context.Context, origin string, 
 			Address:     recipient.Address.StreetAddress,
 			ZipCode:     recipient.Address.ZipCode,
 		},
-		Origin:        locationID,
+		Origin:        &locationID,
 		ItineraryLogs: []ItineraryLog{},
 	}
 
@@ -91,7 +91,7 @@ func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentID string
 	logEntry := ItineraryLog{
 		ActivityType: activityType.String(),
 		Timestamp:    time.Now(),
-		Location:     locationObjID,
+		Location:     &locationObjID,
 	}
 
 	// Push itinerary to itinerary logs
@@ -111,102 +111,21 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 		return []domain.Shipment{}, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
-	// Create pipeline
-	pipeline := mongo.Pipeline{
-		// Step 1: Filter shipments where the last itinerary log's location matches the given locationObjID
-		{
-			{Key: "$match", Value: bson.M{
-				"routing_status": routingStatus.String(),
-				"$expr": bson.M{
-					"$eq": bson.A{
-						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}}, // Get last location
-						locationObjID, // Compare with the given location ID
-					},
-				},
-			}},
+	// Build query
+	query := bson.M{
+		"$expr": bson.M{
+			"$eq": bson.A{
+				// Retrieve the location of the last itinerary log entry
+				bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}},
+				// Compare it with the provided location ID
+				locationObjID,
+			},
 		},
-
-		// Step 2: Lookup origin location details from the "locations" collection
-		{
-			{Key: "$lookup", Value: bson.M{
-				"from":         "locations",
-				"localField":   "origin",
-				"foreignField": "_id",
-				"as":           "origin_location",
-			}},
-		},
-		{{Key: "$unwind", Value: bson.M{"path": "$origin_location", "preserveNullAndEmptyArrays": true}}},
-
-		// Step 3: Lookup destination location details from the "locations" collection
-		{
-			{Key: "$lookup", Value: bson.M{
-				"from":         "locations",
-				"localField":   "destination",
-				"foreignField": "_id",
-				"as":           "destination_location",
-			}},
-		},
-		{{Key: "$unwind", Value: bson.M{"path": "$destination_location", "preserveNullAndEmptyArrays": true}}},
-
-		// Step 4: Lookup all location details for each itinerary log's location
-		{
-			{Key: "$lookup", Value: bson.M{
-				"from":         "locations",
-				"localField":   "itinerary_logs.location",
-				"foreignField": "_id",
-				"as":           "location_details",
-			}},
-		},
-
-		// Step 5: Merge location_details into itinerary_logs
-		{
-			{Key: "$set", Value: bson.M{
-				"itinerary_logs": bson.M{
-					"$map": bson.M{
-						"input": "$itinerary_logs",
-						"as":    "log",
-						"in": bson.M{
-							"activity_type": "$$log.activity_type",
-							"timestamp":     "$$log.timestamp",
-							"location":      "$$log.location",
-							"location_detail": bson.M{
-								"$arrayElemAt": bson.A{
-									bson.M{
-										"$filter": bson.M{
-											"input": "$location_details",
-											"as":    "detail",
-											"cond":  bson.M{"$eq": bson.A{"$$detail._id", "$$log.location"}},
-										},
-									},
-									0, // Get the first matching location detail
-								},
-							},
-						},
-					},
-				},
-			}},
-		},
-
-		// Step 6: Project the final fields to return
-		{
-			{Key: "$project", Value: bson.M{
-				"_id":                  1,
-				"airway_bill":          1,
-				"transport_status":     1,
-				"routing_status":       1,
-				"items":                1,
-				"sender_detail":        1,
-				"recipient_detail":     1,
-				"origin":               1,
-				"destination":          1,
-				"itinerary_logs":       1, // Now contains merged location_detail
-				"origin_location":      1,
-				"destination_location": 1,
-			}},
-		},
+		// Filter by routing_status to ensure it matches the given parameter
+		"routing_status": routingStatus.String(),
 	}
 
-	cursor, err := s.collection.Aggregate(ctx, pipeline)
+	cursor, err := s.collection.Find(ctx, query)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
 	}
@@ -243,8 +162,8 @@ func shipmentModelToDomain(models []ShipmentModel) []domain.Shipment {
 			Items:           itemModelToDomain(model.Items),
 			Sender:          entityModelToDomain(model.SenderDetail),
 			Recipient:       entityModelToDomain(model.RecipientDetail),
-			Origin:          locationModelToDomain(model.OriginLocation),
-			Destination:     locationModelToDomain(model.DestinationLocation),
+			Origin:          convertObjIdToHex(model.Origin),
+			Destination:     convertObjIdToHex(model.Destination),
 			ItineraryLogs:   itineraryModelToDomain(model.ItineraryLogs),
 		})
 	}
@@ -280,24 +199,13 @@ func entityModelToDomain(detail EntityDetail) domain.Entity {
 	}
 }
 
-func locationModelToDomain(location *Location) domain.Location {
-	if location == nil {
-		return domain.Location{}
-	}
-	return domain.Location{
-		ID:   location.ID.Hex(),
-		Name: location.Name,
-		Type: location.Type,
-	}
-}
-
 func itineraryModelToDomain(logs []ItineraryLog) []domain.ItineraryLog {
 	var domainLogs []domain.ItineraryLog
 	for _, log := range logs {
 		domainLogs = append(domainLogs, domain.ItineraryLog{
 			ActivityType: domain.StringToActivityType(log.ActivityType),
 			Timestamp:    log.Timestamp,
-			Location:     locationModelToDomain(log.LocationDetail),
+			Location:     convertObjIdToHex(log.Location),
 		})
 	}
 	return domainLogs

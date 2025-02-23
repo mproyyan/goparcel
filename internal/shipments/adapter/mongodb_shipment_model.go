@@ -8,20 +8,16 @@ import (
 )
 
 type ShipmentModel struct {
-	ID              primitive.ObjectID `bson:"_id,omitempty"`
-	AirwayBill      string             `bson:"airway_bill"`
-	TransportStatus string             `bson:"transport_status"`
-	RoutingStatus   string             `bson:"routing_status"`
-	Items           []Item             `bson:"items"`
-	SenderDetail    EntityDetail       `bson:"sender_detail"`
-	RecipientDetail EntityDetail       `bson:"recipient_detail"`
-	Origin          primitive.ObjectID `bson:"origin,omitempty"`
-	Destination     primitive.ObjectID `bson:"destination,omitempty"`
-	ItineraryLogs   []ItineraryLog     `bson:"itinerary_logs"`
-
-	// relations
-	OriginLocation      *Location `bson:"origin_location"`
-	DestinationLocation *Location `bson:"destination_location"`
+	ID              primitive.ObjectID  `bson:"_id,omitempty"`
+	AirwayBill      string              `bson:"airway_bill"`
+	TransportStatus string              `bson:"transport_status"`
+	RoutingStatus   string              `bson:"routing_status"`
+	Items           []Item              `bson:"items"`
+	SenderDetail    EntityDetail        `bson:"sender_detail"`
+	RecipientDetail EntityDetail        `bson:"recipient_detail"`
+	Origin          *primitive.ObjectID `bson:"origin,omitempty"`
+	Destination     *primitive.ObjectID `bson:"destination,omitempty"`
+	ItineraryLogs   []ItineraryLog      `bson:"itinerary_logs"`
 }
 
 type Item struct {
@@ -43,12 +39,9 @@ type EntityDetail struct {
 }
 
 type ItineraryLog struct {
-	ActivityType string             `bson:"activity_type"`
-	Timestamp    time.Time          `bson:"timestamp"`
-	Location     primitive.ObjectID `bson:"location"`
-
-	// relations
-	LocationDetail *Location `bson:"location_detail"`
+	ActivityType string              `bson:"activity_type"`
+	Timestamp    time.Time           `bson:"timestamp"`
+	Location     *primitive.ObjectID `bson:"location"`
 }
 
 type Location struct {
@@ -68,4 +61,12 @@ func domainToItemModel(domainItems []domain.Item) []Item {
 		})
 	}
 	return items
+}
+
+func convertObjIdToHex(objId *primitive.ObjectID) string {
+	if objId == nil {
+		return ""
+	}
+
+	return objId.Hex()
 }

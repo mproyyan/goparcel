@@ -94,8 +94,8 @@ func shipmentsToProtoResponse(domainShipments []domain.Shipment) *genproto.Shipm
 			Items:           itemsToProtoResponse(s.Items),
 			Sender:          entityToProtoResponse(s.Sender),
 			Recipient:       entityToProtoResponse(s.Recipient),
-			Origin:          locationToProtoResponse(s.Origin),
-			Destination:     locationToProtoResponse(s.Destination),
+			Origin:          s.Origin,
+			Destination:     s.Destination,
 			ItineraryLogs:   itineraryToProtoResponse(s.ItineraryLogs),
 		})
 	}
@@ -137,21 +137,13 @@ func addressToProtoResponse(a domain.Address) *genproto.Address {
 	}
 }
 
-func locationToProtoResponse(l domain.Location) *genproto.Location {
-	return &genproto.Location{
-		Id:   l.ID,
-		Name: l.Name,
-		Type: l.Type,
-	}
-}
-
 func itineraryToProtoResponse(logs []domain.ItineraryLog) []*genproto.ItineraryLog {
 	var protoLogs []*genproto.ItineraryLog
 	for _, log := range logs {
 		protoLogs = append(protoLogs, &genproto.ItineraryLog{
 			ActivityType: log.ActivityType.String(),
 			Timestamp:    timestamppb.New(log.Timestamp),
-			Location:     locationToProtoResponse(log.Location),
+			LocationId:   log.Location,
 		})
 	}
 	return protoLogs

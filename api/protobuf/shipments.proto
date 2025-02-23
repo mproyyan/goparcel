@@ -51,7 +51,7 @@ message ShipmentResponse {
 message ItineraryLog {
     string activity_type = 1;
     google.protobuf.Timestamp timestamp = 2;
-    Location location = 3;
+    string location_id = 3;
 }
   
 message Shipment {
@@ -62,8 +62,8 @@ message Shipment {
     repeated Item items = 5;
     EntityDetail sender = 6;
     EntityDetail recipient = 7;
-    Location origin = 8;
-    Location destination = 9;
+    string origin = 8;
+    string destination = 9;
     repeated ItineraryLog itinerary_logs = 10;
 }
 
