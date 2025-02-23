@@ -1,0 +1,55 @@
+type LocationAddress {
+    province: String
+    city: String
+    district: String
+    subdistrict: String
+    zip_code: String
+    latitude: Float
+    longitude: Float
+    street_address: String
+}
+
+type Region {
+    province: String!
+    city: String!
+    district: String!
+    subdistrict: String
+    zip_code: String!
+}
+
+type Location {
+    ID: String!
+    name: String!
+    type: String!
+    warehouse: Location
+    address: LocationAddress!
+}
+
+# Enums
+
+enum LocationType {
+    warehouse
+    depot
+}
+
+# Inputs
+
+input CreateLocationInput {
+    name: String!
+    type: LocationType!
+    warehouse_id: ID
+    zip_code: String!
+    latitude: Float
+    longitude: Float
+    street_address: String
+}
+
+extend type Query {
+    GetLocation(id: ID!): Location
+    GetRegion(zip_code: String!): Region
+    GetTransitPlaces(id: ID!): [Location!]!
+}
+
+extend type Mutation {
+    CreateLocation(input: CreateLocationInput): String!
+}

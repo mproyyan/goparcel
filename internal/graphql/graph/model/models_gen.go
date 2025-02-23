@@ -2,25 +2,156 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
+type CreateLocationInput struct {
+	Name          string       `json:"name"`
+	Type          LocationType `json:"type"`
+	WarehouseID   *string      `json:"warehouse_id,omitempty"`
+	ZipCode       string       `json:"zip_code"`
+	Latitude      *float64     `json:"latitude,omitempty"`
+	Longitude     *float64     `json:"longitude,omitempty"`
+	StreetAddress *string      `json:"street_address,omitempty"`
+}
+
+type CreateShipmentInput struct {
+	Origin    string       `json:"origin"`
+	Sender    *EntityInput `json:"sender"`
+	Recipient *EntityInput `json:"recipient"`
+	Items     []*ItemInput `json:"items"`
+}
+
+type EntityInput struct {
+	Name          string `json:"name"`
+	PhoneNumber   string `json:"phone_number"`
+	ZipCode       string `json:"zip_code"`
+	StreetAddress string `json:"street_address"`
+}
+
+type Item struct {
+	Name   string `json:"name"`
+	Amount int32  `json:"amount"`
+	Weight int32  `json:"weight"`
+	Volume *int32 `json:"volume,omitempty"`
+}
+
+type ItemInput struct {
+	Name   string       `json:"name"`
+	Amount int32        `json:"amount"`
+	Weight int32        `json:"weight"`
+	Volume *VolumeInput `json:"volume,omitempty"`
+}
+
+type ItineraryLog struct {
+	ActivityType string    `json:"activity_type"`
+	Timestamp    string    `json:"timestamp"`
+	Location     *Location `json:"location,omitempty"`
+}
+
+type Location struct {
+	ID        string           `json:"ID"`
+	Name      string           `json:"name"`
+	Type      string           `json:"type"`
+	Warehouse *Location        `json:"warehouse,omitempty"`
+	Address   *LocationAddress `json:"address"`
+}
+
+type LocationAddress struct {
+	Province      *string  `json:"province,omitempty"`
+	City          *string  `json:"city,omitempty"`
+	District      *string  `json:"district,omitempty"`
+	Subdistrict   *string  `json:"subdistrict,omitempty"`
+	ZipCode       *string  `json:"zip_code,omitempty"`
+	Latitude      *float64 `json:"latitude,omitempty"`
+	Longitude     *float64 `json:"longitude,omitempty"`
+	StreetAddress *string  `json:"street_address,omitempty"`
+}
+
 type Mutation struct {
 }
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type PartyDetail struct {
+	Name        *string `json:"name,omitempty"`
+	Contact     *string `json:"contact,omitempty"`
+	Province    *string `json:"province,omitempty"`
+	City        *string `json:"city,omitempty"`
+	District    *string `json:"district,omitempty"`
+	Subdistrict *string `json:"subdistrict,omitempty"`
+	Address     *string `json:"address,omitempty"`
+	ZipCode     *int32  `json:"zip_code,omitempty"`
 }
 
 type Query struct {
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type Region struct {
+	Province    string  `json:"province"`
+	City        string  `json:"city"`
+	District    string  `json:"district"`
+	Subdistrict *string `json:"subdistrict,omitempty"`
+	ZipCode     string  `json:"zip_code"`
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type Shipment struct {
+	ID              string          `json:"_id"`
+	AirwayBill      string          `json:"airway_bill"`
+	TransportStatus string          `json:"transport_status"`
+	RoutingStatus   string          `json:"routing_status"`
+	Items           []*Item         `json:"items"`
+	SenderDetail    *PartyDetail    `json:"sender_detail"`
+	RecipientDetail *PartyDetail    `json:"recipient_detail"`
+	Origin          *Location       `json:"origin,omitempty"`
+	Destination     *Location       `json:"destination,omitempty"`
+	ItineraryLogs   []*ItineraryLog `json:"itinerary_logs"`
+}
+
+type VolumeInput struct {
+	Length *int32 `json:"length,omitempty"`
+	Width  *int32 `json:"width,omitempty"`
+	Height *int32 `json:"Height,omitempty"`
+}
+
+type LocationType string
+
+const (
+	LocationTypeWarehouse LocationType = "warehouse"
+	LocationTypeDepot     LocationType = "depot"
+)
+
+var AllLocationType = []LocationType{
+	LocationTypeWarehouse,
+	LocationTypeDepot,
+}
+
+func (e LocationType) IsValid() bool {
+	switch e {
+	case LocationTypeWarehouse, LocationTypeDepot:
+		return true
+	}
+	return false
+}
+
+func (e LocationType) String() string {
+	return string(e)
+}
+
+func (e *LocationType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LocationType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LocationType", str)
+	}
+	return nil
+}
+
+func (e LocationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
