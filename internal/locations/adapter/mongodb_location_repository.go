@@ -103,7 +103,7 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 	// Fetch depot that belong to this warehouse
 	if location.IsWarehouse() {
 		filter := bson.M{
-			"type":         domain.Depot,
+			"type":         domain.Depot.String(),
 			"warehouse_id": locationID, // Depots belonging to this warehouse
 		}
 
