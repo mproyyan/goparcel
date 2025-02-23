@@ -168,7 +168,7 @@ func locationModelToDomain(model LocationModel) domain.Location {
 		ID:          model.ID.Hex(),
 		Name:        model.Name,
 		Type:        domain.LocationTypeFromString(model.Type),
-		WarehouseID: model.WarehouseID.Hex(),
+		WarehouseID: convertObjectIdToHex(model.WarehouseID),
 		Address: domain.Address{
 			Province:      model.Address.Province,
 			City:          model.Address.City,
@@ -221,4 +221,12 @@ func domainToLocationModel(location domain.Location) (*LocationModel, error) {
 			StreetAddress: location.Address.StreetAddress,
 		},
 	}, nil
+}
+
+func convertObjectIdToHex(objId *primitive.ObjectID) string {
+	if objId == nil {
+		return ""
+	}
+
+	return objId.Hex()
 }
