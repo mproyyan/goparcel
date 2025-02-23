@@ -5,6 +5,13 @@ import (
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
 
+func safePointer[T any](p *T, defaultValue T) T {
+	if p == nil {
+		return defaultValue
+	}
+	return *p
+}
+
 func itemInputToProtoRequest(items []*model.ItemInput) []*genproto.Package {
 	var itemsProto []*genproto.Package
 	for _, item := range items {
@@ -93,4 +100,43 @@ func itineraryLogToGraphResponse(logs []*genproto.ItineraryLog) []*model.Itinera
 	}
 
 	return itineraries
+}
+
+func locationToGraphResponse(location *genproto.Location) *model.Location {
+	return &model.Location{
+		ID:        location.Id,
+		Name:      location.Name,
+		Type:      location.Type,
+		Warehouse: &model.Location{ID: location.WarehouseId},
+		Address: &model.LocationAddress{
+			Province:      &location.Address.Province,
+			City:          &location.Address.City,
+			District:      &location.Address.District,
+			Subdistrict:   &location.Address.Subdistrict,
+			ZipCode:       &location.Address.ZipCode,
+			Latitude:      &location.Address.Latitude,
+			Longitude:     &location.Address.Longitude,
+			StreetAddress: &location.Address.StreetAddress,
+		},
+	}
+}
+
+func locationsToGraphResponse(locations []*genproto.Location) []*model.Location {
+	var loc []*model.Location
+	for _, l := range locations {
+		ll := locationToGraphResponse(l)
+		loc = append(loc, ll)
+	}
+
+	return loc
+}
+
+func regionToGraphResponse(reg *genproto.Region) *model.Region {
+	return &model.Region{
+		Province:    reg.Province,
+		City:        reg.City,
+		District:    reg.District,
+		Subdistrict: &reg.Subdistrict,
+		ZipCode:     reg.ZipCode,
+	}
 }

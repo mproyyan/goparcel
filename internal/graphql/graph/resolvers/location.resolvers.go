@@ -6,35 +6,64 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
 
 // Warehouse is the resolver for the warehouse field.
 func (r *locationResolver) Warehouse(ctx context.Context, obj *model.Location) (*model.Location, error) {
-	panic(fmt.Errorf("not implemented: Warehouse - warehouse"))
+	return r.locationLoder.Load(ctx, obj.Warehouse.ID)
 }
 
 // CreateLocation is the resolver for the CreateLocation field.
 func (r *mutationResolver) CreateLocation(ctx context.Context, input *model.CreateLocationInput) (string, error) {
-	panic(fmt.Errorf("not implemented: CreateLocation - CreateLocation"))
+	_, err := r.locationService.CreateLocation(ctx, &genproto.CreateLocationRequest{
+		Name:          input.Name,
+		Type:          input.Type.String(),
+		WarehouseId:   safePointer(input.WarehouseID, ""),
+		ZipCode:       input.ZipCode,
+		Latitude:      safePointer(input.Latitude, 0),
+		Longitude:     safePointer(input.Longitude, 0),
+		StreetAddress: safePointer(input.StreetAddress, ""),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "successfully made the location", nil
 }
 
 // GetLocation is the resolver for the GetLocation field.
 func (r *queryResolver) GetLocation(ctx context.Context, id string) (*model.Location, error) {
-	panic(fmt.Errorf("not implemented: GetLocation - GetLocation"))
+	location, err := r.locationService.GetLocation(ctx, &genproto.GetLocationRequest{LocationId: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return locationToGraphResponse(location), nil
 }
 
 // GetRegion is the resolver for the GetRegion field.
 func (r *queryResolver) GetRegion(ctx context.Context, zipCode string) (*model.Region, error) {
-	panic(fmt.Errorf("not implemented: GetRegion - GetRegion"))
+	region, err := r.locationService.GetRegion(ctx, &genproto.GetRegionRequest{Zipcode: zipCode})
+	if err != nil {
+		return nil, err
+	}
+
+	return regionToGraphResponse(region), nil
 }
 
 // GetTransitPlaces is the resolver for the GetTransitPlaces field.
 func (r *queryResolver) GetTransitPlaces(ctx context.Context, id string) ([]*model.Location, error) {
-	panic(fmt.Errorf("not implemented: GetTransitPlaces - GetTransitPlaces"))
+	result, err := r.locationService.GetTransitPlaces(ctx, &genproto.GetTransitPlacesRequest{LocationId: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return locationsToGraphResponse(result.Locations), nil
 }
 
 // Location returns generated.LocationResolver implementation.
