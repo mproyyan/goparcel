@@ -33,8 +33,8 @@ type LocationResolver interface {
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Location_ID(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Location_ID(ctx, field)
+func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Location_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -64,7 +64,7 @@ func (ec *executionContext) _Location_ID(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Location_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Location_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Location",
 		Field:      field,
@@ -201,8 +201,8 @@ func (ec *executionContext) fieldContext_Location_warehouse(_ context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Location_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Location_name(ctx, field)
 			case "type":
@@ -917,8 +917,8 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Location")
-		case "ID":
-			out.Values[i] = ec._Location_ID(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._Location_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

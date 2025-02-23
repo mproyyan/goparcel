@@ -10,6 +10,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/mproyyan/goparcel/internal/common/client"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/resolvers"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -23,7 +24,26 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
+	// Connect to location service
+	locationServiceClient, close, err := client.NewLocationServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to location service", err)
+	}
+	defer close()
+
+	// Connect to shipment service
+	shipmentServiceClient, close, err := client.NewShipmentServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to shipment service", err)
+	}
+	defer close()
+
+	resolver := resolvers.NewResolver(
+		locationServiceClient,
+		shipmentServiceClient,
+	)
+
+	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -452,9 +453,9 @@ func (ec *executionContext) _ItineraryLog_timestamp(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ItineraryLog_timestamp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -464,7 +465,7 @@ func (ec *executionContext) fieldContext_ItineraryLog_timestamp(_ context.Contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -506,8 +507,8 @@ func (ec *executionContext) fieldContext_ItineraryLog_location(_ context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Location_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Location_name(ctx, field)
 			case "type":
@@ -943,9 +944,9 @@ func (ec *executionContext) _PartyDetail_zip_code(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int32)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint32(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PartyDetail_zip_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -955,7 +956,7 @@ func (ec *executionContext) fieldContext_PartyDetail_zip_code(_ context.Context,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1000,8 +1001,8 @@ func (ec *executionContext) fieldContext_Query_GetUnroutedShipments(ctx context.
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "_id":
-				return ec.fieldContext_Shipment__id(ctx, field)
+			case "id":
+				return ec.fieldContext_Shipment_id(ctx, field)
 			case "airway_bill":
 				return ec.fieldContext_Shipment_airway_bill(ctx, field)
 			case "transport_status":
@@ -1074,8 +1075,8 @@ func (ec *executionContext) fieldContext_Query_GetLocation(ctx context.Context, 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Location_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Location_name(ctx, field)
 			case "type":
@@ -1205,8 +1206,8 @@ func (ec *executionContext) fieldContext_Query_GetTransitPlaces(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Location_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Location_name(ctx, field)
 			case "type":
@@ -1364,8 +1365,8 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Shipment__id(ctx context.Context, field graphql.CollectedField, obj *model.Shipment) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Shipment__id(ctx, field)
+func (ec *executionContext) _Shipment_id(ctx context.Context, field graphql.CollectedField, obj *model.Shipment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Shipment_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1395,7 +1396,7 @@ func (ec *executionContext) _Shipment__id(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Shipment__id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Shipment_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Shipment",
 		Field:      field,
@@ -1754,8 +1755,8 @@ func (ec *executionContext) fieldContext_Shipment_origin(_ context.Context, fiel
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Location_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Location_name(ctx, field)
 			case "type":
@@ -1807,8 +1808,8 @@ func (ec *executionContext) fieldContext_Shipment_destination(_ context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Location_ID(ctx, field)
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Location_name(ctx, field)
 			case "type":
@@ -2031,7 +2032,7 @@ func (ec *executionContext) unmarshalInputVolumeInput(ctx context.Context, obj a
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"length", "width", "Height"}
+	fieldsInOrder := [...]string{"length", "width", "height"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -2052,8 +2053,8 @@ func (ec *executionContext) unmarshalInputVolumeInput(ctx context.Context, obj a
 				return it, err
 			}
 			it.Width = data
-		case "Height":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Height"))
+		case "height":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("height"))
 			data, err := ec.unmarshalOInt2ᚖint32(ctx, v)
 			if err != nil {
 				return it, err
@@ -2450,8 +2451,8 @@ func (ec *executionContext) _Shipment(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Shipment")
-		case "_id":
-			out.Values[i] = ec._Shipment__id(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._Shipment_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -2748,6 +2749,21 @@ func (ec *executionContext) marshalNShipment2ᚕᚖgithubᚗcomᚋmproyyanᚋgop
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalOCreateShipmentInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCreateShipmentInput(ctx context.Context, v any) (*model.CreateShipmentInput, error) {

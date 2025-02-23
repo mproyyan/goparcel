@@ -1,3 +1,5 @@
+scalar Time
+
 type Item {
     name: String!
     amount: Int!
@@ -13,17 +15,17 @@ type PartyDetail {
     district: String
     subdistrict: String
     address: String
-    zip_code: Int
+    zip_code: String
 }
 
 type ItineraryLog {
     activity_type: String!
-    timestamp: String!
+    timestamp: Time!
     location: Location
 }
 
 type Shipment {
-    _id: String!
+    id: String!
     airway_bill: String!
     transport_status: String!
     routing_status: String!
@@ -61,7 +63,7 @@ input ItemInput {
 input VolumeInput {
     length: Int
     width: Int
-    Height: Int
+    height: Int
 }
 
 type Query {

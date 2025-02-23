@@ -22,12 +22,6 @@ type Address struct {
 	ZipCode       string
 }
 
-type Location struct {
-	ID   string
-	Name string
-	Type string
-}
-
 type Shipment struct {
 	ID              string
 	AirwayBill      string
@@ -36,8 +30,8 @@ type Shipment struct {
 	Items           []Item
 	Sender          Entity
 	Recipient       Entity
-	Origin          Location
-	Destination     Location
+	Origin          string
+	Destination     string
 	ItineraryLogs   []ItineraryLog
 }
 

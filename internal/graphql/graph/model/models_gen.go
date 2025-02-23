@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 type CreateLocationInput struct {
@@ -48,12 +49,12 @@ type ItemInput struct {
 
 type ItineraryLog struct {
 	ActivityType string    `json:"activity_type"`
-	Timestamp    string    `json:"timestamp"`
+	Timestamp    time.Time `json:"timestamp"`
 	Location     *Location `json:"location,omitempty"`
 }
 
 type Location struct {
-	ID        string           `json:"ID"`
+	ID        string           `json:"id"`
 	Name      string           `json:"name"`
 	Type      string           `json:"type"`
 	Warehouse *Location        `json:"warehouse,omitempty"`
@@ -82,7 +83,7 @@ type PartyDetail struct {
 	District    *string `json:"district,omitempty"`
 	Subdistrict *string `json:"subdistrict,omitempty"`
 	Address     *string `json:"address,omitempty"`
-	ZipCode     *int32  `json:"zip_code,omitempty"`
+	ZipCode     *string `json:"zip_code,omitempty"`
 }
 
 type Query struct {
@@ -97,7 +98,7 @@ type Region struct {
 }
 
 type Shipment struct {
-	ID              string          `json:"_id"`
+	ID              string          `json:"id"`
 	AirwayBill      string          `json:"airway_bill"`
 	TransportStatus string          `json:"transport_status"`
 	RoutingStatus   string          `json:"routing_status"`
@@ -112,7 +113,7 @@ type Shipment struct {
 type VolumeInput struct {
 	Length *int32 `json:"length,omitempty"`
 	Width  *int32 `json:"width,omitempty"`
-	Height *int32 `json:"Height,omitempty"`
+	Height *int32 `json:"height,omitempty"`
 }
 
 type LocationType string

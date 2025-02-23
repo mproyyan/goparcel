@@ -196,7 +196,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Location.Address(childComplexity), true
 
-	case "Location.ID":
+	case "Location.id":
 		if e.complexity.Location.ID == nil {
 			break
 		}
@@ -457,7 +457,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Shipment.Destination(childComplexity), true
 
-	case "Shipment._id":
+	case "Shipment.id":
 		if e.complexity.Shipment.ID == nil {
 			break
 		}
@@ -643,7 +643,7 @@ type Region {
 }
 
 type Location {
-    ID: String!
+    id: String!
     name: String!
     type: String!
     warehouse: Location
@@ -679,7 +679,9 @@ extend type Mutation {
     CreateLocation(input: CreateLocationInput): String!
 }
 `, BuiltIn: false},
-	{Name: "../schemas/shipment.graphqls", Input: `type Item {
+	{Name: "../schemas/shipment.graphqls", Input: `scalar Time
+
+type Item {
     name: String!
     amount: Int!
     weight: Int!
@@ -694,17 +696,17 @@ type PartyDetail {
     district: String
     subdistrict: String
     address: String
-    zip_code: Int
+    zip_code: String
 }
 
 type ItineraryLog {
     activity_type: String!
-    timestamp: String!
+    timestamp: Time!
     location: Location
 }
 
 type Shipment {
-    _id: String!
+    id: String!
     airway_bill: String!
     transport_status: String!
     routing_status: String!
@@ -742,7 +744,7 @@ input ItemInput {
 input VolumeInput {
     length: Int
     width: Int
-    Height: Int
+    height: Int
 }
 
 type Query {

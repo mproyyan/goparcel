@@ -18,7 +18,7 @@ type Region {
 }
 
 type Location {
-    ID: String!
+    id: String!
     name: String!
     type: String!
     warehouse: Location

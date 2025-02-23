@@ -6,35 +6,61 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
 
 // Location is the resolver for the location field.
 func (r *itineraryLogResolver) Location(ctx context.Context, obj *model.ItineraryLog) (*model.Location, error) {
-	panic(fmt.Errorf("not implemented: Location - location"))
+	return r.locationLoder.Load(ctx, obj.Location.ID)
 }
 
 // CreateShipment is the resolver for the CreateShipment field.
 func (r *mutationResolver) CreateShipment(ctx context.Context, input *model.CreateShipmentInput) (string, error) {
-	panic(fmt.Errorf("not implemented: CreateShipment - CreateShipment"))
+	_, err := r.shipmentService.CreateShipment(ctx, &genproto.CreateShipmentRequest{
+		Origin: input.Origin,
+		Sender: &genproto.Entity{
+			Name:          input.Sender.Name,
+			PhoneNumber:   input.Sender.PhoneNumber,
+			ZipCode:       input.Sender.ZipCode,
+			StreetAddress: input.Sender.StreetAddress,
+		},
+		Recipient: &genproto.Entity{
+			Name:          input.Recipient.Name,
+			PhoneNumber:   input.Recipient.PhoneNumber,
+			ZipCode:       input.Recipient.ZipCode,
+			StreetAddress: input.Recipient.StreetAddress,
+		},
+		Package: itemInputToProtoRequest(input.Items),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "successfully made the shipment", nil
 }
 
 // GetUnroutedShipments is the resolver for the GetUnroutedShipments field.
 func (r *queryResolver) GetUnroutedShipments(ctx context.Context, locationID string) ([]*model.Shipment, error) {
-	panic(fmt.Errorf("not implemented: GetUnroutedShipments - GetUnroutedShipments"))
+	shipment, err := r.shipmentService.GetUnroutedShipment(ctx, &genproto.GetUnroutedShipmentRequest{LocationId: locationID})
+	if err != nil {
+		return nil, err
+	}
+
+	return shipmentsToGraphResponse(shipment.Shipment), nil
 }
 
 // Origin is the resolver for the origin field.
 func (r *shipmentResolver) Origin(ctx context.Context, obj *model.Shipment) (*model.Location, error) {
-	panic(fmt.Errorf("not implemented: Origin - origin"))
+	return r.locationLoder.Load(ctx, obj.Origin.ID)
 }
 
 // Destination is the resolver for the destination field.
 func (r *shipmentResolver) Destination(ctx context.Context, obj *model.Shipment) (*model.Location, error) {
-	panic(fmt.Errorf("not implemented: Destination - destination"))
+	return r.locationLoder.Load(ctx, obj.Destination.ID)
 }
 
 // ItineraryLog returns generated.ItineraryLogResolver implementation.
