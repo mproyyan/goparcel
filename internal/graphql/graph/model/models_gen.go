@@ -141,9 +141,14 @@ type Shipment struct {
 	ItineraryLogs   []*ItineraryLog `json:"itinerary_logs"`
 }
 
+type User struct {
+	ID      string      `json:"id"`
+	ModelID string      `json:"model_id"`
+	Type    string      `json:"type"`
+	Entity  *UserEntity `json:"entity,omitempty"`
+}
+
 type UserEntity struct {
-	ID       string    `json:"id"`
-	UserID   string    `json:"user_id"`
 	Name     string    `json:"name"`
 	Email    string    `json:"email"`
 	Location *Location `json:"location,omitempty"`

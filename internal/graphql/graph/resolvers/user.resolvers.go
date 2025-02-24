@@ -6,8 +6,10 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mproyyan/goparcel/internal/common/genproto"
+	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
 
@@ -73,3 +75,45 @@ func (r *mutationResolver) RegisterAsCarrier(ctx context.Context, input model.Re
 
 	return "registration as a carrier has been successful", nil
 }
+
+// GetUser is the resolver for the GetUser field.
+func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, error) {
+	user, err := r.userService.GetUser(ctx, &genproto.GetUserRequest{Id: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return userToGraphResponse(user), nil
+}
+
+// Entity is the resolver for the entity field.
+func (r *userResolver) Entity(ctx context.Context, obj *model.User) (*model.UserEntity, error) {
+	key := fmt.Sprintf("%s:%s", obj.Type, obj.ModelID)
+	return r.entityLoader.Load(ctx, key)
+}
+
+// Location is the resolver for the location field.
+func (r *userEntityResolver) Location(ctx context.Context, obj *model.UserEntity) (*model.Location, error) {
+	return r.locationLoader.Load(ctx, obj.Location.ID)
+}
+
+// User returns generated.UserResolver implementation.
+func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
+
+// UserEntity returns generated.UserEntityResolver implementation.
+func (r *Resolver) UserEntity() generated.UserEntityResolver { return &userEntityResolver{r} }
+
+type userResolver struct{ *Resolver }
+type userEntityResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *queryResolver) GetUserEntity(ctx context.Context, id string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: GetUserEntity - GetUserEntity"))
+}
+*/

@@ -1,6 +1,11 @@
-type UserEntity {
+type User {
     id: ID!
-    user_id: ID!
+    model_id: ID!
+    type: String!
+    entity: UserEntity
+}
+
+type UserEntity {
     name: String!
     email: String!
     location: Location
@@ -35,6 +40,10 @@ input RegisterAsCarrierInput {
     email: String!
     password: String!
     location_id: String!
+}
+
+extend type Query {
+    GetUser(id: ID!): User
 }
 
 extend type Mutation {

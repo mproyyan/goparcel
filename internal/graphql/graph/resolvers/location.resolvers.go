@@ -14,7 +14,7 @@ import (
 
 // Warehouse is the resolver for the warehouse field.
 func (r *locationResolver) Warehouse(ctx context.Context, obj *model.Location) (*model.Location, error) {
-	return r.locationLoder.Load(ctx, obj.Warehouse.ID)
+	return r.locationLoader.Load(ctx, obj.Warehouse.ID)
 }
 
 // CreateLocation is the resolver for the CreateLocation field.

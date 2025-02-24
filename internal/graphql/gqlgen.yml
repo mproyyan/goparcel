@@ -148,6 +148,16 @@ models:
     fields:
       location: # Need resolver for location field
         resolver: true
+  
+  User:
+    fields:
+      entity: # Need resolver for entity field
+        resolver: true
+
+  UserEntity:
+    fields:
+      location: # Need resolver for location field
+        resolver: true
 
   ID:
     model:

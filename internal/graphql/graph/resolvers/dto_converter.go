@@ -161,3 +161,20 @@ func couriersToGraphResponse(couriers []*genproto.Courier) []*model.Courier {
 
 	return courierResponse
 }
+
+func userToGraphResponse(user *genproto.User) *model.User {
+	return &model.User{
+		ID:      user.Id,
+		ModelID: user.ModelId,
+		Type:    user.Entity,
+	}
+}
+
+func usersToGraphResponse(models []*genproto.User) []*model.User {
+	var users []*model.User
+	for _, model := range models {
+		users = append(users, userToGraphResponse(model))
+	}
+
+	return users
+}

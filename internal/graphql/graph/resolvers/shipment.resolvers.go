@@ -14,7 +14,7 @@ import (
 
 // Location is the resolver for the location field.
 func (r *itineraryLogResolver) Location(ctx context.Context, obj *model.ItineraryLog) (*model.Location, error) {
-	return r.locationLoder.Load(ctx, obj.Location.ID)
+	return r.locationLoader.Load(ctx, obj.Location.ID)
 }
 
 // CreateShipment is the resolver for the CreateShipment field.
@@ -55,12 +55,12 @@ func (r *queryResolver) GetUnroutedShipments(ctx context.Context, locationID str
 
 // Origin is the resolver for the origin field.
 func (r *shipmentResolver) Origin(ctx context.Context, obj *model.Shipment) (*model.Location, error) {
-	return r.locationLoder.Load(ctx, obj.Origin.ID)
+	return r.locationLoader.Load(ctx, obj.Origin.ID)
 }
 
 // Destination is the resolver for the destination field.
 func (r *shipmentResolver) Destination(ctx context.Context, obj *model.Shipment) (*model.Location, error) {
-	return r.locationLoder.Load(ctx, obj.Destination.ID)
+	return r.locationLoader.Load(ctx, obj.Destination.ID)
 }
 
 // ItineraryLog returns generated.ItineraryLogResolver implementation.

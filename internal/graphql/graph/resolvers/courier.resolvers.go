@@ -14,7 +14,7 @@ import (
 
 // Location is the resolver for the location field.
 func (r *courierResolver) Location(ctx context.Context, obj *model.Courier) (*model.Location, error) {
-	return r.locationLoder.Load(ctx, obj.Location.ID)
+	return r.locationLoader.Load(ctx, obj.Location.ID)
 }
 
 // GetAvailableCouriers is the resolver for the GetAvailableCouriers field.

@@ -39,6 +39,8 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Shipment() ShipmentResolver
+	User() UserResolver
+	UserEntity() UserEntityResolver
 }
 
 type DirectiveRoot struct {
@@ -112,6 +114,7 @@ type ComplexityRoot struct {
 		GetRegion            func(childComplexity int, zipCode string) int
 		GetTransitPlaces     func(childComplexity int, id string) int
 		GetUnroutedShipments func(childComplexity int, locationID string) int
+		GetUser              func(childComplexity int, id string) int
 	}
 
 	Region struct {
@@ -135,12 +138,17 @@ type ComplexityRoot struct {
 		TransportStatus func(childComplexity int) int
 	}
 
+	User struct {
+		Entity  func(childComplexity int) int
+		ID      func(childComplexity int) int
+		ModelID func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
 	UserEntity struct {
 		Email    func(childComplexity int) int
-		ID       func(childComplexity int) int
 		Location func(childComplexity int) int
 		Name     func(childComplexity int) int
-		UserID   func(childComplexity int) int
 	}
 }
 
@@ -533,6 +541,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUnroutedShipments(childComplexity, args["location_id"].(string)), true
 
+	case "Query.GetUser":
+		if e.complexity.Query.GetUser == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUser(childComplexity, args["id"].(string)), true
+
 	case "Region.city":
 		if e.complexity.Region.City == nil {
 			break
@@ -638,19 +658,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Shipment.TransportStatus(childComplexity), true
 
+	case "User.entity":
+		if e.complexity.User.Entity == nil {
+			break
+		}
+
+		return e.complexity.User.Entity(childComplexity), true
+
+	case "User.id":
+		if e.complexity.User.ID == nil {
+			break
+		}
+
+		return e.complexity.User.ID(childComplexity), true
+
+	case "User.model_id":
+		if e.complexity.User.ModelID == nil {
+			break
+		}
+
+		return e.complexity.User.ModelID(childComplexity), true
+
+	case "User.type":
+		if e.complexity.User.Type == nil {
+			break
+		}
+
+		return e.complexity.User.Type(childComplexity), true
+
 	case "UserEntity.email":
 		if e.complexity.UserEntity.Email == nil {
 			break
 		}
 
 		return e.complexity.UserEntity.Email(childComplexity), true
-
-	case "UserEntity.id":
-		if e.complexity.UserEntity.ID == nil {
-			break
-		}
-
-		return e.complexity.UserEntity.ID(childComplexity), true
 
 	case "UserEntity.location":
 		if e.complexity.UserEntity.Location == nil {
@@ -665,13 +706,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserEntity.Name(childComplexity), true
-
-	case "UserEntity.user_id":
-		if e.complexity.UserEntity.UserID == nil {
-			break
-		}
-
-		return e.complexity.UserEntity.UserID(childComplexity), true
 
 	}
 	return 0, false
@@ -930,9 +964,14 @@ type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
 }
 `, BuiltIn: false},
-	{Name: "../schemas/user.graphqls", Input: `type UserEntity {
+	{Name: "../schemas/user.graphqls", Input: `type User {
     id: ID!
-    user_id: ID!
+    model_id: ID!
+    type: String!
+    entity: UserEntity
+}
+
+type UserEntity {
     name: String!
     email: String!
     location: Location
@@ -967,6 +1006,10 @@ input RegisterAsCarrierInput {
     email: String!
     password: String!
     location_id: String!
+}
+
+extend type Query {
+    GetUser(id: ID!): User
 }
 
 extend type Mutation {
