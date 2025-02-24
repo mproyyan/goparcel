@@ -3,7 +3,7 @@ package user
 type User struct {
 	ID         string
 	ModelID    string
-	Entity     string
+	Entity     UserEntityName
 	Email      string
 	Password   string
 	UserTypeID string

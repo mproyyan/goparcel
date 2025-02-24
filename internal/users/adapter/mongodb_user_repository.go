@@ -80,7 +80,7 @@ func userModelToDomain(userModel User) user.User {
 	return user.User{
 		ID:         userModel.ID.Hex(),
 		ModelID:    userModel.ModelID.Hex(),
-		Entity:     userModel.Entity,
+		Entity:     user.StringToUserEntityName(userModel.Entity),
 		Email:      userModel.Email,
 		Password:   userModel.Password,
 		UserTypeID: userModel.UserTypeID.Hex(),
@@ -109,7 +109,7 @@ func domainToUserModel(user user.User) (*User, error) {
 	return &User{
 		ID:         userID,
 		ModelID:    modelID,
-		Entity:     user.Entity,
+		Entity:     user.Entity.String(),
 		Email:      user.Email,
 		Password:   user.Password,
 		UserTypeID: userTypeID,
