@@ -25,65 +25,16 @@ func NewUserRepository(db *mongo.Database) *UserRepository {
 }
 
 func (u *UserRepository) FindUserByEmail(ctx context.Context, email string) (*user.User, error) {
-	// Lookup to user_types then to permissions
-	pipeline := mongo.Pipeline{
-		{
-			{Key: "$match", Value: bson.M{"email": email}},
-		},
-		{
-			{Key: "$lookup", Value: bson.D{
-				{Key: "from", Value: "user_types"},
-				{Key: "localField", Value: "user_type_id"},
-				{Key: "foreignField", Value: "_id"},
-				{Key: "as", Value: "user_type"},
-			}},
-		},
-		{
-			{Key: "$unwind", Value: "$user_type"},
-		},
-		{
-			{Key: "$lookup", Value: bson.D{
-				{Key: "from", Value: "permissions"},
-				{Key: "localField", Value: "user_type.permission_id"},
-				{Key: "foreignField", Value: "_id"},
-				{Key: "as", Value: "user_type.permission"},
-			}},
-		},
-		{
-			{Key: "$unwind", Value: "$user_type.permission"},
-		},
-		{
-			{Key: "$project", Value: bson.D{
-				{Key: "_id", Value: 1},
-				{Key: "model_id", Value: 1},
-				{Key: "email", Value: 1},
-				{Key: "password", Value: 1},
-				{Key: "user_type._id", Value: 1},
-				{Key: "user_type.name", Value: 1},
-				{Key: "user_type.description", Value: 1},
-				{Key: "user_type.permission", Value: 1},
-			}},
-		},
-	}
-
-	// Execute query
-	cursor, err := u.collection.Aggregate(ctx, pipeline)
+	// Find user by email
+	var user User
+	err := u.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
 	}
-	defer cursor.Close(ctx)
 
-	if cursor.Next(ctx) {
-		var user User
-		if err := cursor.Decode(&user); err != nil {
-			return nil, cuserr.MongoError(err)
-		}
-
-		userDomain := userModelToDomain(user)
-		return &userDomain, nil
-	}
-
-	return nil, status.Errorf(codes.NotFound, "user with email %s not found", email)
+	// Return query result
+	userResponse := userModelToDomain(user)
+	return &userResponse, nil
 }
 
 func (u *UserRepository) CreateUser(ctx context.Context, user user.User) (string, error) {

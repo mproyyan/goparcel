@@ -55,6 +55,7 @@ func main() {
 	database := databaseClient.Database(os.Getenv("MONGO_DATABASE"))
 	userRepository := adapter.NewUserRepository(database)
 	userTypeRepository := adapter.NewUserTypeRepository(database)
+	permissionRepository := adapter.NewPermissionRepository(database)
 	operatorRepository := adapter.NewOperatorRepository(database)
 	carrierRepository := adapter.NewCarrierRepository(database)
 	courierRepository := adapter.NewCourierRepository(database)
@@ -65,6 +66,7 @@ func main() {
 		transaction,
 		userRepository,
 		userTypeRepository,
+		permissionRepository,
 		operatorRepository,
 		carrierRepository,
 		courierRepository,

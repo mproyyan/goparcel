@@ -2,7 +2,11 @@
 
 package user
 
-import "context"
+import (
+	"context"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type UserRepository interface {
 	FindUserByEmail(ctx context.Context, email string) (*User, error)
@@ -13,6 +17,7 @@ type UserRepository interface {
 
 type UserTypeRepository interface {
 	FindUserType(ctx context.Context, userType string) (*UserType, error)
+	FindUserTypeById(ctx context.Context, id primitive.ObjectID) (*UserType, error)
 }
 
 type CacheRepository interface {

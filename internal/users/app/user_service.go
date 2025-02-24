@@ -20,20 +20,22 @@ import (
 )
 
 type UserService struct {
-	transaction        db.TransactionManager
-	userRepository     user.UserRepository
-	userTypeRepository user.UserTypeRepository
-	operatorRepository operator.OperatorRepository
-	carrierRepository  carrier.CarrierRepository
-	courierRepository  courier.CourierRepository
-	cacheRepository    user.CacheRepository
-	locationService    LocationService
+	transaction          db.TransactionManager
+	userRepository       user.UserRepository
+	userTypeRepository   user.UserTypeRepository
+	permissionRepository user.PermissionRepository
+	operatorRepository   operator.OperatorRepository
+	carrierRepository    carrier.CarrierRepository
+	courierRepository    courier.CourierRepository
+	cacheRepository      user.CacheRepository
+	locationService      LocationService
 }
 
 func NewUserService(
 	transaction db.TransactionManager,
 	userRepository user.UserRepository,
 	userTypeRepository user.UserTypeRepository,
+	permissionRepository user.PermissionRepository,
 	operatorRepository operator.OperatorRepository,
 	carrierRepository carrier.CarrierRepository,
 	courierRepository courier.CourierRepository,
@@ -41,14 +43,15 @@ func NewUserService(
 	locationService LocationService,
 ) UserService {
 	return UserService{
-		transaction:        transaction,
-		userRepository:     userRepository,
-		userTypeRepository: userTypeRepository,
-		operatorRepository: operatorRepository,
-		carrierRepository:  carrierRepository,
-		courierRepository:  courierRepository,
-		cacheRepository:    cacheRepository,
-		locationService:    locationService,
+		transaction:          transaction,
+		userRepository:       userRepository,
+		userTypeRepository:   userTypeRepository,
+		permissionRepository: permissionRepository,
+		operatorRepository:   operatorRepository,
+		carrierRepository:    carrierRepository,
+		courierRepository:    courierRepository,
+		cacheRepository:      cacheRepository,
+		locationService:      locationService,
 	}
 }
 
@@ -68,8 +71,22 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 		return "", status.Error(codes.Unauthenticated, "invalid credentials")
 	}
 
+	// Find user type
+	objId, _ := primitive.ObjectIDFromHex(user.Type.ID)
+	userType, err := u.userTypeRepository.FindUserTypeById(ctx, objId)
+	if err != nil {
+		return "", cuserr.Decorate(err, "failed to find user type by id")
+	}
+
+	// Find permission
+	objId, _ = primitive.ObjectIDFromHex(userType.PermissionID)
+	permission, err := u.permissionRepository.FindPermission(ctx, objId)
+	if err != nil {
+		return "", cuserr.Decorate(err, "failed to get permission")
+	}
+
 	// Cache user permission
-	err = u.cacheRepository.CacheUserPermissions(ctx, user.ID, user.Type.Permissions)
+	err = u.cacheRepository.CacheUserPermissions(ctx, user.ID, permission.GrantedPermissions())
 	if err != nil {
 		log.Printf("failed to cache user permission: %v", err)
 	}
