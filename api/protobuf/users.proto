@@ -14,6 +14,10 @@ service UserService {
     rpc RegisterAsOperator(RegisterAsOperatorRequest) returns (google.protobuf.Empty) {}
     rpc RegisterAsCarrier(RegisterAsCarrierRequest) returns (google.protobuf.Empty) {}
     rpc RegisterAsCourier(RegisterAsCourierRequest) returns (google.protobuf.Empty) {}
+
+    // Retrieve users
+    rpc GetUser(GetUserRequest) returns (User) {}
+    rpc GetUsers(GetUsersRequest) returns (UserResponse) {}
     rpc GetOperators(GetOperatorsRequest) returns (OperatorResponse) {}
     rpc GetCouriers(GetCouriersRequest) returns (CourierResponse) {}
     rpc GetCarriers(GetCarriersRequest) returns (CarrierResponse) {}
@@ -52,6 +56,24 @@ message RegisterAsCarrierRequest {
     string email = 2;
     string password = 3;
     string location = 4;
+}
+
+message User {
+    string id = 1;
+    string model_id = 2;
+    string entity = 3;
+}
+
+message GetUserRequest {
+    string id = 1;
+}
+
+message GetUsersRequest {
+    repeated string id = 1;
+}
+
+message UserResponse {
+    repeated User users = 1;
 }
 
 message Operator {

@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository struct {
@@ -65,6 +66,52 @@ func (u *UserRepository) CheckEmailAvailability(ctx context.Context, email strin
 	return len(results) == 0, nil
 }
 
+func (u *UserRepository) GetUser(ctx context.Context, id primitive.ObjectID) (*user.User, error) {
+	// Find a single user by ID with a projection to only retrieve specific fields
+	var usr User
+	err := u.collection.FindOne(ctx, bson.M{"_id": id}, options.FindOne().SetProjection(bson.M{
+		"_id":      1,
+		"model_id": 1,
+		"entity":   1,
+	})).Decode(&usr)
+
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	userResponse := userModelToDomain(usr)
+	return &userResponse, nil
+}
+
+func (u *UserRepository) GetUsers(ctx context.Context, ids []primitive.ObjectID) ([]*user.User, error) {
+	var users []*User
+	query := bson.M{}
+
+	// If a list of IDs is provided, filter users by these IDs
+	if len(ids) > 0 {
+		query["_id"] = bson.M{"$in": ids}
+	}
+
+	// Execute the find query with a projection to retrieve only specific fields
+	cursor, err := u.collection.Find(ctx, query, options.Find().SetProjection(bson.M{
+		"_id":      1,
+		"model_id": 1,
+		"entity":   1,
+	}))
+
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	// Decode the retrieved users into the users slice
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+
+	return userModelsToDomain(users), nil
+}
+
 // User models
 type User struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty"`
@@ -85,6 +132,16 @@ func userModelToDomain(userModel User) user.User {
 		Password:   userModel.Password,
 		UserTypeID: userModel.UserTypeID.Hex(),
 	}
+}
+
+func userModelsToDomain(models []*User) []*user.User {
+	var users []*user.User
+	for _, model := range models {
+		user := userModelToDomain(*model)
+		users = append(users, &user)
+	}
+
+	return users
 }
 
 // Helper function to convert domain to user model

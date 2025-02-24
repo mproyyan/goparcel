@@ -24,6 +24,8 @@ const (
 	UserService_RegisterAsOperator_FullMethodName = "/protobuf.UserService/RegisterAsOperator"
 	UserService_RegisterAsCarrier_FullMethodName  = "/protobuf.UserService/RegisterAsCarrier"
 	UserService_RegisterAsCourier_FullMethodName  = "/protobuf.UserService/RegisterAsCourier"
+	UserService_GetUser_FullMethodName            = "/protobuf.UserService/GetUser"
+	UserService_GetUsers_FullMethodName           = "/protobuf.UserService/GetUsers"
 	UserService_GetOperators_FullMethodName       = "/protobuf.UserService/GetOperators"
 	UserService_GetCouriers_FullMethodName        = "/protobuf.UserService/GetCouriers"
 	UserService_GetCarriers_FullMethodName        = "/protobuf.UserService/GetCarriers"
@@ -38,6 +40,9 @@ type UserServiceClient interface {
 	RegisterAsOperator(ctx context.Context, in *RegisterAsOperatorRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCarrier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCourier(ctx context.Context, in *RegisterAsCourierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Retrieve users
+	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
+	GetUsers(ctx context.Context, in *GetUsersRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetOperators(ctx context.Context, in *GetOperatorsRequest, opts ...grpc.CallOption) (*OperatorResponse, error)
 	GetCouriers(ctx context.Context, in *GetCouriersRequest, opts ...grpc.CallOption) (*CourierResponse, error)
 	GetCarriers(ctx context.Context, in *GetCarriersRequest, opts ...grpc.CallOption) (*CarrierResponse, error)
@@ -91,6 +96,26 @@ func (c *userServiceClient) RegisterAsCourier(ctx context.Context, in *RegisterA
 	return out, nil
 }
 
+func (c *userServiceClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, UserService_GetUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetUsers(ctx context.Context, in *GetUsersRequest, opts ...grpc.CallOption) (*UserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserResponse)
+	err := c.cc.Invoke(ctx, UserService_GetUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) GetOperators(ctx context.Context, in *GetOperatorsRequest, opts ...grpc.CallOption) (*OperatorResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OperatorResponse)
@@ -130,6 +155,9 @@ type UserServiceServer interface {
 	RegisterAsOperator(context.Context, *RegisterAsOperatorRequest) (*emptypb.Empty, error)
 	RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
 	RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error)
+	// Retrieve users
+	GetUser(context.Context, *GetUserRequest) (*User, error)
+	GetUsers(context.Context, *GetUsersRequest) (*UserResponse, error)
 	GetOperators(context.Context, *GetOperatorsRequest) (*OperatorResponse, error)
 	GetCouriers(context.Context, *GetCouriersRequest) (*CourierResponse, error)
 	GetCarriers(context.Context, *GetCarriersRequest) (*CarrierResponse, error)
@@ -154,6 +182,12 @@ func (UnimplementedUserServiceServer) RegisterAsCarrier(context.Context, *Regist
 }
 func (UnimplementedUserServiceServer) RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterAsCourier not implemented")
+}
+func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedUserServiceServer) GetUsers(context.Context, *GetUsersRequest) (*UserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
 func (UnimplementedUserServiceServer) GetOperators(context.Context, *GetOperatorsRequest) (*OperatorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOperators not implemented")
@@ -257,6 +291,42 @@ func _UserService_RegisterAsCourier_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUser(ctx, req.(*GetUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUsers(ctx, req.(*GetUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_GetOperators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOperatorsRequest)
 	if err := dec(in); err != nil {
@@ -333,6 +403,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterAsCourier",
 			Handler:    _UserService_RegisterAsCourier_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _UserService_GetUser_Handler,
+		},
+		{
+			MethodName: "GetUsers",
+			Handler:    _UserService_GetUsers_Handler,
 		},
 		{
 			MethodName: "GetOperators",

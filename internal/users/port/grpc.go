@@ -9,6 +9,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
 	"github.com/mproyyan/goparcel/internal/users/domain/courier"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
+	"github.com/mproyyan/goparcel/internal/users/domain/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -23,6 +24,24 @@ func NewGrpcServer(service app.UserService) GrpcServer {
 	return GrpcServer{
 		service: service,
 	}
+}
+
+func (g GrpcServer) GetUser(ctx context.Context, request *genproto.GetUserRequest) (*genproto.User, error) {
+	user, err := g.service.GetUser(ctx, request.Id)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "GetUser service failed")
+	}
+
+	return userToProtoResponse(user), nil
+}
+
+func (g GrpcServer) GetUsers(ctx context.Context, request *genproto.GetUsersRequest) (*genproto.UserResponse, error) {
+	users, err := g.service.GetUsers(ctx, request.Id)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "GetUsers service failed")
+	}
+
+	return &genproto.UserResponse{Users: usersToProtoResponse(users)}, nil
 }
 
 func (g GrpcServer) Login(ctx context.Context, request *genproto.LoginRequest) (*genproto.LoginResponse, error) {
@@ -94,6 +113,24 @@ func (g GrpcServer) GetCarriers(ctx context.Context, request *genproto.GetCarrie
 	}
 
 	return &genproto.CarrierResponse{Carriers: carriersToProtoResponse(carriers)}, nil
+}
+
+// userToProtoResponse converts a domain User to a protobuf User response
+func userToProtoResponse(u *user.User) *genproto.User {
+	return &genproto.User{
+		Id:      u.ID,
+		ModelId: u.ModelID,
+		Entity:  string(u.Entity),
+	}
+}
+
+// usersToProtoResponse converts a slice of domain Users to a slice of protobuf User responses
+func usersToProtoResponse(users []*user.User) []*genproto.User {
+	var protoUsers []*genproto.User
+	for _, u := range users {
+		protoUsers = append(protoUsers, userToProtoResponse(u))
+	}
+	return protoUsers
 }
 
 func operatorToProtoResponse(model *operator.Operator) *genproto.Operator {

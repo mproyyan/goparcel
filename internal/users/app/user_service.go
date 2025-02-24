@@ -52,6 +52,38 @@ func NewUserService(
 	}
 }
 
+func (u UserService) GetUser(ctx context.Context, id string) (*user.User, error) {
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user id is not valid object id")
+	}
+
+	user, err := u.userRepository.GetUser(ctx, objId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get user from repository")
+	}
+
+	return user, nil
+}
+
+func (u UserService) GetUsers(ctx context.Context, ids []string) ([]*user.User, error) {
+	var objIds []primitive.ObjectID
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "user id is not valid object id")
+		}
+		objIds = append(objIds, objId)
+	}
+
+	users, err := u.userRepository.GetUsers(ctx, objIds)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get users from repository")
+	}
+
+	return users, nil
+}
+
 func (u UserService) Login(ctx context.Context, email, password string) (string, error) {
 	// Find user
 	user, err := u.userRepository.FindUserByEmail(ctx, email)
