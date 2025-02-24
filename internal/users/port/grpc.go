@@ -66,27 +66,3 @@ func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *genproto.Reg
 
 	return &emptypb.Empty{}, nil
 }
-
-func (g GrpcServer) GetUserLocation(ctx context.Context, request *genproto.GetUserLocationRequest) (*genproto.Location, error) {
-	location, err := g.service.UserLocation(ctx, request.UserId, request.Entity)
-	if err != nil {
-		return nil, cuserr.Decorate(err, "rpc GetUserLocation failed")
-	}
-
-	return &genproto.Location{
-		Id:          location.ID,
-		Name:        location.Name,
-		Type:        location.Type,
-		WarehouseId: location.WarehouseID,
-		Address: &genproto.Address{
-			ZipCode:       location.Address.ZipCode,
-			Province:      location.Address.Province,
-			City:          location.Address.City,
-			District:      location.Address.District,
-			Subdistrict:   location.Address.Subdistrict,
-			Latitude:      location.Address.Latitude,
-			Longitude:     location.Address.Longitude,
-			StreetAddress: location.Address.StreetAddress,
-		},
-	}, nil
-}

@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/mproyyan/goparcel/internal/common/client"
 	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/common/server"
@@ -44,13 +43,6 @@ func main() {
 		log.Fatalf("Cant connect to redis: %v", err)
 	}
 
-	// Connect to location service
-	grpcLocationServiceClient, close, err := client.NewLocationServiceClient()
-	if err != nil {
-		log.Fatal("cannot connect to user service", err)
-	}
-	defer close()
-
 	// Dependency
 	database := databaseClient.Database(os.Getenv("MONGO_DATABASE"))
 	userRepository := adapter.NewUserRepository(database)
@@ -61,7 +53,6 @@ func main() {
 	courierRepository := adapter.NewCourierRepository(database)
 	cacheRepository := adapter.NewCacheRepository(redisClient)
 	transaction := db.NewMongoTransactionManager(databaseClient)
-	locationService := adapter.NewLocationService(grpcLocationServiceClient)
 	userService := app.NewUserService(
 		transaction,
 		userRepository,
@@ -71,7 +62,6 @@ func main() {
 		carrierRepository,
 		courierRepository,
 		cacheRepository,
-		locationService,
 	)
 
 	server.RunGrpcServer(func(server *grpc.Server) {
