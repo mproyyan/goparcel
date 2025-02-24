@@ -42,13 +42,13 @@ func (c *CarrierRepository) CreateCarrier(ctx context.Context, carrier carrier.C
 
 // Models
 type CarrierModel struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty"`
-	UserID     primitive.ObjectID `bson:"user_id,omitempty"`
-	Name       string             `bson:"name"`
-	Email      string             `bson:"email"`
-	CargoID    primitive.ObjectID `bson:"cargo_id,omitempty"`
-	Status     string             `bson:"status"`
-	LocationID primitive.ObjectID `bson:"location_id,omitempty"`
+	ID         primitive.ObjectID  `bson:"_id,omitempty"`
+	UserID     primitive.ObjectID  `bson:"user_id,omitempty"`
+	Name       string              `bson:"name"`
+	Email      string              `bson:"email"`
+	CargoID    *primitive.ObjectID `bson:"cargo_id,omitempty"`
+	Status     string              `bson:"status"`
+	LocationID *primitive.ObjectID `bson:"location_id,omitempty"`
 }
 
 // Helper function to convert domain to model
@@ -79,8 +79,8 @@ func domainToCarrierModel(carrier carrier.Carrier) (*CarrierModel, error) {
 		UserID:     userID,
 		Name:       carrier.Name,
 		Email:      carrier.Email,
-		CargoID:    cargoID,
+		CargoID:    &cargoID,
 		Status:     carrier.Name,
-		LocationID: locationID,
+		LocationID: &locationID,
 	}, nil
 }

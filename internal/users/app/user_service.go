@@ -161,7 +161,7 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 	return nil
 }
 
-func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, password string) error {
+func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, password, location string) error {
 	// Email cannot be used by another user
 	isAvailable, err := u.userRepository.CheckEmailAvailability(ctx, email)
 	if err != nil {
@@ -207,10 +207,11 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 
 		// Create carrier
 		_, err = u.carrierRepository.CreateCarrier(ctx, carrier.Carrier{
-			ID:     carrierId.Hex(),
-			UserID: userId.Hex(),
-			Name:   name,
-			Email:  email,
+			ID:         carrierId.Hex(),
+			UserID:     userId.Hex(),
+			Name:       name,
+			Email:      email,
+			LocationID: location,
 		})
 
 		if err != nil {
@@ -227,7 +228,7 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 	return nil
 }
 
-func (u UserService) RegisterAsCourier(ctx context.Context, name, email, password string) error {
+func (u UserService) RegisterAsCourier(ctx context.Context, name, email, password, location string) error {
 	// Email cannot be used by another user
 	isAvailable, err := u.userRepository.CheckEmailAvailability(ctx, email)
 	if err != nil {
@@ -273,10 +274,11 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 
 		// Create carrier
 		_, err = u.courierRepository.CreateCourier(ctx, courier.Courier{
-			ID:     courierID.Hex(),
-			UserID: userId.Hex(),
-			Name:   name,
-			Email:  email,
+			ID:         courierID.Hex(),
+			UserID:     userId.Hex(),
+			Name:       name,
+			Email:      email,
+			LocationID: location,
 		})
 
 		if err != nil {

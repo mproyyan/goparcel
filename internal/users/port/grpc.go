@@ -50,7 +50,7 @@ func (g GrpcServer) RegisterAsOperator(context context.Context, request *genprot
 }
 
 func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *genproto.RegisterAsCarrierRequest) (*emptypb.Empty, error) {
-	err := g.service.RegisterAsCarrier(ctx, request.Name, request.Email, request.Password)
+	err := g.service.RegisterAsCarrier(ctx, request.Name, request.Email, request.Password, request.Location)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to register as carrier")
 	}
@@ -59,7 +59,7 @@ func (g GrpcServer) RegisterAsCarrier(ctx context.Context, request *genproto.Reg
 }
 
 func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *genproto.RegisterAsCourierRequest) (*emptypb.Empty, error) {
-	err := g.service.RegisterAsCourier(ctx, request.Name, request.Email, request.Password)
+	err := g.service.RegisterAsCourier(ctx, request.Name, request.Email, request.Password, request.Location)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to register as operator")
 	}

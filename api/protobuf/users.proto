@@ -39,6 +39,7 @@ message RegisterAsCourierRequest {
     string name = 1;
     string email = 2;
     string password = 3;
+    string location = 4;
 }
 
 // RegisterAsCarrier
@@ -46,4 +47,5 @@ message RegisterAsCarrierRequest {
     string name = 1;
     string email = 2;
     string password = 3;
+    string location = 4;
 }

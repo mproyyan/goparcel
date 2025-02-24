@@ -42,19 +42,21 @@ func (o *OperatorRepository) CreateOperator(ctx context.Context, operator operat
 
 // Models
 type OperatorModel struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty"`
-	UserID     primitive.ObjectID `bson:"user_id,omitempty"`
-	Type       string             `bson:"type"`
-	Name       string             `bson:"name"`
-	Email      string             `bson:"email"`
-	LocationID primitive.ObjectID `bson:"location_id,omitempty"`
+	ID         primitive.ObjectID  `bson:"_id,omitempty"`
+	UserID     primitive.ObjectID  `bson:"user_id,omitempty"`
+	Type       string              `bson:"type"`
+	Name       string              `bson:"name"`
+	Email      string              `bson:"email"`
+	LocationID *primitive.ObjectID `bson:"location_id,omitempty"`
 }
 
 // Helper function to convert domain to operator model
 func domainToOperatorModel(operator operator.Operator) (*OperatorModel, error) {
 	// Convert string ObjectId to literal ObjectId
 	id, err := db.ConvertToObjectId(operator.ID)
-	status.Error(codes.InvalidArgument, "id is not valid object id")
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
+	}
 
 	userID, err := db.ConvertToObjectId(operator.UserID)
 	if err != nil {
@@ -72,6 +74,6 @@ func domainToOperatorModel(operator operator.Operator) (*OperatorModel, error) {
 		Type:       operator.Type.String(),
 		Name:       operator.Name,
 		Email:      operator.Email,
-		LocationID: locationID,
+		LocationID: &locationID,
 	}, nil
 }
