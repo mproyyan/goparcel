@@ -71,21 +71,6 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(ctx, user any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), ctx, user)
 }
 
-// FetchUserEntity mocks base method.
-func (m *MockUserRepository) FetchUserEntity(ctx context.Context, userID string, entity user.UserEntityName) (*user.UserEntity, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchUserEntity", ctx, userID, entity)
-	ret0, _ := ret[0].(*user.UserEntity)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FetchUserEntity indicates an expected call of FetchUserEntity.
-func (mr *MockUserRepositoryMockRecorder) FetchUserEntity(ctx, userID, entity any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchUserEntity", reflect.TypeOf((*MockUserRepository)(nil).FetchUserEntity), ctx, userID, entity)
-}
-
 // FindUserByEmail mocks base method.
 func (m *MockUserRepository) FindUserByEmail(ctx context.Context, email string) (*user.User, error) {
 	m.ctrl.T.Helper()
@@ -99,45 +84,6 @@ func (m *MockUserRepository) FindUserByEmail(ctx context.Context, email string) 
 func (mr *MockUserRepositoryMockRecorder) FindUserByEmail(ctx, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindUserByEmail), ctx, email)
-}
-
-// MockUserTypeRepository is a mock of UserTypeRepository interface.
-type MockUserTypeRepository struct {
-	ctrl     *gomock.Controller
-	recorder *MockUserTypeRepositoryMockRecorder
-	isgomock struct{}
-}
-
-// MockUserTypeRepositoryMockRecorder is the mock recorder for MockUserTypeRepository.
-type MockUserTypeRepositoryMockRecorder struct {
-	mock *MockUserTypeRepository
-}
-
-// NewMockUserTypeRepository creates a new mock instance.
-func NewMockUserTypeRepository(ctrl *gomock.Controller) *MockUserTypeRepository {
-	mock := &MockUserTypeRepository{ctrl: ctrl}
-	mock.recorder = &MockUserTypeRepositoryMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUserTypeRepository) EXPECT() *MockUserTypeRepositoryMockRecorder {
-	return m.recorder
-}
-
-// FindUserType mocks base method.
-func (m *MockUserTypeRepository) FindUserType(ctx context.Context, userType string) (*user.UserType, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindUserType", ctx, userType)
-	ret0, _ := ret[0].(*user.UserType)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindUserType indicates an expected call of FindUserType.
-func (mr *MockUserTypeRepositoryMockRecorder) FindUserType(ctx, userType any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserType", reflect.TypeOf((*MockUserTypeRepository)(nil).FindUserType), ctx, userType)
 }
 
 // MockCacheRepository is a mock of CacheRepository interface.
