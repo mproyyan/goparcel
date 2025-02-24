@@ -131,9 +131,6 @@ type User struct {
 	Email      string             `bson:"email"`
 	Password   string             `bson:"password"`
 	UserTypeID primitive.ObjectID `bson:"user_type_id"`
-
-	// Relations
-	UserType *UserType `bson:"user_type,omitempty"`
 }
 
 type UserEntity struct {
@@ -144,25 +141,15 @@ type UserEntity struct {
 	LocationID primitive.ObjectID `bson:"location_id"`
 }
 
-func (u *User) hasUserType() bool {
-	return u.UserType != nil
-}
-
 // Helper function to convert user model to user domain
 func userModelToDomain(userModel User) user.User {
-	// Check if has relation to user type
-	userType := user.UserType{ID: userModel.UserTypeID.Hex()}
-	if userModel.hasUserType() {
-		userType = userTypeModelToDomain(*userModel.UserType)
-	}
-
 	return user.User{
-		ID:       userModel.ID.Hex(),
-		ModelID:  userModel.ModelID.Hex(),
-		Entity:   userModel.Entity,
-		Email:    userModel.Email,
-		Password: userModel.Password,
-		Type:     userType,
+		ID:         userModel.ID.Hex(),
+		ModelID:    userModel.ModelID.Hex(),
+		Entity:     userModel.Entity,
+		Email:      userModel.Email,
+		Password:   userModel.Password,
+		UserTypeID: userModel.UserTypeID.Hex(),
 	}
 }
 
@@ -179,7 +166,7 @@ func domainToUserModel(user user.User) (*User, error) {
 		return nil, status.Error(codes.InvalidArgument, "model_id is not valid object id")
 	}
 
-	userTypeID, err := db.ConvertToObjectId(user.Type.ID)
+	userTypeID, err := db.ConvertToObjectId(user.UserTypeID)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "user_type_id is not valid object id")
 	}

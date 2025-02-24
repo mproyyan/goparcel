@@ -72,7 +72,7 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 	}
 
 	// Find user type
-	objId, _ := primitive.ObjectIDFromHex(user.Type.ID)
+	objId, _ := primitive.ObjectIDFromHex(user.UserTypeID)
 	userType, err := u.userTypeRepository.FindUserTypeById(ctx, objId)
 	if err != nil {
 		return "", cuserr.Decorate(err, "failed to find user type by id")
@@ -132,12 +132,12 @@ func (u UserService) RegisterAsOperator(ctx context.Context, name, email, passwo
 
 		// Create user
 		_, err = u.userRepository.CreateUser(ctx, user.User{
-			ID:       userId.Hex(),
-			ModelID:  operatorId.Hex(),
-			Entity:   "operator",
-			Email:    email,
-			Password: encryptedPassword,
-			Type:     user.UserType{ID: userType.ID},
+			ID:         userId.Hex(),
+			ModelID:    operatorId.Hex(),
+			Entity:     "operator",
+			Email:      email,
+			Password:   encryptedPassword,
+			UserTypeID: userType.ID,
 		})
 
 		if err != nil {
@@ -200,12 +200,12 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 
 		// Create user
 		_, err = u.userRepository.CreateUser(ctx, user.User{
-			ID:       userId.Hex(),
-			ModelID:  carrierId.Hex(),
-			Entity:   "carrier",
-			Email:    email,
-			Password: encryptedPassword,
-			Type:     user.UserType{ID: userType.ID},
+			ID:         userId.Hex(),
+			ModelID:    carrierId.Hex(),
+			Entity:     "carrier",
+			Email:      email,
+			Password:   encryptedPassword,
+			UserTypeID: userType.ID,
 		})
 
 		if err != nil {
@@ -266,12 +266,12 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 
 		// Create user
 		_, err = u.userRepository.CreateUser(ctx, user.User{
-			ID:       userId.Hex(),
-			ModelID:  courierID.Hex(),
-			Entity:   "courier",
-			Email:    email,
-			Password: encryptedPassword,
-			Type:     user.UserType{ID: userType.ID},
+			ID:         userId.Hex(),
+			ModelID:    courierID.Hex(),
+			Entity:     "courier",
+			Email:      email,
+			Password:   encryptedPassword,
+			UserTypeID: userType.ID,
 		})
 
 		if err != nil {

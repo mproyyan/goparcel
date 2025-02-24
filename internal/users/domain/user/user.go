@@ -3,12 +3,12 @@ package user
 import "regexp"
 
 type User struct {
-	ID       string
-	ModelID  string
-	Entity   string
-	Email    string
-	Password string
-	Type     UserType
+	ID         string
+	ModelID    string
+	Entity     string
+	Email      string
+	Password   string
+	UserTypeID string
 }
 
 type UserEntity struct {
