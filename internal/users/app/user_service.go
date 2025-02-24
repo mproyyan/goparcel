@@ -330,3 +330,21 @@ func (u UserService) GetCouriers(ctx context.Context, ids []string) ([]*courier.
 
 	return couriers, nil
 }
+
+func (u UserService) GetCarriers(ctx context.Context, ids []string) ([]*carrier.Carrier, error) {
+	var objIds []primitive.ObjectID
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "operator id is not valid object id")
+		}
+		objIds = append(objIds, objId)
+	}
+
+	carriers, err := u.carrierRepository.GetCarriers(ctx, objIds)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get carriers from repository")
+	}
+
+	return carriers, nil
+}

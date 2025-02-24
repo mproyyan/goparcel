@@ -6,6 +6,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/carrier"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc/codes"
@@ -38,6 +39,28 @@ func (c *CarrierRepository) CreateCarrier(ctx context.Context, carrier carrier.C
 	// Return inserted id
 	insertedID := result.InsertedID.(primitive.ObjectID)
 	return insertedID.Hex(), nil
+}
+
+func (c *CarrierRepository) GetCarriers(ctx context.Context, ids []primitive.ObjectID) ([]*carrier.Carrier, error) {
+	filter := bson.M{}
+
+	// If ids not empty then fetch courier based on the ids
+	if len(ids) > 0 {
+		filter["_id"] = bson.M{"$in": ids}
+	}
+
+	cursor, err := c.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var carrierModel []CarrierModel
+	if err := cursor.All(ctx, &carrierModel); err != nil {
+		return nil, err
+	}
+
+	return carriersModelsTodomain(carrierModel), nil
 }
 
 // Models
@@ -83,4 +106,26 @@ func domainToCarrierModel(carrier carrier.Carrier) (*CarrierModel, error) {
 		Status:     carrier.Status,
 		LocationID: &locationID,
 	}, nil
+}
+
+func carrierModelToDomain(model CarrierModel) *carrier.Carrier {
+	return &carrier.Carrier{
+		ID:         model.ID.Hex(),
+		UserID:     model.UserID.Hex(),
+		Name:       model.Name,
+		Email:      model.Email,
+		CargoID:    db.ObjectIdToString(model.CargoID),
+		Status:     model.Status,
+		LocationID: db.ObjectIdToString(model.LocationID),
+	}
+}
+
+func carriersModelsTodomain(models []CarrierModel) []*carrier.Carrier {
+	var carriers []*carrier.Carrier
+	for _, model := range models {
+		op := carrierModelToDomain(model)
+		carriers = append(carriers, op)
+	}
+
+	return carriers
 }

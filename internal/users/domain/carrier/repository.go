@@ -2,8 +2,13 @@
 
 package carrier
 
-import "context"
+import (
+	"context"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type CarrierRepository interface {
 	CreateCarrier(ctx context.Context, carrier Carrier) (string, error)
+	GetCarriers(ctx context.Context, ids []primitive.ObjectID) ([]*Carrier, error)
 }

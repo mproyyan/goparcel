@@ -9,3 +9,11 @@ func ConvertToObjectId(hex string) (primitive.ObjectID, error) {
 
 	return primitive.ObjectIDFromHex(hex)
 }
+
+func ObjectIdToString(objId *primitive.ObjectID) string {
+	if objId == nil {
+		return ""
+	}
+
+	return objId.Hex()
+}
