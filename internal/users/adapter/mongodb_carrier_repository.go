@@ -80,7 +80,7 @@ func domainToCarrierModel(carrier carrier.Carrier) (*CarrierModel, error) {
 		Name:       carrier.Name,
 		Email:      carrier.Email,
 		CargoID:    &cargoID,
-		Status:     carrier.Name,
+		Status:     carrier.Status,
 		LocationID: &locationID,
 	}, nil
 }
