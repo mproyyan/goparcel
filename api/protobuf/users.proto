@@ -13,6 +13,7 @@ service UserService {
     rpc RegisterAsOperator(RegisterAsOperatorRequest) returns (google.protobuf.Empty) {}
     rpc RegisterAsCarrier(RegisterAsCarrierRequest) returns (google.protobuf.Empty) {}
     rpc RegisterAsCourier(RegisterAsCourierRequest) returns (google.protobuf.Empty) {}
+    rpc GetOperators(GetOperatorsRequest) returns (OperatorResponse) {}
 }
 
 // Login
@@ -48,4 +49,21 @@ message RegisterAsCarrierRequest {
     string email = 2;
     string password = 3;
     string location = 4;
+}
+
+message Operator {
+    string id = 1;
+    string user_id = 2;
+    string type = 3;
+    string name = 4;
+    string email = 5;
+    string location_id = 6;
+}
+
+message OperatorResponse {
+    repeated Operator operators = 1;
+}
+
+message GetOperatorsRequest {
+    repeated string ids = 1;
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc/codes"
@@ -38,6 +39,28 @@ func (o *OperatorRepository) CreateOperator(ctx context.Context, operator operat
 	// Return inserted id
 	insertedId := result.InsertedID.(primitive.ObjectID)
 	return insertedId.Hex(), nil
+}
+
+func (o *OperatorRepository) GetOperators(ctx context.Context, ids []primitive.ObjectID) ([]*operator.Operator, error) {
+	filter := bson.M{}
+
+	// If ids not empty then fetch operator based on the ids
+	if len(ids) > 0 {
+		filter["_id"] = bson.M{"$in": ids}
+	}
+
+	cursor, err := o.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var opreatorModel []OperatorModel
+	if err := cursor.All(ctx, &opreatorModel); err != nil {
+		return nil, err
+	}
+
+	return operatorModelsTodomain(opreatorModel), nil
 }
 
 // Models
@@ -76,4 +99,25 @@ func domainToOperatorModel(operator operator.Operator) (*OperatorModel, error) {
 		Email:      operator.Email,
 		LocationID: &locationID,
 	}, nil
+}
+
+func operatorModelToDomain(model OperatorModel) *operator.Operator {
+	return &operator.Operator{
+		ID:         model.ID.Hex(),
+		UserID:     model.UserID.Hex(),
+		Type:       operator.OperatorTypeFromString(model.Type),
+		Name:       model.Name,
+		Email:      model.Email,
+		LocationID: model.LocationID.Hex(),
+	}
+}
+
+func operatorModelsTodomain(models []OperatorModel) []*operator.Operator {
+	var operators []*operator.Operator
+	for _, model := range models {
+		op := operatorModelToDomain(model)
+		operators = append(operators, op)
+	}
+
+	return operators
 }

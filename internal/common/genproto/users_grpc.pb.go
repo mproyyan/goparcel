@@ -24,6 +24,7 @@ const (
 	UserService_RegisterAsOperator_FullMethodName = "/protobuf.UserService/RegisterAsOperator"
 	UserService_RegisterAsCarrier_FullMethodName  = "/protobuf.UserService/RegisterAsCarrier"
 	UserService_RegisterAsCourier_FullMethodName  = "/protobuf.UserService/RegisterAsCourier"
+	UserService_GetOperators_FullMethodName       = "/protobuf.UserService/GetOperators"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -35,6 +36,7 @@ type UserServiceClient interface {
 	RegisterAsOperator(ctx context.Context, in *RegisterAsOperatorRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCarrier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCourier(ctx context.Context, in *RegisterAsCourierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetOperators(ctx context.Context, in *GetOperatorsRequest, opts ...grpc.CallOption) (*OperatorResponse, error)
 }
 
 type userServiceClient struct {
@@ -85,6 +87,16 @@ func (c *userServiceClient) RegisterAsCourier(ctx context.Context, in *RegisterA
 	return out, nil
 }
 
+func (c *userServiceClient) GetOperators(ctx context.Context, in *GetOperatorsRequest, opts ...grpc.CallOption) (*OperatorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OperatorResponse)
+	err := c.cc.Invoke(ctx, UserService_GetOperators_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -94,6 +106,7 @@ type UserServiceServer interface {
 	RegisterAsOperator(context.Context, *RegisterAsOperatorRequest) (*emptypb.Empty, error)
 	RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
 	RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error)
+	GetOperators(context.Context, *GetOperatorsRequest) (*OperatorResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -115,6 +128,9 @@ func (UnimplementedUserServiceServer) RegisterAsCarrier(context.Context, *Regist
 }
 func (UnimplementedUserServiceServer) RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterAsCourier not implemented")
+}
+func (UnimplementedUserServiceServer) GetOperators(context.Context, *GetOperatorsRequest) (*OperatorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOperators not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -209,6 +225,24 @@ func _UserService_RegisterAsCourier_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetOperators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOperatorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetOperators(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetOperators_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetOperators(ctx, req.(*GetOperatorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -231,6 +265,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterAsCourier",
 			Handler:    _UserService_RegisterAsCourier_Handler,
+		},
+		{
+			MethodName: "GetOperators",
+			Handler:    _UserService_GetOperators_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -35,13 +35,13 @@ func (g GrpcServer) Login(ctx context.Context, request *genproto.LoginRequest) (
 func (g GrpcServer) RegisterAsOperator(context context.Context, request *genproto.RegisterAsOperatorRequest) (*emptypb.Empty, error) {
 	// Check value of operator type request value to decide operator type
 	operatorTypeRequestValue := request.Type
-	operatorType, err := operator.OperatorTypeFromString(operatorTypeRequestValue)
-	if err != nil {
+	operatorType := operator.OperatorTypeFromString(operatorTypeRequestValue)
+	if operatorType == operator.OperatorUnknown {
 		return nil, status.Error(codes.InvalidArgument, "invalid operator type, must be depot_operator or warehouse_operator")
 	}
 
 	// Call user serice
-	err = g.service.RegisterAsOperator(context, request.Name, request.Email, request.Password, request.Location, operatorType)
+	err := g.service.RegisterAsOperator(context, request.Name, request.Email, request.Password, request.Location, operatorType)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to register as operator")
 	}
@@ -65,4 +65,34 @@ func (g GrpcServer) RegisterAsCourier(ctx context.Context, request *genproto.Reg
 	}
 
 	return &emptypb.Empty{}, nil
+}
+
+func (g GrpcServer) GetOperators(ctx context.Context, request *genproto.GetOperatorsRequest) (*genproto.OperatorResponse, error) {
+	operators, err := g.service.GetOperators(ctx, request.Ids)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "user service failed to get operators")
+	}
+
+	return &genproto.OperatorResponse{Operators: operatorsToProtoResponse(operators)}, nil
+}
+
+func operatorToProtoResponse(model *operator.Operator) *genproto.Operator {
+	return &genproto.Operator{
+		Id:         model.ID,
+		UserId:     model.UserID,
+		Type:       model.Type.String(),
+		Name:       model.Name,
+		Email:      model.Email,
+		LocationId: model.LocationID,
+	}
+}
+
+func operatorsToProtoResponse(models []*operator.Operator) []*genproto.Operator {
+	var operators []*genproto.Operator
+	for _, model := range models {
+		op := operatorToProtoResponse(model)
+		operators = append(operators, op)
+	}
+
+	return operators
 }

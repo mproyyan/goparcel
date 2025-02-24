@@ -1,10 +1,5 @@
 package operator
 
-import (
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-)
-
 type Operator struct {
 	ID         string
 	UserID     string
@@ -17,7 +12,8 @@ type Operator struct {
 type OperatorType int
 
 const (
-	DepotOperator OperatorType = iota + 1
+	OperatorUnknown OperatorType = iota
+	DepotOperator
 	WarehouseOperator
 )
 
@@ -29,16 +25,16 @@ func (o OperatorType) String() string {
 		return "warehouse_operator"
 	}
 
-	return ""
+	return "unknown"
 }
 
-func OperatorTypeFromString(stringType string) (OperatorType, error) {
+func OperatorTypeFromString(stringType string) OperatorType {
 	switch stringType {
 	case "depot_operator":
-		return DepotOperator, nil
+		return DepotOperator
 	case "warehouse_operator":
-		return WarehouseOperator, nil
+		return WarehouseOperator
 	}
 
-	return 0, status.Errorf(codes.InvalidArgument, "invalid location type")
+	return OperatorUnknown
 }

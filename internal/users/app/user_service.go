@@ -294,3 +294,21 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 
 	return nil
 }
+
+func (u UserService) GetOperators(ctx context.Context, ids []string) ([]*operator.Operator, error) {
+	var objIds []primitive.ObjectID
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "operator id is not valid object id")
+		}
+		objIds = append(objIds, objId)
+	}
+
+	operators, err := u.operatorRepository.GetOperators(ctx, objIds)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get operators from repository")
+	}
+
+	return operators, nil
+}
