@@ -120,7 +120,7 @@ func userToProtoResponse(u *user.User) *genproto.User {
 	return &genproto.User{
 		Id:      u.ID,
 		ModelId: u.ModelID,
-		Entity:  string(u.Entity),
+		Entity:  u.Entity.String(),
 	}
 }
 
