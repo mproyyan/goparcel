@@ -25,6 +25,7 @@ const (
 	UserService_RegisterAsCarrier_FullMethodName  = "/protobuf.UserService/RegisterAsCarrier"
 	UserService_RegisterAsCourier_FullMethodName  = "/protobuf.UserService/RegisterAsCourier"
 	UserService_GetOperators_FullMethodName       = "/protobuf.UserService/GetOperators"
+	UserService_GetCouriers_FullMethodName        = "/protobuf.UserService/GetCouriers"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -37,6 +38,7 @@ type UserServiceClient interface {
 	RegisterAsCarrier(ctx context.Context, in *RegisterAsCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RegisterAsCourier(ctx context.Context, in *RegisterAsCourierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetOperators(ctx context.Context, in *GetOperatorsRequest, opts ...grpc.CallOption) (*OperatorResponse, error)
+	GetCouriers(ctx context.Context, in *GetCouriersRequest, opts ...grpc.CallOption) (*CourierResponse, error)
 }
 
 type userServiceClient struct {
@@ -97,6 +99,16 @@ func (c *userServiceClient) GetOperators(ctx context.Context, in *GetOperatorsRe
 	return out, nil
 }
 
+func (c *userServiceClient) GetCouriers(ctx context.Context, in *GetCouriersRequest, opts ...grpc.CallOption) (*CourierResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CourierResponse)
+	err := c.cc.Invoke(ctx, UserService_GetCouriers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -107,6 +119,7 @@ type UserServiceServer interface {
 	RegisterAsCarrier(context.Context, *RegisterAsCarrierRequest) (*emptypb.Empty, error)
 	RegisterAsCourier(context.Context, *RegisterAsCourierRequest) (*emptypb.Empty, error)
 	GetOperators(context.Context, *GetOperatorsRequest) (*OperatorResponse, error)
+	GetCouriers(context.Context, *GetCouriersRequest) (*CourierResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -131,6 +144,9 @@ func (UnimplementedUserServiceServer) RegisterAsCourier(context.Context, *Regist
 }
 func (UnimplementedUserServiceServer) GetOperators(context.Context, *GetOperatorsRequest) (*OperatorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOperators not implemented")
+}
+func (UnimplementedUserServiceServer) GetCouriers(context.Context, *GetCouriersRequest) (*CourierResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCouriers not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -243,6 +259,24 @@ func _UserService_GetOperators_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetCouriers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCouriersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetCouriers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetCouriers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetCouriers(ctx, req.(*GetCouriersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -269,6 +303,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOperators",
 			Handler:    _UserService_GetOperators_Handler,
+		},
+		{
+			MethodName: "GetCouriers",
+			Handler:    _UserService_GetCouriers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

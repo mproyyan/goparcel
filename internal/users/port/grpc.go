@@ -6,6 +6,7 @@ import (
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/users/app"
+	"github.com/mproyyan/goparcel/internal/users/domain/courier"
 	"github.com/mproyyan/goparcel/internal/users/domain/operator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -76,6 +77,15 @@ func (g GrpcServer) GetOperators(ctx context.Context, request *genproto.GetOpera
 	return &genproto.OperatorResponse{Operators: operatorsToProtoResponse(operators)}, nil
 }
 
+func (g GrpcServer) GetCouriers(ctx context.Context, request *genproto.GetCouriersRequest) (*genproto.CourierResponse, error) {
+	couriers, err := g.service.GetCouriers(ctx, request.Ids)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "user service failed to get couriers")
+	}
+
+	return &genproto.CourierResponse{Couriers: couriersToProtoResponse(couriers)}, nil
+}
+
 func operatorToProtoResponse(model *operator.Operator) *genproto.Operator {
 	return &genproto.Operator{
 		Id:         model.ID,
@@ -95,4 +105,24 @@ func operatorsToProtoResponse(models []*operator.Operator) []*genproto.Operator 
 	}
 
 	return operators
+}
+
+func courierToProtoResponse(model *courier.Courier) *genproto.Courier {
+	return &genproto.Courier{
+		Id:         model.ID,
+		UserId:     model.UserID,
+		Name:       model.Name,
+		Email:      model.Email,
+		LocationId: model.LocationID,
+	}
+}
+
+func couriersToProtoResponse(models []*courier.Courier) []*genproto.Courier {
+	var couriers []*genproto.Courier
+	for _, model := range models {
+		c := courierToProtoResponse(model)
+		couriers = append(couriers, c)
+	}
+
+	return couriers
 }

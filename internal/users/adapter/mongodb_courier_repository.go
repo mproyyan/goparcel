@@ -6,6 +6,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/users/domain/courier"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc/codes"
@@ -38,6 +39,28 @@ func (c *CourierRepository) CreateCourier(ctx context.Context, courier courier.C
 	// Return inserted id
 	insertedID := result.InsertedID.(primitive.ObjectID)
 	return insertedID.Hex(), nil
+}
+
+func (c *CourierRepository) GetCouriers(ctx context.Context, ids []primitive.ObjectID) ([]*courier.Courier, error) {
+	filter := bson.M{}
+
+	// If ids not empty then fetch courier based on the ids
+	if len(ids) > 0 {
+		filter["_id"] = bson.M{"$in": ids}
+	}
+
+	cursor, err := c.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var courierModel []CourierModel
+	if err := cursor.All(ctx, &courierModel); err != nil {
+		return nil, err
+	}
+
+	return couriersModelsTodomain(courierModel), nil
 }
 
 // Models
@@ -76,4 +99,25 @@ func domainToCourierModel(courier courier.Courier) (*CourierModel, error) {
 		Status:     courier.Status.String(), // default not_available
 		LocationID: &locationID,
 	}, nil
+}
+
+func courierModelToDomain(model CourierModel) *courier.Courier {
+	return &courier.Courier{
+		ID:         model.ID.Hex(),
+		UserID:     model.UserID.Hex(),
+		Name:       model.Name,
+		Email:      model.Email,
+		Status:     courier.StringToCourierStatus(model.Status),
+		LocationID: model.LocationID.Hex(),
+	}
+}
+
+func couriersModelsTodomain(models []CourierModel) []*courier.Courier {
+	var couriers []*courier.Courier
+	for _, model := range models {
+		op := courierModelToDomain(model)
+		couriers = append(couriers, op)
+	}
+
+	return couriers
 }

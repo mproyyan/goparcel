@@ -312,3 +312,21 @@ func (u UserService) GetOperators(ctx context.Context, ids []string) ([]*operato
 
 	return operators, nil
 }
+
+func (u UserService) GetCouriers(ctx context.Context, ids []string) ([]*courier.Courier, error) {
+	var objIds []primitive.ObjectID
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "operator id is not valid object id")
+		}
+		objIds = append(objIds, objId)
+	}
+
+	couriers, err := u.courierRepository.GetCouriers(ctx, objIds)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get couriers from repository")
+	}
+
+	return couriers, nil
+}
