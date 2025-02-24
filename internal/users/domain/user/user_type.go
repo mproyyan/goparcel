@@ -16,5 +16,4 @@ type UserType struct {
 	Name         string
 	Description  string
 	PermissionID string
-	Permissions  Permissions
 }
