@@ -87,8 +87,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateLocation func(childComplexity int, input *model.CreateLocationInput) int
-		CreateShipment func(childComplexity int, input *model.CreateShipmentInput) int
+		CreateLocation     func(childComplexity int, input *model.CreateLocationInput) int
+		CreateShipment     func(childComplexity int, input *model.CreateShipmentInput) int
+		Login              func(childComplexity int, email string, password string) int
+		RegisterAsCarrier  func(childComplexity int, input model.RegisterAsCarrierInput) int
+		RegisterAsCourier  func(childComplexity int, input model.RegisterAsCourierInput) int
+		RegisterAsOperator func(childComplexity int, input model.RegisterAsOperatorInput) int
 	}
 
 	PartyDetail struct {
@@ -129,6 +133,14 @@ type ComplexityRoot struct {
 		RoutingStatus   func(childComplexity int) int
 		SenderDetail    func(childComplexity int) int
 		TransportStatus func(childComplexity int) int
+	}
+
+	UserEntity struct {
+		Email    func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Location func(childComplexity int) int
+		Name     func(childComplexity int) int
+		UserID   func(childComplexity int) int
 	}
 }
 
@@ -357,6 +369,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateShipment(childComplexity, args["input"].(*model.CreateShipmentInput)), true
 
+	case "Mutation.Login":
+		if e.complexity.Mutation.Login == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_Login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Login(childComplexity, args["email"].(string), args["password"].(string)), true
+
+	case "Mutation.RegisterAsCarrier":
+		if e.complexity.Mutation.RegisterAsCarrier == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_RegisterAsCarrier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterAsCarrier(childComplexity, args["input"].(model.RegisterAsCarrierInput)), true
+
+	case "Mutation.RegisterAsCourier":
+		if e.complexity.Mutation.RegisterAsCourier == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_RegisterAsCourier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterAsCourier(childComplexity, args["input"].(model.RegisterAsCourierInput)), true
+
+	case "Mutation.RegisterAsOperator":
+		if e.complexity.Mutation.RegisterAsOperator == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_RegisterAsOperator_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RegisterAsOperator(childComplexity, args["input"].(model.RegisterAsOperatorInput)), true
+
 	case "PartyDetail.address":
 		if e.complexity.PartyDetail.Address == nil {
 			break
@@ -578,6 +638,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Shipment.TransportStatus(childComplexity), true
 
+	case "UserEntity.email":
+		if e.complexity.UserEntity.Email == nil {
+			break
+		}
+
+		return e.complexity.UserEntity.Email(childComplexity), true
+
+	case "UserEntity.id":
+		if e.complexity.UserEntity.ID == nil {
+			break
+		}
+
+		return e.complexity.UserEntity.ID(childComplexity), true
+
+	case "UserEntity.location":
+		if e.complexity.UserEntity.Location == nil {
+			break
+		}
+
+		return e.complexity.UserEntity.Location(childComplexity), true
+
+	case "UserEntity.name":
+		if e.complexity.UserEntity.Name == nil {
+			break
+		}
+
+		return e.complexity.UserEntity.Name(childComplexity), true
+
+	case "UserEntity.user_id":
+		if e.complexity.UserEntity.UserID == nil {
+			break
+		}
+
+		return e.complexity.UserEntity.UserID(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -590,6 +685,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateShipmentInput,
 		ec.unmarshalInputEntityInput,
 		ec.unmarshalInputItemInput,
+		ec.unmarshalInputRegisterAsCarrierInput,
+		ec.unmarshalInputRegisterAsCourierInput,
+		ec.unmarshalInputRegisterAsOperatorInput,
 		ec.unmarshalInputVolumeInput,
 	)
 	first := true
@@ -832,5 +930,50 @@ type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
 }
 `, BuiltIn: false},
+	{Name: "../schemas/user.graphqls", Input: `type UserEntity {
+    id: ID!
+    user_id: ID!
+    name: String!
+    email: String!
+    location: Location
+}
+
+# Enums
+
+enum OperatorType {
+    depot_operator
+    warehouse_operator
+}
+
+# Inputs
+
+input RegisterAsOperatorInput {
+    name: String!
+    email: String!
+    password: String!
+    location_id: String!
+    type: OperatorType!
+}
+
+input RegisterAsCourierInput {
+    name: String!
+    email: String!
+    password: String!
+    location_id: String!
+}
+
+input RegisterAsCarrierInput {
+    name: String!
+    email: String!
+    password: String!
+    location_id: String!
+}
+
+extend type Mutation {
+    Login(email: String!, password: String!): String!
+    RegisterAsOperator(input: RegisterAsOperatorInput!): String!
+    RegisterAsCourier(input: RegisterAsCourierInput!): String!
+    RegisterAsCarrier(input: RegisterAsCarrierInput!): String! 
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)

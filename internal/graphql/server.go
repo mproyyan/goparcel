@@ -45,10 +45,18 @@ func main() {
 	}
 	defer close()
 
+	// Connect to user service
+	userServiceClient, close, err := client.NewUserServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to user service", err)
+	}
+	defer close()
+
 	resolver := resolvers.NewResolver(
 		locationServiceClient,
 		shipmentServiceClient,
 		courierServiceClient,
+		userServiceClient,
 	)
 
 	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))

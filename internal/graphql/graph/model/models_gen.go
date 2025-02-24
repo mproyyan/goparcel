@@ -106,6 +106,28 @@ type Region struct {
 	ZipCode     string  `json:"zip_code"`
 }
 
+type RegisterAsCarrierInput struct {
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	LocationID string `json:"location_id"`
+}
+
+type RegisterAsCourierInput struct {
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	LocationID string `json:"location_id"`
+}
+
+type RegisterAsOperatorInput struct {
+	Name       string       `json:"name"`
+	Email      string       `json:"email"`
+	Password   string       `json:"password"`
+	LocationID string       `json:"location_id"`
+	Type       OperatorType `json:"type"`
+}
+
 type Shipment struct {
 	ID              string          `json:"id"`
 	AirwayBill      string          `json:"airway_bill"`
@@ -117,6 +139,14 @@ type Shipment struct {
 	Origin          *Location       `json:"origin,omitempty"`
 	Destination     *Location       `json:"destination,omitempty"`
 	ItineraryLogs   []*ItineraryLog `json:"itinerary_logs"`
+}
+
+type UserEntity struct {
+	ID       string    `json:"id"`
+	UserID   string    `json:"user_id"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Location *Location `json:"location,omitempty"`
 }
 
 type VolumeInput struct {
@@ -163,5 +193,46 @@ func (e *LocationType) UnmarshalGQL(v any) error {
 }
 
 func (e LocationType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OperatorType string
+
+const (
+	OperatorTypeDepotOperator     OperatorType = "depot_operator"
+	OperatorTypeWarehouseOperator OperatorType = "warehouse_operator"
+)
+
+var AllOperatorType = []OperatorType{
+	OperatorTypeDepotOperator,
+	OperatorTypeWarehouseOperator,
+}
+
+func (e OperatorType) IsValid() bool {
+	switch e {
+	case OperatorTypeDepotOperator, OperatorTypeWarehouseOperator:
+		return true
+	}
+	return false
+}
+
+func (e OperatorType) String() string {
+	return string(e)
+}
+
+func (e *OperatorType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OperatorType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OperatorType", str)
+	}
+	return nil
+}
+
+func (e OperatorType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

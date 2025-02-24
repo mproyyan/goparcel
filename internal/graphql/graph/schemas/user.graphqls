@@ -1,0 +1,45 @@
+type UserEntity {
+    id: ID!
+    user_id: ID!
+    name: String!
+    email: String!
+    location: Location
+}
+
+# Enums
+
+enum OperatorType {
+    depot_operator
+    warehouse_operator
+}
+
+# Inputs
+
+input RegisterAsOperatorInput {
+    name: String!
+    email: String!
+    password: String!
+    location_id: String!
+    type: OperatorType!
+}
+
+input RegisterAsCourierInput {
+    name: String!
+    email: String!
+    password: String!
+    location_id: String!
+}
+
+input RegisterAsCarrierInput {
+    name: String!
+    email: String!
+    password: String!
+    location_id: String!
+}
+
+extend type Mutation {
+    Login(email: String!, password: String!): String!
+    RegisterAsOperator(input: RegisterAsOperatorInput!): String!
+    RegisterAsCourier(input: RegisterAsCourierInput!): String!
+    RegisterAsCarrier(input: RegisterAsCarrierInput!): String! 
+}
