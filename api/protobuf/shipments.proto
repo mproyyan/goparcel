@@ -12,6 +12,8 @@ service ShipmentService {
     rpc CreateShipment(CreateShipmentRequest) returns (google.protobuf.Empty) {}
     rpc GetUnroutedShipment(GetUnroutedShipmentRequest) returns (ShipmentResponse) {}
     rpc RequestTransit(RequestTransitRequest) returns (google.protobuf.Empty) {}
+    rpc IncomingShipments(IncomingShipmentRequest) returns (TransferRequestResponse) {}
+    rpc GetShipments(GetShipmentsRequest) returns (ShipmentResponse) {}
 }
 
 message CreateShipmentRequest {
@@ -99,7 +101,11 @@ message TransferRequest {
     string cargo_id = 7;
     string status = 8;
     google.protobuf.Timestamp created_at = 9;
-  }
+}
+
+message TransferRequestResponse {
+    repeated TransferRequest transfer_requests = 1;
+}
 
 message TransferRequestOrigin {
     string location = 1;
@@ -110,4 +116,12 @@ message TransferRequestDestination {
     string location = 1;
     string accepted_by = 2;
     EntityDetail recipient_detail = 3;
+}
+
+message IncomingShipmentRequest {
+    string location_id = 1;
+}
+
+message GetShipmentsRequest {
+    repeated string ids = 1;
 }

@@ -88,7 +88,7 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 	return nil
 }
 
-func (s ShipmentService) UnroutedShipments(ctx context.Context, locationID string) ([]domain.Shipment, error) {
+func (s ShipmentService) UnroutedShipments(ctx context.Context, locationID string) ([]*domain.Shipment, error) {
 	// Get unrouted shipments
 	shipments, err := s.shipmentRepository.RetrieveShipmentsFromLocations(ctx, locationID, domain.NotRouted)
 	if err != nil {
@@ -139,4 +139,37 @@ func (s ShipmentService) RequestTransit(ctx context.Context, shipmentId, origin,
 	}
 
 	return nil
+}
+
+func (s ShipmentService) IncomingShipments(ctx context.Context, locationId string) ([]*domain.TransferRequest, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
+	shipments, err := s.transferRequestRepository.IncomingShipments(ctx, locationObjId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get incoming shipments from repository")
+	}
+
+	return shipments, nil
+}
+
+func (s ShipmentService) GetShipments(ctx context.Context, ids []string) ([]*domain.Shipment, error) {
+	var objIds []primitive.ObjectID
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
+		}
+
+		objIds = append(objIds, objId)
+	}
+
+	shipments, err := s.shipmentRepository.GetShipments(ctx, objIds)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get shipments from repository")
+	}
+
+	return shipments, nil
 }

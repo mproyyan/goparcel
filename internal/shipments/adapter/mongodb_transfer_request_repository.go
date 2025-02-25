@@ -105,6 +105,26 @@ func (t *TransferRequestRepository) CreateTransitRequest(ctx context.Context, sh
 	return insertedID.Hex(), nil
 }
 
+func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locationId primitive.ObjectID) ([]*domain.TransferRequest, error) {
+	filter := bson.M{
+		"status":               domain.StatusPending,
+		"destination.location": locationId,
+	}
+
+	var shipments []*TransferRequestModel
+	cursor, err := t.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &shipments); err != nil {
+		return nil, cuserr.Decorate(err, "failed to decode query result to shipments")
+	}
+
+	return transferRequestModelsToDomain(shipments), nil
+}
+
 // Helper function
 
 func transferRequestModelToDomain(model TransferRequestModel) domain.TransferRequest {
@@ -124,7 +144,18 @@ func transferRequestModelToDomain(model TransferRequestModel) domain.TransferReq
 		CourierID: db.ObjectIdToString(model.CourierID),
 		CargoID:   db.ObjectIdToString(model.CargoID),
 		Status:    domain.ParseStatus(model.Status),
+		CreatedAt: model.CreatedAt,
 	}
+}
+
+func transferRequestModelsToDomain(models []*TransferRequestModel) []*domain.TransferRequest {
+	var requests []*domain.TransferRequest
+	for _, model := range models {
+		req := transferRequestModelToDomain(*model)
+		requests = append(requests, &req)
+	}
+
+	return requests
 }
 
 func convertRecipientDetail(detail *RecipientDetail) domain.Entity {

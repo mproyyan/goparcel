@@ -105,11 +105,11 @@ func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentID string
 	return nil
 }
 
-func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus domain.RoutingStatus) ([]domain.Shipment, error) {
+func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus domain.RoutingStatus) ([]*domain.Shipment, error) {
 	// Conver location id to object id
 	locationObjID, err := primitive.ObjectIDFromHex(locationsID)
 	if err != nil {
-		return []domain.Shipment{}, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
 	// Build query
@@ -132,12 +132,34 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 	}
 	defer cursor.Close(ctx)
 
-	var shipments []ShipmentModel
+	var shipments []*ShipmentModel
 	if err := cursor.All(ctx, &shipments); err != nil {
 		return nil, cuserr.MongoError(err)
 	}
 
-	return shipmentModelToDomain(shipments), nil
+	return shipmentModelsToDomain(shipments), nil
+}
+
+func (s *ShipmentRepository) GetShipments(ctx context.Context, ids []primitive.ObjectID) ([]*domain.Shipment, error) {
+	filter := bson.M{}
+
+	// If ids not empty then fetch shipments based on the ids
+	if len(ids) > 0 {
+		filter["_id"] = bson.M{"$in": ids}
+	}
+
+	cursor, err := s.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var shipments []*ShipmentModel
+	if err := cursor.All(ctx, &shipments); err != nil {
+		return nil, err
+	}
+
+	return shipmentModelsToDomain(shipments), nil
 }
 
 // generateAWB generates a unique Airway Bill (AWB) number
@@ -151,23 +173,26 @@ func generateAWB(length int) string {
 	return awbNumber
 }
 
-func shipmentModelToDomain(models []ShipmentModel) []domain.Shipment {
-	var shipments []domain.Shipment
+func shipmentModelToDomain(model *ShipmentModel) *domain.Shipment {
+	return &domain.Shipment{
+		ID:              model.ID.Hex(),
+		AirwayBill:      model.AirwayBill,
+		TransportStatus: domain.StringToTransportStatus(model.TransportStatus),
+		RoutingStatus:   domain.StringToRoutingStatus(model.RoutingStatus),
+		Items:           itemModelToDomain(model.Items),
+		Sender:          entityModelToDomain(model.SenderDetail),
+		Recipient:       entityModelToDomain(model.RecipientDetail),
+		Origin:          convertObjIdToHex(model.Origin),
+		Destination:     convertObjIdToHex(model.Destination),
+		ItineraryLogs:   itineraryModelToDomain(model.ItineraryLogs),
+		CreatedAt:       model.CreatedAt,
+	}
+}
 
+func shipmentModelsToDomain(models []*ShipmentModel) []*domain.Shipment {
+	var shipments []*domain.Shipment
 	for _, model := range models {
-		shipments = append(shipments, domain.Shipment{
-			ID:              model.ID.Hex(),
-			AirwayBill:      model.AirwayBill,
-			TransportStatus: domain.StringToTransportStatus(model.TransportStatus),
-			RoutingStatus:   domain.StringToRoutingStatus(model.RoutingStatus),
-			Items:           itemModelToDomain(model.Items),
-			Sender:          entityModelToDomain(model.SenderDetail),
-			Recipient:       entityModelToDomain(model.RecipientDetail),
-			Origin:          convertObjIdToHex(model.Origin),
-			Destination:     convertObjIdToHex(model.Destination),
-			ItineraryLogs:   itineraryModelToDomain(model.ItineraryLogs),
-			CreatedAt:       model.CreatedAt,
-		})
+		shipments = append(shipments, shipmentModelToDomain(model))
 	}
 
 	return shipments

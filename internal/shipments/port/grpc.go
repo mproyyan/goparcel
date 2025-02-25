@@ -77,6 +77,25 @@ func (g GrpcServer) RequestTransit(ctx context.Context, request *genproto.Reques
 	return &emptypb.Empty{}, nil
 }
 
+func (g GrpcServer) IncomingShipments(ctx context.Context, request *genproto.IncomingShipmentRequest) (*genproto.TransferRequestResponse, error) {
+	transferRequests, err := g.service.IncomingShipments(ctx, request.LocationId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get incoming shipments from shipment service")
+	}
+
+	response := transferRequestsToProtoResponse(transferRequests)
+	return &genproto.TransferRequestResponse{TransferRequests: response}, nil
+}
+
+func (g GrpcServer) GetShipments(ctx context.Context, request *genproto.GetShipmentsRequest) (*genproto.ShipmentResponse, error) {
+	shipments, err := g.service.GetShipments(ctx, request.Ids)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get shipments from shipment service")
+	}
+
+	return shipmentsToProtoResponse(shipments), nil
+}
+
 func protoRequestToItems(packages []*genproto.Package) []domain.Item {
 	var items []domain.Item
 	for _, pkg := range packages {
@@ -97,7 +116,7 @@ func protoRequestToItems(packages []*genproto.Package) []domain.Item {
 }
 
 // shipmentsToProtoResponse converts a slice of domain.Shipment to *proto.ShipmentResponse
-func shipmentsToProtoResponse(domainShipments []domain.Shipment) *genproto.ShipmentResponse {
+func shipmentsToProtoResponse(domainShipments []*domain.Shipment) *genproto.ShipmentResponse {
 	var protoShipments []*genproto.Shipment
 
 	for _, s := range domainShipments {
@@ -163,4 +182,37 @@ func itineraryToProtoResponse(logs []domain.ItineraryLog) []*genproto.ItineraryL
 		})
 	}
 	return protoLogs
+}
+
+func transferRequestToProtoResponse(req *domain.TransferRequest) *genproto.TransferRequest {
+	if req == nil {
+		return nil
+	}
+
+	return &genproto.TransferRequest{
+		Id:          req.ID,
+		RequestType: string(req.RequestType),
+		ShipmentId:  req.ShipmentID,
+		Origin: &genproto.TransferRequestOrigin{
+			Location:    req.Origin.Location,
+			RequestedBy: req.Origin.RequestedBy,
+		},
+		Destinaion: &genproto.TransferRequestDestination{
+			Location:        req.Destination.Location,
+			AcceptedBy:      req.Destination.AcceptedBy,
+			RecipientDetail: entityToProtoResponse(req.Destination.RecipientDetail),
+		},
+		CourierId: req.CourierID,
+		CargoId:   req.CargoID,
+		Status:    req.Status.String(),
+		CreatedAt: timestamppb.New(req.CreatedAt),
+	}
+}
+
+func transferRequestsToProtoResponse(reqs []*domain.TransferRequest) []*genproto.TransferRequest {
+	var protoRequests []*genproto.TransferRequest
+	for _, req := range reqs {
+		protoRequests = append(protoRequests, transferRequestToProtoResponse(req))
+	}
+	return protoRequests
 }
