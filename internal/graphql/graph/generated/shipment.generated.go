@@ -809,8 +809,30 @@ func (ec *executionContext) _Mutation_Login(ctx context.Context, field graphql.C
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Login(rctx, fc.Args["email"].(string), fc.Args["password"].(string))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().Login(rctx, fc.Args["email"].(string), fc.Args["password"].(string))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.SkipAuth == nil {
+				var zeroVal string
+				return zeroVal, errors.New("directive skipAuth is not implemented")
+			}
+			return ec.directives.SkipAuth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -864,8 +886,30 @@ func (ec *executionContext) _Mutation_RegisterAsOperator(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegisterAsOperator(rctx, fc.Args["input"].(model.RegisterAsOperatorInput))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RegisterAsOperator(rctx, fc.Args["input"].(model.RegisterAsOperatorInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.SkipAuth == nil {
+				var zeroVal string
+				return zeroVal, errors.New("directive skipAuth is not implemented")
+			}
+			return ec.directives.SkipAuth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -919,8 +963,30 @@ func (ec *executionContext) _Mutation_RegisterAsCourier(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegisterAsCourier(rctx, fc.Args["input"].(model.RegisterAsCourierInput))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RegisterAsCourier(rctx, fc.Args["input"].(model.RegisterAsCourierInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.SkipAuth == nil {
+				var zeroVal string
+				return zeroVal, errors.New("directive skipAuth is not implemented")
+			}
+			return ec.directives.SkipAuth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -974,8 +1040,30 @@ func (ec *executionContext) _Mutation_RegisterAsCarrier(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegisterAsCarrier(rctx, fc.Args["input"].(model.RegisterAsCarrierInput))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RegisterAsCarrier(rctx, fc.Args["input"].(model.RegisterAsCarrierInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.SkipAuth == nil {
+				var zeroVal string
+				return zeroVal, errors.New("directive skipAuth is not implemented")
+			}
+			return ec.directives.SkipAuth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

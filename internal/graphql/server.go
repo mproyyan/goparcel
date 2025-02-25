@@ -12,6 +12,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/mproyyan/goparcel/internal/common/client"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
+	"github.com/mproyyan/goparcel/internal/graphql/graph/middlewares"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/resolvers"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -59,7 +60,15 @@ func main() {
 		userServiceClient,
 	)
 
-	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
+	srv := handler.New(generated.NewExecutableSchema(generated.Config{
+		Resolvers: resolver,
+		Directives: generated.DirectiveRoot{
+			SkipAuth: middlewares.SkipAuthDirectiveHandler,
+		},
+	}))
+
+	// Add middleware
+	srv.AroundOperations(middlewares.AuthMiddleware())
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})

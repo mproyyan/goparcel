@@ -44,6 +44,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	SkipAuth func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
 }
 
 type ComplexityRoot struct {
@@ -964,7 +965,9 @@ type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
 }
 `, BuiltIn: false},
-	{Name: "../schemas/user.graphqls", Input: `type User {
+	{Name: "../schemas/user.graphqls", Input: `directive @skipAuth on FIELD_DEFINITION
+
+type User {
     id: ID!
     model_id: ID!
     type: String!
@@ -1013,10 +1016,10 @@ extend type Query {
 }
 
 extend type Mutation {
-    Login(email: String!, password: String!): String!
-    RegisterAsOperator(input: RegisterAsOperatorInput!): String!
-    RegisterAsCourier(input: RegisterAsCourierInput!): String!
-    RegisterAsCarrier(input: RegisterAsCarrierInput!): String! 
+    Login(email: String!, password: String!): String! @skipAuth
+    RegisterAsOperator(input: RegisterAsOperatorInput!): String! @skipAuth
+    RegisterAsCourier(input: RegisterAsCourierInput!): String! @skipAuth
+    RegisterAsCarrier(input: RegisterAsCarrierInput!): String! @skipAuth
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
