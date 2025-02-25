@@ -24,6 +24,7 @@ type ItineraryLogResolver interface {
 }
 type MutationResolver interface {
 	CreateShipment(ctx context.Context, input *model.CreateShipmentInput) (string, error)
+	RequestTransit(ctx context.Context, input *model.RequestTransitInput) (string, error)
 	CreateLocation(ctx context.Context, input *model.CreateLocationInput) (string, error)
 	Login(ctx context.Context, email string, password string) (string, error)
 	RegisterAsOperator(ctx context.Context, input model.RegisterAsOperatorInput) (string, error)
@@ -200,6 +201,29 @@ func (ec *executionContext) field_Mutation_RegisterAsOperator_argsInput(
 	}
 
 	var zeroVal model.RegisterAsOperatorInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_RequestTransit_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_RequestTransit_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_RequestTransit_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*model.RequestTransitInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalORequestTransitInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐRequestTransitInput(ctx, tmp)
+	}
+
+	var zeroVal *model.RequestTransitInput
 	return zeroVal, nil
 }
 
@@ -741,6 +765,61 @@ func (ec *executionContext) fieldContext_Mutation_CreateShipment(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_RequestTransit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_RequestTransit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RequestTransit(rctx, fc.Args["input"].(*model.RequestTransitInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_RequestTransit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_RequestTransit_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_CreateLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_CreateLocation(ctx, field)
 	if err != nil {
@@ -809,30 +888,8 @@ func (ec *executionContext) _Mutation_Login(ctx context.Context, field graphql.C
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		directive0 := func(rctx context.Context) (any, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().Login(rctx, fc.Args["email"].(string), fc.Args["password"].(string))
-		}
-
-		directive1 := func(ctx context.Context) (any, error) {
-			if ec.directives.SkipAuth == nil {
-				var zeroVal string
-				return zeroVal, errors.New("directive skipAuth is not implemented")
-			}
-			return ec.directives.SkipAuth(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Login(rctx, fc.Args["email"].(string), fc.Args["password"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -886,30 +943,8 @@ func (ec *executionContext) _Mutation_RegisterAsOperator(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		directive0 := func(rctx context.Context) (any, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().RegisterAsOperator(rctx, fc.Args["input"].(model.RegisterAsOperatorInput))
-		}
-
-		directive1 := func(ctx context.Context) (any, error) {
-			if ec.directives.SkipAuth == nil {
-				var zeroVal string
-				return zeroVal, errors.New("directive skipAuth is not implemented")
-			}
-			return ec.directives.SkipAuth(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterAsOperator(rctx, fc.Args["input"].(model.RegisterAsOperatorInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -963,30 +998,8 @@ func (ec *executionContext) _Mutation_RegisterAsCourier(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		directive0 := func(rctx context.Context) (any, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().RegisterAsCourier(rctx, fc.Args["input"].(model.RegisterAsCourierInput))
-		}
-
-		directive1 := func(ctx context.Context) (any, error) {
-			if ec.directives.SkipAuth == nil {
-				var zeroVal string
-				return zeroVal, errors.New("directive skipAuth is not implemented")
-			}
-			return ec.directives.SkipAuth(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterAsCourier(rctx, fc.Args["input"].(model.RegisterAsCourierInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1040,30 +1053,8 @@ func (ec *executionContext) _Mutation_RegisterAsCarrier(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		directive0 := func(rctx context.Context) (any, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().RegisterAsCarrier(rctx, fc.Args["input"].(model.RegisterAsCarrierInput))
-		}
-
-		directive1 := func(ctx context.Context) (any, error) {
-			if ec.directives.SkipAuth == nil {
-				var zeroVal string
-				return zeroVal, errors.New("directive skipAuth is not implemented")
-			}
-			return ec.directives.SkipAuth(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RegisterAsCarrier(rctx, fc.Args["input"].(model.RegisterAsCarrierInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2626,6 +2617,54 @@ func (ec *executionContext) unmarshalInputItemInput(ctx context.Context, obj any
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRequestTransitInput(ctx context.Context, obj any) (model.RequestTransitInput, error) {
+	var it model.RequestTransitInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"shipment_id", "origin", "destination", "courier_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "shipment_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shipment_id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShipmentID = data
+		case "origin":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Origin = data
+		case "destination":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destination"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Destination = data
+		case "courier_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("courier_id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CourierID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputVolumeInput(ctx context.Context, obj any) (model.VolumeInput, error) {
 	var it model.VolumeInput
 	asMap := map[string]any{}
@@ -2825,6 +2864,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "CreateShipment":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_CreateShipment(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "RequestTransit":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_RequestTransit(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -3449,6 +3495,14 @@ func (ec *executionContext) marshalOItineraryLog2ᚖgithubᚗcomᚋmproyyanᚋgo
 		return graphql.Null
 	}
 	return ec._ItineraryLog(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalORequestTransitInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐRequestTransitInput(ctx context.Context, v any) (*model.RequestTransitInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputRequestTransitInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOShipment2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐShipment(ctx context.Context, sel ast.SelectionSet, v *model.Shipment) graphql.Marshaler {

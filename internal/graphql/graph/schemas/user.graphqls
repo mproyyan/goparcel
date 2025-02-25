@@ -49,8 +49,8 @@ extend type Query {
 }
 
 extend type Mutation {
-    Login(email: String!, password: String!): String! @skipAuth
-    RegisterAsOperator(input: RegisterAsOperatorInput!): String! @skipAuth
-    RegisterAsCourier(input: RegisterAsCourierInput!): String! @skipAuth
-    RegisterAsCarrier(input: RegisterAsCarrierInput!): String! @skipAuth
+    Login(email: String!, password: String!): String!
+    RegisterAsOperator(input: RegisterAsOperatorInput!): String!
+    RegisterAsCourier(input: RegisterAsCourierInput!): String!
+    RegisterAsCarrier(input: RegisterAsCarrierInput!): String!
 }

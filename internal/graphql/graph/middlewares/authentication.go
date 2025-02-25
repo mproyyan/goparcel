@@ -23,6 +23,11 @@ func AuthMiddleware() graphql.OperationMiddleware {
 	return func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
 		opCtx := graphql.GetOperationContext(ctx)
 
+		// Exclude instropection query
+		if opCtx.OperationName == "IntrospectionQuery" {
+			return next(ctx)
+		}
+
 		// Operation list that doesn't need authentication
 		skippedOperations := map[string]bool{
 			"Login":              true,

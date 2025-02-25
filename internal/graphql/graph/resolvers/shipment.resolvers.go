@@ -7,8 +7,10 @@ package resolvers
 import (
 	"context"
 
+	"github.com/mproyyan/goparcel/internal/common/auth"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
+	"github.com/mproyyan/goparcel/internal/graphql/graph/middlewares"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
 
@@ -41,6 +43,28 @@ func (r *mutationResolver) CreateShipment(ctx context.Context, input *model.Crea
 	}
 
 	return "successfully made the shipment", nil
+}
+
+// RequestTransit is the resolver for the RequestTransit field.
+func (r *mutationResolver) RequestTransit(ctx context.Context, input *model.RequestTransitInput) (string, error) {
+	authUser, err := middlewares.GetAuthUser(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	ctx = auth.SendAuthUser(ctx, authUser.UserID, authUser.ModelID)
+	_, err = r.shipmentService.RequestTransit(ctx, &genproto.RequestTransitRequest{
+		ShipmentId:  input.ShipmentID,
+		Origin:      input.Origin,
+		Destination: input.Destination,
+		CourierId:   input.CourierID,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "Transit request created successfully", nil
 }
 
 // GetUnroutedShipments is the resolver for the GetUnroutedShipments field.

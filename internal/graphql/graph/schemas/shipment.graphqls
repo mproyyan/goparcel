@@ -66,10 +66,18 @@ input VolumeInput {
     height: Int
 }
 
+input RequestTransitInput {
+    shipment_id: ID!
+    origin: ID!
+    destination: ID!
+    courier_id: ID!
+}
+
 type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
 }
 
 type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
+    RequestTransit(input: RequestTransitInput): String!
 }

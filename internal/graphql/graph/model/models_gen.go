@@ -128,6 +128,13 @@ type RegisterAsOperatorInput struct {
 	Type       OperatorType `json:"type"`
 }
 
+type RequestTransitInput struct {
+	ShipmentID  string `json:"shipment_id"`
+	Origin      string `json:"origin"`
+	Destination string `json:"destination"`
+	CourierID   string `json:"courier_id"`
+}
+
 type Shipment struct {
 	ID              string          `json:"id"`
 	AirwayBill      string          `json:"airway_bill"`

@@ -62,9 +62,6 @@ func main() {
 
 	srv := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
-		Directives: generated.DirectiveRoot{
-			SkipAuth: middlewares.SkipAuthDirectiveHandler,
-		},
 	}))
 
 	// Add middleware
