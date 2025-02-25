@@ -146,6 +146,7 @@ type Shipment struct {
 	Origin          *Location       `json:"origin,omitempty"`
 	Destination     *Location       `json:"destination,omitempty"`
 	ItineraryLogs   []*ItineraryLog `json:"itinerary_logs"`
+	CreatedAt       time.Time       `json:"created_at"`
 }
 
 type User struct {

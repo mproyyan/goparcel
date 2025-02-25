@@ -1482,6 +1482,8 @@ func (ec *executionContext) fieldContext_Query_GetUnroutedShipments(ctx context.
 				return ec.fieldContext_Shipment_destination(ctx, field)
 			case "itinerary_logs":
 				return ec.fieldContext_Shipment_itinerary_logs(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Shipment_created_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Shipment", field.Name)
 		},
@@ -2469,6 +2471,50 @@ func (ec *executionContext) fieldContext_Shipment_itinerary_logs(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Shipment_created_at(ctx context.Context, field graphql.CollectedField, obj *model.Shipment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Shipment_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Shipment_created_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Shipment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
@@ -3270,6 +3316,11 @@ func (ec *executionContext) _Shipment(ctx context.Context, sel ast.SelectionSet,
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "itinerary_logs":
 			out.Values[i] = ec._Shipment_itinerary_logs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "created_at":
+			out.Values[i] = ec._Shipment_created_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

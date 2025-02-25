@@ -18,6 +18,7 @@ type ShipmentModel struct {
 	Origin          *primitive.ObjectID `bson:"origin,omitempty"`
 	Destination     *primitive.ObjectID `bson:"destination,omitempty"`
 	ItineraryLogs   []ItineraryLog      `bson:"itinerary_logs"`
+	CreatedAt       time.Time           `bson:"created_at"`
 }
 
 type Item struct {

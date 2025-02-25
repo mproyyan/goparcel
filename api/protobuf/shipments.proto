@@ -66,6 +66,7 @@ message Shipment {
     string origin = 8;
     string destination = 9;
     repeated ItineraryLog itinerary_logs = 10;
+    google.protobuf.Timestamp created_at = 11;
 }
 
 message Item {

@@ -62,6 +62,7 @@ func shipmentToGraphResponse(shipment *genproto.Shipment) *model.Shipment {
 		Origin:          &model.Location{ID: shipment.Origin},
 		Destination:     &model.Location{ID: shipment.Destination},
 		ItineraryLogs:   itineraryLogToGraphResponse(shipment.ItineraryLogs),
+		CreatedAt:       shipment.CreatedAt.AsTime(),
 	}
 }
 

@@ -35,6 +35,7 @@ type Shipment {
     origin: Location
     destination: Location
     itinerary_logs: [ItineraryLog]!
+    created_at: Time!
 }
 
 # Input

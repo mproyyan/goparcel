@@ -112,6 +112,7 @@ func shipmentsToProtoResponse(domainShipments []domain.Shipment) *genproto.Shipm
 			Origin:          s.Origin,
 			Destination:     s.Destination,
 			ItineraryLogs:   itineraryToProtoResponse(s.ItineraryLogs),
+			CreatedAt:       timestamppb.New(s.CreatedAt),
 		})
 	}
 

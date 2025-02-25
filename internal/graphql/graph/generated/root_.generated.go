@@ -129,6 +129,7 @@ type ComplexityRoot struct {
 
 	Shipment struct {
 		AirwayBill      func(childComplexity int) int
+		CreatedAt       func(childComplexity int) int
 		Destination     func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Items           func(childComplexity int) int
@@ -609,6 +610,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Shipment.AirwayBill(childComplexity), true
 
+	case "Shipment.created_at":
+		if e.complexity.Shipment.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Shipment.CreatedAt(childComplexity), true
+
 	case "Shipment.destination":
 		if e.complexity.Shipment.Destination == nil {
 			break
@@ -940,6 +948,7 @@ type Shipment {
     origin: Location
     destination: Location
     itinerary_logs: [ItineraryLog]!
+    created_at: Time!
 }
 
 # Input

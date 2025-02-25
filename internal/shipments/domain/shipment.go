@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type Item struct {
 	Name   string
 	Amount int
@@ -33,6 +35,7 @@ type Shipment struct {
 	Origin          string
 	Destination     string
 	ItineraryLogs   []ItineraryLog
+	CreatedAt       time.Time
 }
 
 type TransportStatus int

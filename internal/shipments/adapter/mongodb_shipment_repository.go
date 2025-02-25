@@ -59,6 +59,7 @@ func (s *ShipmentRepository) CreateShipment(ctx context.Context, origin string, 
 		},
 		Origin:        &locationID,
 		ItineraryLogs: []ItineraryLog{},
+		CreatedAt:     time.Now(),
 	}
 
 	result, err := s.collection.InsertOne(ctx, shipment)
@@ -165,6 +166,7 @@ func shipmentModelToDomain(models []ShipmentModel) []domain.Shipment {
 			Origin:          convertObjIdToHex(model.Origin),
 			Destination:     convertObjIdToHex(model.Destination),
 			ItineraryLogs:   itineraryModelToDomain(model.ItineraryLogs),
+			CreatedAt:       model.CreatedAt,
 		})
 	}
 
