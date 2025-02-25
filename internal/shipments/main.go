@@ -47,10 +47,12 @@ func main() {
 	database := databaseClient.Database(os.Getenv("MONGO_DATABASE"))
 	transactionManager := db.NewMongoTransactionManager(databaseClient)
 	shipmentRepository := adapter.NewShipementRepository(database)
+	transferRequestRepository := adapter.NewTransferRequestRepository(database)
 	locationService := adapter.NewLocationService(grpcLocationServiceClient)
 	shipmentService := app.NewShipmentService(
 		transactionManager,
 		shipmentRepository,
+		transferRequestRepository,
 		locationService,
 	)
 

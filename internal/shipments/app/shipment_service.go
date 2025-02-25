@@ -8,23 +8,29 @@ import (
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type ShipmentService struct {
-	transaction        db.TransactionManager
-	shipmentRepository domain.ShipmentRepository
-	locationService    LocationService
+	transaction               db.TransactionManager
+	shipmentRepository        domain.ShipmentRepository
+	transferRequestRepository domain.TransferRequestRepository
+	locationService           LocationService
 }
 
 func NewShipmentService(
 	transaction db.TransactionManager,
 	shipmentRepository domain.ShipmentRepository,
+	transferRequestRepository domain.TransferRequestRepository,
 	locationService LocationService,
 ) ShipmentService {
 	return ShipmentService{
-		transaction:        transaction,
-		shipmentRepository: shipmentRepository,
-		locationService:    locationService,
+		transaction:               transaction,
+		shipmentRepository:        shipmentRepository,
+		locationService:           locationService,
+		transferRequestRepository: transferRequestRepository,
 	}
 }
 
@@ -90,4 +96,47 @@ func (s ShipmentService) UnroutedShipments(ctx context.Context, locationID strin
 	}
 
 	return shipments, nil
+}
+
+func (s ShipmentService) RequestTransit(ctx context.Context, shipmentId, origin, destination, courierId, requestedBy string) error {
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "origin is not valid object id")
+	}
+
+	destinationObjId, err := primitive.ObjectIDFromHex(destination)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "destination is not valid object id")
+	}
+
+	courierObjId, err := primitive.ObjectIDFromHex(courierId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "courier is not valid object id")
+	}
+
+	requestedByObjId, err := primitive.ObjectIDFromHex(requestedBy)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	_, found, err := s.transferRequestRepository.LatestPendingTransferRequest(ctx, shipmentObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to get latest pending transfer request")
+	}
+
+	if found {
+		return status.Error(codes.InvalidArgument, "failed to create transit request because this shipment still have pending transfer request")
+	}
+
+	_, err = s.transferRequestRepository.CreateTransitRequest(ctx, shipmentObjId, originObjId, destinationObjId, courierObjId, requestedByObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to create transit request")
+	}
+
+	return nil
 }

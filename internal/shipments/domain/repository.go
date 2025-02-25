@@ -2,10 +2,19 @@
 
 package domain
 
-import "context"
+import (
+	"context"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type ShipmentRepository interface {
 	CreateShipment(ctx context.Context, origin string, sender, recipient Entity, items []Item) (string, error)
 	LogItinerary(ctx context.Context, shipmentID, locationID string, activityType ActivityType) error
 	RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus RoutingStatus) ([]Shipment, error)
+}
+
+type TransferRequestRepository interface {
+	LatestPendingTransferRequest(ctx context.Context, shipmentId primitive.ObjectID) (*TransferRequest, bool, error)
+	CreateTransitRequest(ctx context.Context, shipmentId, origin, destination, courierId, requestedBy primitive.ObjectID) (string, error)
 }
