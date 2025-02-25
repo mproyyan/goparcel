@@ -24,7 +24,7 @@ type TransferRequestModel struct {
 	CourierID   *primitive.ObjectID `bson:"courier_id,omitempty"`
 	CargoID     *primitive.ObjectID `bson:"cargo_id,omitempty"`
 	Status      string              `bson:"status"`
-	CreatedAt   time.Time           `bson:"created_ats"`
+	CreatedAt   time.Time           `bson:"created_at"`
 }
 
 type Origin struct {
