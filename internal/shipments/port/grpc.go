@@ -3,6 +3,7 @@ package port
 import (
 	"context"
 
+	"github.com/mproyyan/goparcel/internal/common/auth"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/shipments/app"
@@ -60,6 +61,20 @@ func (g GrpcServer) GetUnroutedShipment(ctx context.Context, request *genproto.G
 	}
 
 	return shipmentsToProtoResponse(shipments), nil
+}
+
+func (g GrpcServer) RequestTransit(ctx context.Context, request *genproto.RequestTransitRequest) (*emptypb.Empty, error) {
+	authUser, err := auth.RetrieveAuthUser(ctx)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to retrieve user")
+	}
+
+	err = g.service.RequestTransit(ctx, request.ShipmentId, request.Origin, request.Destination, request.CourierId, authUser.UserID)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to request transit")
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 func protoRequestToItems(packages []*genproto.Package) []domain.Item {

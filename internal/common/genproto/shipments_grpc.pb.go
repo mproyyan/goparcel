@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ShipmentService_CreateShipment_FullMethodName      = "/protobuf.ShipmentService/CreateShipment"
 	ShipmentService_GetUnroutedShipment_FullMethodName = "/protobuf.ShipmentService/GetUnroutedShipment"
+	ShipmentService_RequestTransit_FullMethodName      = "/protobuf.ShipmentService/RequestTransit"
 )
 
 // ShipmentServiceClient is the client API for ShipmentService service.
@@ -30,6 +31,7 @@ const (
 type ShipmentServiceClient interface {
 	CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetUnroutedShipment(ctx context.Context, in *GetUnroutedShipmentRequest, opts ...grpc.CallOption) (*ShipmentResponse, error)
+	RequestTransit(ctx context.Context, in *RequestTransitRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type shipmentServiceClient struct {
@@ -60,12 +62,23 @@ func (c *shipmentServiceClient) GetUnroutedShipment(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *shipmentServiceClient) RequestTransit(ctx context.Context, in *RequestTransitRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ShipmentService_RequestTransit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShipmentServiceServer is the server API for ShipmentService service.
 // All implementations must embed UnimplementedShipmentServiceServer
 // for forward compatibility.
 type ShipmentServiceServer interface {
 	CreateShipment(context.Context, *CreateShipmentRequest) (*emptypb.Empty, error)
 	GetUnroutedShipment(context.Context, *GetUnroutedShipmentRequest) (*ShipmentResponse, error)
+	RequestTransit(context.Context, *RequestTransitRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedShipmentServiceServer()
 }
 
@@ -81,6 +94,9 @@ func (UnimplementedShipmentServiceServer) CreateShipment(context.Context, *Creat
 }
 func (UnimplementedShipmentServiceServer) GetUnroutedShipment(context.Context, *GetUnroutedShipmentRequest) (*ShipmentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUnroutedShipment not implemented")
+}
+func (UnimplementedShipmentServiceServer) RequestTransit(context.Context, *RequestTransitRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestTransit not implemented")
 }
 func (UnimplementedShipmentServiceServer) mustEmbedUnimplementedShipmentServiceServer() {}
 func (UnimplementedShipmentServiceServer) testEmbeddedByValue()                         {}
@@ -139,6 +155,24 @@ func _ShipmentService_GetUnroutedShipment_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShipmentService_RequestTransit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestTransitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShipmentServiceServer).RequestTransit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShipmentService_RequestTransit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShipmentServiceServer).RequestTransit(ctx, req.(*RequestTransitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShipmentService_ServiceDesc is the grpc.ServiceDesc for ShipmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,6 +187,10 @@ var ShipmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUnroutedShipment",
 			Handler:    _ShipmentService_GetUnroutedShipment_Handler,
+		},
+		{
+			MethodName: "RequestTransit",
+			Handler:    _ShipmentService_RequestTransit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
