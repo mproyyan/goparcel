@@ -62,7 +62,7 @@ func NewTransferRequestRepository(db *mongo.Database) *TransferRequestRepository
 func (t *TransferRequestRepository) LatestPendingTransferRequest(ctx context.Context, shipmentId primitive.ObjectID) (*domain.TransferRequest, bool, error) {
 	filter := bson.M{
 		"shipment_id": shipmentId,
-		"status":      domain.StatusPending,
+		"status":      domain.StatusPending.String(),
 	}
 
 	var transferRequest TransferRequestModel
@@ -107,7 +107,7 @@ func (t *TransferRequestRepository) CreateTransitRequest(ctx context.Context, sh
 
 func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locationId primitive.ObjectID) ([]*domain.TransferRequest, error) {
 	filter := bson.M{
-		"status":               domain.StatusPending,
+		"status":               domain.StatusPending.String(),
 		"destination.location": locationId,
 	}
 
