@@ -191,7 +191,7 @@ func transferRequestToProtoResponse(req *domain.TransferRequest) *genproto.Trans
 
 	return &genproto.TransferRequest{
 		Id:          req.ID,
-		RequestType: string(req.RequestType),
+		RequestType: req.RequestType.String(),
 		ShipmentId:  req.ShipmentID,
 		Origin: &genproto.TransferRequestOrigin{
 			Location:    req.Origin.Location,
