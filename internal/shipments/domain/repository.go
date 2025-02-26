@@ -9,6 +9,7 @@ import (
 )
 
 type ShipmentRepository interface {
+	GetShipment(ctx context.Context, id primitive.ObjectID) (*Shipment, error)
 	GetShipments(ctx context.Context, ids []primitive.ObjectID) ([]*Shipment, error)
 	CreateShipment(ctx context.Context, origin string, sender, recipient Entity, items []Item) (string, error)
 	LogItinerary(ctx context.Context, shipmentID, locationID string, activityType ActivityType) error

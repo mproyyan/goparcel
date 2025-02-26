@@ -162,6 +162,16 @@ func (s *ShipmentRepository) GetShipments(ctx context.Context, ids []primitive.O
 	return shipmentModelsToDomain(shipments), nil
 }
 
+func (s *ShipmentRepository) GetShipment(ctx context.Context, id primitive.ObjectID) (*domain.Shipment, error) {
+	var shipment ShipmentModel
+	err := s.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&shipment)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	return shipmentModelToDomain(&shipment), nil
+}
+
 // generateAWB generates a unique Airway Bill (AWB) number
 func generateAWB(length int) string {
 	src := rand.NewSource(time.Now().UnixNano())
