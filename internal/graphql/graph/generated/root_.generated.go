@@ -114,13 +114,14 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateLocation     func(childComplexity int, input *model.CreateLocationInput) int
-		CreateShipment     func(childComplexity int, input *model.CreateShipmentInput) int
-		Login              func(childComplexity int, email string, password string) int
-		RegisterAsCarrier  func(childComplexity int, input model.RegisterAsCarrierInput) int
-		RegisterAsCourier  func(childComplexity int, input model.RegisterAsCourierInput) int
-		RegisterAsOperator func(childComplexity int, input model.RegisterAsOperatorInput) int
-		RequestTransit     func(childComplexity int, input *model.RequestTransitInput) int
+		CreateLocation       func(childComplexity int, input *model.CreateLocationInput) int
+		CreateShipment       func(childComplexity int, input *model.CreateShipmentInput) int
+		Login                func(childComplexity int, email string, password string) int
+		RegisterAsCarrier    func(childComplexity int, input model.RegisterAsCarrierInput) int
+		RegisterAsCourier    func(childComplexity int, input model.RegisterAsCourierInput) int
+		RegisterAsOperator   func(childComplexity int, input model.RegisterAsOperatorInput) int
+		RequestTransit       func(childComplexity int, input *model.RequestTransitInput) int
+		ScanArrivingShipment func(childComplexity int, locationID string, shipmentID string) int
 	}
 
 	Origin struct {
@@ -565,6 +566,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RequestTransit(childComplexity, args["input"].(*model.RequestTransitInput)), true
+
+	case "Mutation.ScanArrivingShipment":
+		if e.complexity.Mutation.ScanArrivingShipment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ScanArrivingShipment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ScanArrivingShipment(childComplexity, args["location_id"].(string), args["shipment_id"].(string)), true
 
 	case "Origin.location":
 		if e.complexity.Origin.Location == nil {
@@ -1248,6 +1261,7 @@ type Query {
 type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
     RequestTransit(input: RequestTransitInput): String!
+    ScanArrivingShipment(location_id: ID! shipment_id: ID!): String!
 }
 `, BuiltIn: false},
 	{Name: "../schemas/user.graphqls", Input: `directive @skipAuth on FIELD_DEFINITION

@@ -29,6 +29,7 @@ type ItineraryLogResolver interface {
 type MutationResolver interface {
 	CreateShipment(ctx context.Context, input *model.CreateShipmentInput) (string, error)
 	RequestTransit(ctx context.Context, input *model.RequestTransitInput) (string, error)
+	ScanArrivingShipment(ctx context.Context, locationID string, shipmentID string) (string, error)
 	CreateLocation(ctx context.Context, input *model.CreateLocationInput) (string, error)
 	Login(ctx context.Context, email string, password string) (string, error)
 	RegisterAsOperator(ctx context.Context, input model.RegisterAsOperatorInput) (string, error)
@@ -238,6 +239,47 @@ func (ec *executionContext) field_Mutation_RequestTransit_argsInput(
 	}
 
 	var zeroVal *model.RequestTransitInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_ScanArrivingShipment_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_ScanArrivingShipment_argsLocationID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["location_id"] = arg0
+	arg1, err := ec.field_Mutation_ScanArrivingShipment_argsShipmentID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["shipment_id"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_ScanArrivingShipment_argsLocationID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("location_id"))
+	if tmp, ok := rawArgs["location_id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_ScanArrivingShipment_argsShipmentID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("shipment_id"))
+	if tmp, ok := rawArgs["shipment_id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
 	return zeroVal, nil
 }
 
@@ -1387,6 +1429,61 @@ func (ec *executionContext) fieldContext_Mutation_RequestTransit(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_RequestTransit_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_ScanArrivingShipment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ScanArrivingShipment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ScanArrivingShipment(rctx, fc.Args["location_id"].(string), fc.Args["shipment_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ScanArrivingShipment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ScanArrivingShipment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4299,6 +4396,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "RequestTransit":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_RequestTransit(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ScanArrivingShipment":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ScanArrivingShipment(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

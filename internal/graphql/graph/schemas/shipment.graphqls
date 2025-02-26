@@ -120,4 +120,5 @@ type Query {
 type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
     RequestTransit(input: RequestTransitInput): String!
+    ScanArrivingShipment(location_id: ID! shipment_id: ID!): String!
 }

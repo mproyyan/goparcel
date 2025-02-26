@@ -89,6 +89,26 @@ func (r *mutationResolver) RequestTransit(ctx context.Context, input *model.Requ
 	return "Transit request created successfully", nil
 }
 
+// ScanArrivingShipment is the resolver for the ScanArrivingShipment field.
+func (r *mutationResolver) ScanArrivingShipment(ctx context.Context, locationID string, shipmentID string) (string, error) {
+	authUser, err := middlewares.GetAuthUser(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	ctx = auth.SendAuthUser(ctx, authUser.UserID, authUser.ModelID)
+	_, err = r.shipmentService.ScanArrivingShipment(ctx, &genproto.ScanArrivingShipmentRequest{
+		ShipmentId: shipmentID,
+		LocationId: locationID,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "The shipment has been scanned successfully", nil
+}
+
 // Location is the resolver for the location field.
 func (r *originResolver) Location(ctx context.Context, obj *model.Origin) (*model.Location, error) {
 	if obj.Location != nil && obj.Location.ID == "" {
