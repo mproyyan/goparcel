@@ -20,12 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LocationService_GetLocation_FullMethodName                       = "/protobuf.LocationService/GetLocation"
-	LocationService_CreateLocation_FullMethodName                    = "/protobuf.LocationService/CreateLocation"
-	LocationService_GetRegion_FullMethodName                         = "/protobuf.LocationService/GetRegion"
-	LocationService_GetTransitPlaces_FullMethodName                  = "/protobuf.LocationService/GetTransitPlaces"
-	LocationService_GetLocations_FullMethodName                      = "/protobuf.LocationService/GetLocations"
-	LocationService_GetRecommendedShippingDestination_FullMethodName = "/protobuf.LocationService/GetRecommendedShippingDestination"
+	LocationService_GetLocation_FullMethodName      = "/protobuf.LocationService/GetLocation"
+	LocationService_CreateLocation_FullMethodName   = "/protobuf.LocationService/CreateLocation"
+	LocationService_GetRegion_FullMethodName        = "/protobuf.LocationService/GetRegion"
+	LocationService_GetTransitPlaces_FullMethodName = "/protobuf.LocationService/GetTransitPlaces"
+	LocationService_GetLocations_FullMethodName     = "/protobuf.LocationService/GetLocations"
+	LocationService_SearchLocations_FullMethodName  = "/protobuf.LocationService/SearchLocations"
 )
 
 // LocationServiceClient is the client API for LocationService service.
@@ -37,7 +37,7 @@ type LocationServiceClient interface {
 	GetRegion(ctx context.Context, in *GetRegionRequest, opts ...grpc.CallOption) (*Region, error)
 	GetTransitPlaces(ctx context.Context, in *GetTransitPlacesRequest, opts ...grpc.CallOption) (*LocationResponse, error)
 	GetLocations(ctx context.Context, in *GetLocationsRequest, opts ...grpc.CallOption) (*LocationResponse, error)
-	GetRecommendedShippingDestination(ctx context.Context, in *ShippingDestinationRequest, opts ...grpc.CallOption) (*LocationResponse, error)
+	SearchLocations(ctx context.Context, in *SearchLocationRequest, opts ...grpc.CallOption) (*LocationResponse, error)
 }
 
 type locationServiceClient struct {
@@ -98,10 +98,10 @@ func (c *locationServiceClient) GetLocations(ctx context.Context, in *GetLocatio
 	return out, nil
 }
 
-func (c *locationServiceClient) GetRecommendedShippingDestination(ctx context.Context, in *ShippingDestinationRequest, opts ...grpc.CallOption) (*LocationResponse, error) {
+func (c *locationServiceClient) SearchLocations(ctx context.Context, in *SearchLocationRequest, opts ...grpc.CallOption) (*LocationResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LocationResponse)
-	err := c.cc.Invoke(ctx, LocationService_GetRecommendedShippingDestination_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, LocationService_SearchLocations_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ type LocationServiceServer interface {
 	GetRegion(context.Context, *GetRegionRequest) (*Region, error)
 	GetTransitPlaces(context.Context, *GetTransitPlacesRequest) (*LocationResponse, error)
 	GetLocations(context.Context, *GetLocationsRequest) (*LocationResponse, error)
-	GetRecommendedShippingDestination(context.Context, *ShippingDestinationRequest) (*LocationResponse, error)
+	SearchLocations(context.Context, *SearchLocationRequest) (*LocationResponse, error)
 	mustEmbedUnimplementedLocationServiceServer()
 }
 
@@ -143,8 +143,8 @@ func (UnimplementedLocationServiceServer) GetTransitPlaces(context.Context, *Get
 func (UnimplementedLocationServiceServer) GetLocations(context.Context, *GetLocationsRequest) (*LocationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLocations not implemented")
 }
-func (UnimplementedLocationServiceServer) GetRecommendedShippingDestination(context.Context, *ShippingDestinationRequest) (*LocationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendedShippingDestination not implemented")
+func (UnimplementedLocationServiceServer) SearchLocations(context.Context, *SearchLocationRequest) (*LocationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchLocations not implemented")
 }
 func (UnimplementedLocationServiceServer) mustEmbedUnimplementedLocationServiceServer() {}
 func (UnimplementedLocationServiceServer) testEmbeddedByValue()                         {}
@@ -257,20 +257,20 @@ func _LocationService_GetLocations_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LocationService_GetRecommendedShippingDestination_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ShippingDestinationRequest)
+func _LocationService_SearchLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchLocationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LocationServiceServer).GetRecommendedShippingDestination(ctx, in)
+		return srv.(LocationServiceServer).SearchLocations(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LocationService_GetRecommendedShippingDestination_FullMethodName,
+		FullMethod: LocationService_SearchLocations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LocationServiceServer).GetRecommendedShippingDestination(ctx, req.(*ShippingDestinationRequest))
+		return srv.(LocationServiceServer).SearchLocations(ctx, req.(*SearchLocationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -303,8 +303,8 @@ var LocationService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LocationService_GetLocations_Handler,
 		},
 		{
-			MethodName: "GetRecommendedShippingDestination",
-			Handler:    _LocationService_GetRecommendedShippingDestination_Handler,
+			MethodName: "SearchLocations",
+			Handler:    _LocationService_SearchLocations_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

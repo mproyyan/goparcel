@@ -121,10 +121,10 @@ func (l LocationService) GetLocations(ctx context.Context, locationIds []string)
 	return locations, nil
 }
 
-func (l LocationService) RecommendedShippingDestination(ctx context.Context, district string) ([]*domain.Location, error) {
-	locations, err := l.locationRepository.FindRecommendedShippingDestinations(ctx, district)
+func (l LocationService) SearchLocations(ctx context.Context, keyword string) ([]*domain.Location, error) {
+	locations, err := l.locationRepository.FindMatchingLocations(ctx, keyword)
 	if err != nil {
-		return nil, cuserr.Decorate(err, "failed to find recommended shipping destination from repository")
+		return nil, cuserr.Decorate(err, "failed to find matching locations from repository")
 	}
 
 	return locations, nil

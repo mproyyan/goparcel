@@ -12,7 +12,7 @@ service LocationService {
     rpc GetRegion(GetRegionRequest) returns (Region) {}
     rpc GetTransitPlaces(GetTransitPlacesRequest) returns (LocationResponse) {}
     rpc GetLocations(GetLocationsRequest) returns (LocationResponse) {}
-    rpc GetRecommendedShippingDestination(ShippingDestinationRequest) returns (LocationResponse) {}
+    rpc SearchLocations(SearchLocationRequest) returns (LocationResponse) {}
 }
 
 message GetLocationRequest {
@@ -72,6 +72,6 @@ message GetLocationsRequest {
     repeated string location_ids = 1;
 }
 
-message ShippingDestinationRequest {
-    string district = 1;
+message SearchLocationRequest {
+    string keyword = 1;
 }

@@ -143,18 +143,28 @@ func (l *LocationRepository) GetLocations(ctx context.Context, locationIds []pri
 	return locationsModelToDomain(locationModel), nil
 }
 
-func (l *LocationRepository) FindRecommendedShippingDestinations(ctx context.Context, district string) ([]*domain.Location, error) {
-	var locations []*LocationModel
-	filter := bson.M{"address.district": primitive.Regex{Pattern: district, Options: "i"}}
+func (l *LocationRepository) FindMatchingLocations(ctx context.Context, keyword string) ([]*domain.Location, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"name": bson.M{"$regex": keyword, "$options": "i"}},
+			{"address.province": bson.M{"$regex": keyword, "$options": "i"}},
+			{"address.city": bson.M{"$regex": keyword, "$options": "i"}},
+			{"address.district": bson.M{"$regex": keyword, "$options": "i"}},
+			{"address.subdistrict": bson.M{"$regex": keyword, "$options": "i"}},
+			{"address.zip_code": bson.M{"$regex": keyword, "$options": "i"}},
+			{"address.street_address": bson.M{"$regex": keyword, "$options": "i"}},
+		},
+	}
+
 	cursor, err := l.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
 	}
 	defer cursor.Close(ctx)
 
-	err = cursor.All(ctx, &locations)
-	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to decode locations query result")
+	var locations []*LocationModel
+	if err := cursor.All(ctx, &locations); err != nil {
+		return nil, err
 	}
 
 	return locationsModelToDomain(locations), nil
