@@ -96,6 +96,15 @@ func (g GrpcServer) GetShipments(ctx context.Context, request *genproto.GetShipm
 	return shipmentsToProtoResponse(shipments), nil
 }
 
+func (g GrpcServer) ScanArrivingShipment(ctx context.Context, request *genproto.ScanArrivingShipmentRequest) (*emptypb.Empty, error) {
+	err := g.service.ScanArrivingShipment(ctx, request.LocationId, request.ShipmentId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func protoRequestToItems(packages []*genproto.Package) []domain.Item {
 	var items []domain.Item
 	for _, pkg := range packages {

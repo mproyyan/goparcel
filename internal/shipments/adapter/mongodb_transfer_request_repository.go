@@ -125,6 +125,18 @@ func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locat
 	return transferRequestModelsToDomain(shipments), nil
 }
 
+func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context, requestId primitive.ObjectID) error {
+	filter := bson.M{"_id": requestId, "status": domain.StatusPending.String()}
+	update := bson.M{"status": domain.StatusCompleted.String()}
+
+	_, err := t.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
 // Helper function
 
 func transferRequestModelToDomain(model TransferRequestModel) domain.TransferRequest {

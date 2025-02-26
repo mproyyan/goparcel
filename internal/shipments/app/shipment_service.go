@@ -173,3 +173,54 @@ func (s ShipmentService) GetShipments(ctx context.Context, ids []string) ([]*dom
 
 	return shipments, nil
 }
+
+func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, shipmentId string) error {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
+	shipmentObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	request, found, err := s.transferRequestRepository.LatestPendingTransferRequest(ctx, shipmentObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to get latest pending transfer request")
+	}
+
+	if !found {
+		return status.Error(codes.InvalidArgument, "shipment doesn't have pending transfer request")
+	}
+
+	// Check location, is location where the shipment get scanned same with destination location
+	if request.Destination.Location != locationObjId.Hex() {
+		return status.Error(codes.InvalidArgument, "the destination of the shipment does not match the current scanned shipment location")
+	}
+
+	// TODO: Check transfer request type, if 'shipping' then called UnloadShipment rpc
+
+	err = s.transaction.Execute(ctx, func(ctx context.Context) error {
+		reqObjId, _ := primitive.ObjectIDFromHex(request.ID)
+		err := s.transferRequestRepository.CompleteTransferRequest(ctx, reqObjId)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to complete pending transfer request")
+		}
+
+		// Currently activity type of itinerary log is always set to transit
+		// TODO: activity type based on request type
+		err = s.shipmentRepository.LogItinerary(ctx, shipmentObjId.Hex(), locationObjId.Hex(), domain.Transit)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to log itinerary")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
