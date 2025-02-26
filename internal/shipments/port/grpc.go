@@ -8,6 +8,8 @@ import (
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/shipments/app"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -97,7 +99,12 @@ func (g GrpcServer) GetShipments(ctx context.Context, request *genproto.GetShipm
 }
 
 func (g GrpcServer) ScanArrivingShipment(ctx context.Context, request *genproto.ScanArrivingShipmentRequest) (*emptypb.Empty, error) {
-	err := g.service.ScanArrivingShipment(ctx, request.LocationId, request.ShipmentId)
+	authUser, err := auth.RetrieveAuthUser(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
+
+	err = g.service.ScanArrivingShipment(ctx, request.LocationId, request.ShipmentId, authUser.UserID)
 	if err != nil {
 		return nil, err
 	}

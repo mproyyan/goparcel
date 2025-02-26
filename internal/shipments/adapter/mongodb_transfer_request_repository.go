@@ -125,9 +125,9 @@ func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locat
 	return transferRequestModelsToDomain(shipments), nil
 }
 
-func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context, requestId primitive.ObjectID) error {
+func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context, requestId, acceptedBy primitive.ObjectID) error {
 	filter := bson.M{"_id": requestId, "status": domain.StatusPending.String()}
-	update := bson.M{"status": domain.StatusCompleted.String()}
+	update := bson.M{"status": domain.StatusCompleted.String(), "destination.accepted_by": acceptedBy}
 
 	_, err := t.collection.UpdateOne(ctx, filter, update)
 	if err != nil {

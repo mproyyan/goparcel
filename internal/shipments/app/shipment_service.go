@@ -174,7 +174,7 @@ func (s ShipmentService) GetShipments(ctx context.Context, ids []string) ([]*dom
 	return shipments, nil
 }
 
-func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, shipmentId string) error {
+func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, shipmentId, userId string) error {
 	locationObjId, err := primitive.ObjectIDFromHex(locationId)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, "location_id is not valid object id")
@@ -183,6 +183,11 @@ func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, s
 	shipmentObjId, err := primitive.ObjectIDFromHex(locationId)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	userObjId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "user_id is not valid object id")
 	}
 
 	request, found, err := s.transferRequestRepository.LatestPendingTransferRequest(ctx, shipmentObjId)
@@ -203,7 +208,7 @@ func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, s
 
 	err = s.transaction.Execute(ctx, func(ctx context.Context) error {
 		reqObjId, _ := primitive.ObjectIDFromHex(request.ID)
-		err := s.transferRequestRepository.CompleteTransferRequest(ctx, reqObjId)
+		err := s.transferRequestRepository.CompleteTransferRequest(ctx, reqObjId, userObjId)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to complete pending transfer request")
 		}

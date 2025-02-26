@@ -19,5 +19,5 @@ type TransferRequestRepository interface {
 	LatestPendingTransferRequest(ctx context.Context, shipmentId primitive.ObjectID) (*TransferRequest, bool, error)
 	CreateTransitRequest(ctx context.Context, shipmentId, origin, destination, courierId, requestedBy primitive.ObjectID) (string, error)
 	IncomingShipments(ctx context.Context, locationId primitive.ObjectID) ([]*TransferRequest, error)
-	CompleteTransferRequest(ctx context.Context, requestId primitive.ObjectID) error
+	CompleteTransferRequest(ctx context.Context, requestId, acceptedBy primitive.ObjectID) error
 }
