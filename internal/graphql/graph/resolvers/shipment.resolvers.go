@@ -154,6 +154,15 @@ func (r *transferRequestResolver) Shipment(ctx context.Context, obj *model.Trans
 	return r.shipmentLoader.Load(ctx, obj.Shipment.ID)
 }
 
+// Courier is the resolver for the courier field.
+func (r *transferRequestResolver) Courier(ctx context.Context, obj *model.TransferRequest) (*model.Courier, error) {
+	if obj.Courier != nil && obj.Courier.ID == "" {
+		return nil, nil
+	}
+
+	return r.courierLoader.Load(ctx, obj.Courier.ID)
+}
+
 // Destination returns generated.DestinationResolver implementation.
 func (r *Resolver) Destination() generated.DestinationResolver { return &destinationResolver{r} }
 

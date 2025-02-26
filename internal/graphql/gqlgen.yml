@@ -163,6 +163,8 @@ models:
     fields:
       shipment: # Need resolver for shipment field
         resolver: true
+      courier: # Need resolver for courier field
+        resolver: true
   
   Origin:
     fields:

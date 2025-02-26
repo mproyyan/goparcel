@@ -54,6 +54,8 @@ type ShipmentResolver interface {
 }
 type TransferRequestResolver interface {
 	Shipment(ctx context.Context, obj *model.TransferRequest) (*model.Shipment, error)
+
+	Courier(ctx context.Context, obj *model.TransferRequest) (*model.Courier, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -3537,7 +3539,7 @@ func (ec *executionContext) _TransferRequest_courier(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Courier, nil
+		return ec.resolvers.TransferRequest().Courier(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3555,8 +3557,8 @@ func (ec *executionContext) fieldContext_TransferRequest_courier(_ context.Conte
 	fc = &graphql.FieldContext{
 		Object:     "TransferRequest",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -4917,7 +4919,38 @@ func (ec *executionContext) _TransferRequest(ctx context.Context, sel ast.Select
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "courier":
-			out.Values[i] = ec._TransferRequest_courier(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TransferRequest_courier(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "cargo_id":
 			out.Values[i] = ec._TransferRequest_cargo_id(ctx, field, obj)
 		case "status":

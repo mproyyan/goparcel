@@ -23,6 +23,7 @@ type Resolver struct {
 	entityLoader   *dataloadgen.Loader[string, *model.UserEntity]
 	shipmentLoader *dataloadgen.Loader[string, *model.Shipment]
 	userLoader     *dataloadgen.Loader[string, *model.User]
+	courierLoader  *dataloadgen.Loader[string, *model.Courier]
 
 	// GRPC Clients
 	locationService genproto.LocationServiceClient
@@ -49,6 +50,7 @@ func NewResolver(
 	resolver.entityLoader = dataloadgen.NewLoader(resolver.loadEntity, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.shipmentLoader = dataloadgen.NewLoader(resolver.loadShipment, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.userLoader = dataloadgen.NewLoader(resolver.loadUser, dataloadgen.WithWait(time.Millisecond*5))
+	resolver.courierLoader = dataloadgen.NewLoader(resolver.loadCourier, dataloadgen.WithWait(time.Millisecond*5))
 
 	return resolver
 }
@@ -243,33 +245,33 @@ func (r *Resolver) loadUser(ctx context.Context, keys []string) ([]*model.User, 
 	return results, errors
 }
 
-// func (r *Resolver) courierLoader(ctx context.Context, keys []string) ([]*model.Courier, []error) {
-// 	if len(keys) <= 0 {
-// 		return nil, nil
-// 	}
+func (r *Resolver) loadCourier(ctx context.Context, keys []string) ([]*model.Courier, []error) {
+	if len(keys) <= 0 {
+		return nil, nil
+	}
 
-// 	log.Println("Fetching couriers from RPC service for keys:", keys)
+	log.Println("Fetching couriers from RPC service for keys:", keys)
 
-// 	resp, err := r.courierService.GetUsers(ctx, &genproto.GetUsersRequest{Id: keys})
-// 	if err != nil {
-// 		log.Println("Error fetching users:", err)
-// 		return nil, []error{err}
-// 	}
+	resp, err := r.userService.GetCouriers(ctx, &genproto.GetCouriersRequest{Ids: keys})
+	if err != nil {
+		log.Println("Error fetching users:", err)
+		return nil, []error{err}
+	}
 
-// 	userMap := make(map[string]*model.User)
-// 	for _, user := range resp.Users {
-// 		userMap[user.Id] = userToGraphResponse(user)
-// 	}
+	courierMap := make(map[string]*model.Courier)
+	for _, courier := range resp.Couriers {
+		courierMap[courier.Id] = courierToGraphResponse(courier)
+	}
 
-// 	results := make([]*model.User, len(keys))
-// 	errors := make([]error, len(keys))
-// 	for i, key := range keys {
-// 		if user, found := userMap[key]; found {
-// 			results[i] = user
-// 		} else {
-// 			errors[i] = fmt.Errorf("user not found for ID: %s", key)
-// 		}
-// 	}
+	results := make([]*model.Courier, len(keys))
+	errors := make([]error, len(keys))
+	for i, key := range keys {
+		if courier, found := courierMap[key]; found {
+			results[i] = courier
+		} else {
+			errors[i] = fmt.Errorf("courier not found for ID: %s", key)
+		}
+	}
 
-// 	return results, errors
-// }
+	return results, errors
+}
