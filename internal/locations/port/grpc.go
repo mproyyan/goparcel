@@ -100,7 +100,16 @@ func (g GrpcServer) GetLocations(ctx context.Context, request *genproto.GetLocat
 	return &genproto.LocationResponse{Locations: locationResponse}, nil
 }
 
-func locationToProtoResponse(locations []domain.Location) []*genproto.Location {
+func (g GrpcServer) GetRecommendedShippingDestination(ctx context.Context, request *genproto.ShippingDestinationRequest) (*genproto.LocationResponse, error) {
+	locations, err := g.service.RecommendedShippingDestination(ctx, request.District)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get recommended shipping destinations from location service")
+	}
+
+	return &genproto.LocationResponse{Locations: locationToProtoResponse(locations)}, nil
+}
+
+func locationToProtoResponse(locations []*domain.Location) []*genproto.Location {
 	var protoLocations []*genproto.Location
 
 	for _, loc := range locations {

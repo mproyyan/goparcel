@@ -38,8 +38,8 @@ func (l *LocationRepository) FindLocation(ctx context.Context, locationID string
 	}
 
 	// Convert model to domain
-	location := locationModelToDomain(model)
-	return &location, nil
+	location := locationModelToDomain(&model)
+	return location, nil
 }
 
 func (l *LocationRepository) CreateLocation(ctx context.Context, location domain.Location) (string, error) {
@@ -59,21 +59,21 @@ func (l *LocationRepository) CreateLocation(ctx context.Context, location domain
 	return insertedID.Hex(), nil
 }
 
-func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]domain.Location, error) {
+func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]*domain.Location, error) {
 	// Fetch current location
 	location, err := l.FindLocation(ctx, locationID.Hex())
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to find current location")
 	}
 
-	var transitPlaces []LocationModel
+	var transitPlaces []*LocationModel
 
 	// Fetch warehouse and depot that belongs to the warehouse except the current depot location
 	if location.IsDepot() {
 		// Cconvert warehouse_id to object id
 		warehouseObjId, err := primitive.ObjectIDFromHex(location.WarehouseID)
 		if err != nil {
-			return []domain.Location{}, status.Error(codes.InvalidArgument, "warehouse_id is not valid object id")
+			return nil, status.Error(codes.InvalidArgument, "warehouse_id is not valid object id")
 		}
 
 		// Create filter
@@ -121,7 +121,7 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 	return locationsModelToDomain(transitPlaces), nil
 }
 
-func (l *LocationRepository) GetLocations(ctx context.Context, locationIds []primitive.ObjectID) ([]domain.Location, error) {
+func (l *LocationRepository) GetLocations(ctx context.Context, locationIds []primitive.ObjectID) ([]*domain.Location, error) {
 	filter := bson.M{}
 
 	// If location ids not empty then fetch location based on the location ids
@@ -135,12 +135,29 @@ func (l *LocationRepository) GetLocations(ctx context.Context, locationIds []pri
 	}
 	defer cursor.Close(ctx)
 
-	var locationModel []LocationModel
+	var locationModel []*LocationModel
 	if err := cursor.All(ctx, &locationModel); err != nil {
 		return nil, err
 	}
 
 	return locationsModelToDomain(locationModel), nil
+}
+
+func (l *LocationRepository) FindRecommendedShippingDestinations(ctx context.Context, district string) ([]*domain.Location, error) {
+	var locations []*LocationModel
+	filter := bson.M{"address.district": primitive.Regex{Pattern: district, Options: "i"}}
+	cursor, err := l.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	err = cursor.All(ctx, &locations)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to decode locations query result")
+	}
+
+	return locationsModelToDomain(locations), nil
 }
 
 // Models
@@ -163,8 +180,8 @@ type Address struct {
 	StreetAddress string  `bson:"street_address"`
 }
 
-func locationModelToDomain(model LocationModel) domain.Location {
-	return domain.Location{
+func locationModelToDomain(model *LocationModel) *domain.Location {
+	return &domain.Location{
 		ID:          model.ID.Hex(),
 		Name:        model.Name,
 		Type:        domain.LocationTypeFromString(model.Type),
@@ -182,8 +199,8 @@ func locationModelToDomain(model LocationModel) domain.Location {
 	}
 }
 
-func locationsModelToDomain(models []LocationModel) []domain.Location {
-	var locations []domain.Location
+func locationsModelToDomain(models []*LocationModel) []*domain.Location {
+	var locations []*domain.Location
 	for _, model := range models {
 		location := locationModelToDomain(model)
 		locations = append(locations, location)

@@ -11,6 +11,7 @@ import (
 type LocationRepository interface {
 	FindLocation(ctx context.Context, locationID string) (*Location, error)
 	CreateLocation(ctx context.Context, location Location) (string, error)
-	FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]Location, error)
-	GetLocations(ctx context.Context, locationIds []primitive.ObjectID) ([]Location, error)
+	FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]*Location, error)
+	GetLocations(ctx context.Context, locationIds []primitive.ObjectID) ([]*Location, error)
+	FindRecommendedShippingDestinations(ctx context.Context, district string) ([]*Location, error)
 }
