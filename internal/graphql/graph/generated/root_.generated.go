@@ -148,6 +148,7 @@ type ComplexityRoot struct {
 		GetUnroutedShipments func(childComplexity int, locationID string) int
 		GetUser              func(childComplexity int, id string) int
 		IncomingShipments    func(childComplexity int, locationID string) int
+		SearchLocations      func(childComplexity int, keyword string) int
 	}
 
 	Region struct {
@@ -733,6 +734,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.IncomingShipments(childComplexity, args["location_id"].(string)), true
 
+	case "Query.SearchLocations":
+		if e.complexity.Query.SearchLocations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_SearchLocations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchLocations(childComplexity, args["keyword"].(string)), true
+
 	case "Region.city":
 		if e.complexity.Region.City == nil {
 			break
@@ -1133,6 +1146,7 @@ extend type Query {
     GetLocation(id: ID!): Location
     GetRegion(zip_code: String!): Region
     GetTransitPlaces(id: ID!): [Location!]!
+    SearchLocations(keyword: String!): [Location!]!
 }
 
 extend type Mutation {

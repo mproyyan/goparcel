@@ -70,6 +70,16 @@ func (r *queryResolver) GetTransitPlaces(ctx context.Context, id string) ([]*mod
 	return locationsToGraphResponse(result.Locations), nil
 }
 
+// SearchLocations is the resolver for the SearchLocations field.
+func (r *queryResolver) SearchLocations(ctx context.Context, keyword string) ([]*model.Location, error) {
+	result, err := r.locationService.SearchLocations(ctx, &genproto.SearchLocationRequest{Keyword: keyword})
+	if err != nil {
+		return nil, err
+	}
+
+	return locationsToGraphResponse(result.Locations), nil
+}
+
 // Location returns generated.LocationResolver implementation.
 func (r *Resolver) Location() generated.LocationResolver { return &locationResolver{r} }
 

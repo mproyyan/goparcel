@@ -48,6 +48,7 @@ extend type Query {
     GetLocation(id: ID!): Location
     GetRegion(zip_code: String!): Region
     GetTransitPlaces(id: ID!): [Location!]!
+    SearchLocations(keyword: String!): [Location!]!
 }
 
 extend type Mutation {
