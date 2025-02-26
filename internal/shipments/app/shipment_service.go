@@ -180,7 +180,7 @@ func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, s
 		return status.Error(codes.InvalidArgument, "location_id is not valid object id")
 	}
 
-	shipmentObjId, err := primitive.ObjectIDFromHex(locationId)
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
 	}
