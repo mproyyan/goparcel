@@ -88,12 +88,20 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, er
 
 // Entity is the resolver for the entity field.
 func (r *userResolver) Entity(ctx context.Context, obj *model.User) (*model.UserEntity, error) {
+	if obj.ModelID == "" {
+		return nil, nil
+	}
+
 	key := fmt.Sprintf("%s:%s", obj.Type, obj.ModelID)
 	return r.entityLoader.Load(ctx, key)
 }
 
 // Location is the resolver for the location field.
 func (r *userEntityResolver) Location(ctx context.Context, obj *model.UserEntity) (*model.Location, error) {
+	if obj.Location != nil && obj.Location.ID == "" {
+		return nil, nil
+	}
+
 	return r.locationLoader.Load(ctx, obj.Location.ID)
 }
 

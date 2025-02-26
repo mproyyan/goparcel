@@ -14,6 +14,10 @@ import (
 
 // Warehouse is the resolver for the warehouse field.
 func (r *locationResolver) Warehouse(ctx context.Context, obj *model.Location) (*model.Location, error) {
+	if obj.Warehouse != nil && obj.Warehouse.ID == "" {
+		return nil, nil
+	}
+
 	return r.locationLoader.Load(ctx, obj.Warehouse.ID)
 }
 

@@ -474,4 +474,11 @@ func (ec *executionContext) marshalNCourier2ᚖgithubᚗcomᚋmproyyanᚋgoparce
 	return ec._Courier(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOCourier2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCourier(ctx context.Context, sel ast.SelectionSet, v *model.Courier) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Courier(ctx, sel, v)
+}
+
 // endregion ***************************** type.gotpl *****************************

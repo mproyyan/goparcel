@@ -14,6 +14,10 @@ import (
 
 // Location is the resolver for the location field.
 func (r *courierResolver) Location(ctx context.Context, obj *model.Courier) (*model.Location, error) {
+	if obj.Location != nil && obj.Location.ID == "" {
+		return nil, nil
+	}
+
 	return r.locationLoader.Load(ctx, obj.Location.ID)
 }
 

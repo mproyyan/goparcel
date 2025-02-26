@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -20,6 +21,8 @@ type Resolver struct {
 	// Loaders
 	locationLoader *dataloadgen.Loader[string, *model.Location]
 	entityLoader   *dataloadgen.Loader[string, *model.UserEntity]
+	shipmentLoader *dataloadgen.Loader[string, *model.Shipment]
+	userLoader     *dataloadgen.Loader[string, *model.User]
 
 	// GRPC Clients
 	locationService genproto.LocationServiceClient
@@ -44,13 +47,17 @@ func NewResolver(
 	// Initiate dataloader
 	resolver.locationLoader = dataloadgen.NewLoader(resolver.loadLocations, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.entityLoader = dataloadgen.NewLoader(resolver.loadEntity, dataloadgen.WithWait(time.Millisecond*5))
+	resolver.shipmentLoader = dataloadgen.NewLoader(resolver.loadShipment, dataloadgen.WithWait(time.Millisecond*5))
+	resolver.userLoader = dataloadgen.NewLoader(resolver.loadUser, dataloadgen.WithWait(time.Millisecond*5))
 
 	return resolver
 }
 
 func (r *Resolver) loadLocations(ctx context.Context, keys []string) ([]*model.Location, []error) {
+	keys = slices.DeleteFunc(keys, func(s string) bool { return s == "" })
 	if len(keys) <= 0 {
-		return nil, nil
+		result := make([]*model.Location, len(keys))
+		return result, nil
 	}
 
 	log.Println("Fetching locations from RPC service for keys:", keys)
@@ -63,22 +70,7 @@ func (r *Resolver) loadLocations(ctx context.Context, keys []string) ([]*model.L
 
 	locationMap := make(map[string]*model.Location)
 	for _, loc := range resp.Locations {
-		locationMap[loc.Id] = &model.Location{
-			ID:        loc.Id,
-			Name:      loc.Name,
-			Type:      loc.Type,
-			Warehouse: &model.Location{ID: loc.WarehouseId},
-			Address: &model.LocationAddress{
-				Province:      &loc.Address.Province,
-				City:          &loc.Address.City,
-				District:      &loc.Address.District,
-				Subdistrict:   &loc.Address.Subdistrict,
-				ZipCode:       &loc.Address.ZipCode,
-				Latitude:      &loc.Address.Latitude,
-				Longitude:     &loc.Address.Longitude,
-				StreetAddress: &loc.Address.StreetAddress,
-			},
-		}
+		locationMap[loc.Id] = locationToGraphResponse(loc)
 	}
 
 	results := make([]*model.Location, len(keys))
@@ -95,8 +87,10 @@ func (r *Resolver) loadLocations(ctx context.Context, keys []string) ([]*model.L
 }
 
 func (r *Resolver) loadEntity(ctx context.Context, keys []string) ([]*model.UserEntity, []error) {
+	keys = slices.DeleteFunc(keys, func(s string) bool { return s == "" })
 	if len(keys) <= 0 {
-		return nil, nil
+		result := make([]*model.UserEntity, len(keys))
+		return result, nil
 	}
 
 	log.Println("Fetching entity from RPC service for keys:", keys)
@@ -182,3 +176,100 @@ func (r *Resolver) loadEntity(ctx context.Context, keys []string) ([]*model.User
 
 	return result, errors
 }
+
+func (r *Resolver) loadShipment(ctx context.Context, keys []string) ([]*model.Shipment, []error) {
+	keys = slices.DeleteFunc(keys, func(s string) bool { return s == "" })
+	if len(keys) <= 0 {
+		result := make([]*model.Shipment, len(keys))
+		return result, nil
+	}
+
+	log.Println("Fetching shipment from RPC service for keys:", keys)
+
+	resp, err := r.shipmentService.GetShipments(ctx, &genproto.GetShipmentsRequest{Ids: keys})
+	if err != nil {
+		log.Println("Error fetching shipments:", err)
+		return nil, []error{err}
+	}
+
+	shipmentMap := make(map[string]*model.Shipment)
+	for _, shipment := range resp.Shipment {
+		shipmentMap[shipment.Id] = shipmentToGraphResponse(shipment)
+	}
+
+	results := make([]*model.Shipment, len(keys))
+	errors := make([]error, len(keys))
+	for i, key := range keys {
+		if shipment, found := shipmentMap[key]; found {
+			results[i] = shipment
+		} else {
+			errors[i] = fmt.Errorf("shipment not found for ID: %s", key)
+		}
+	}
+
+	return results, errors
+}
+
+func (r *Resolver) loadUser(ctx context.Context, keys []string) ([]*model.User, []error) {
+	keys = slices.DeleteFunc(keys, func(s string) bool { return s == "" })
+	if len(keys) == 0 {
+		result := make([]*model.User, len(keys))
+		return result, nil
+	}
+
+	log.Println("Fetching users from RPC service for keys:", keys)
+
+	resp, err := r.userService.GetUsers(ctx, &genproto.GetUsersRequest{Id: keys})
+	if err != nil {
+		log.Println("Error fetching users:", err)
+		return nil, []error{err}
+	}
+
+	userMap := make(map[string]*model.User)
+	for _, user := range resp.Users {
+		userMap[user.Id] = userToGraphResponse(user)
+	}
+
+	results := make([]*model.User, len(keys))
+	errors := make([]error, len(keys))
+	for i, key := range keys {
+		if user, found := userMap[key]; found {
+			results[i] = user
+		} else {
+			errors[i] = fmt.Errorf("user not found for ID: %s", key)
+		}
+	}
+
+	return results, errors
+}
+
+// func (r *Resolver) courierLoader(ctx context.Context, keys []string) ([]*model.Courier, []error) {
+// 	if len(keys) <= 0 {
+// 		return nil, nil
+// 	}
+
+// 	log.Println("Fetching couriers from RPC service for keys:", keys)
+
+// 	resp, err := r.courierService.GetUsers(ctx, &genproto.GetUsersRequest{Id: keys})
+// 	if err != nil {
+// 		log.Println("Error fetching users:", err)
+// 		return nil, []error{err}
+// 	}
+
+// 	userMap := make(map[string]*model.User)
+// 	for _, user := range resp.Users {
+// 		userMap[user.Id] = userToGraphResponse(user)
+// 	}
+
+// 	results := make([]*model.User, len(keys))
+// 	errors := make([]error, len(keys))
+// 	for i, key := range keys {
+// 		if user, found := userMap[key]; found {
+// 			results[i] = user
+// 		} else {
+// 			errors[i] = fmt.Errorf("user not found for ID: %s", key)
+// 		}
+// 	}
+
+// 	return results, errors
+// }

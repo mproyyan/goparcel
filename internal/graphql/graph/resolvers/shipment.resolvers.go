@@ -15,7 +15,29 @@ import (
 )
 
 // Location is the resolver for the location field.
+func (r *destinationResolver) Location(ctx context.Context, obj *model.Destination) (*model.Location, error) {
+	if obj.Location != nil && obj.Location.ID == "" {
+		return nil, nil
+	}
+
+	return r.locationLoader.Load(ctx, obj.Location.ID)
+}
+
+// AcceptedBy is the resolver for the accepted_by field.
+func (r *destinationResolver) AcceptedBy(ctx context.Context, obj *model.Destination) (*model.User, error) {
+	if obj.AcceptedBy != nil && obj.AcceptedBy.ID == "" {
+		return nil, nil
+	}
+
+	return r.userLoader.Load(ctx, obj.AcceptedBy.ID)
+}
+
+// Location is the resolver for the location field.
 func (r *itineraryLogResolver) Location(ctx context.Context, obj *model.ItineraryLog) (*model.Location, error) {
+	if obj.Location != nil && obj.Location.ID == "" {
+		return nil, nil
+	}
+
 	return r.locationLoader.Load(ctx, obj.Location.ID)
 }
 
@@ -67,6 +89,24 @@ func (r *mutationResolver) RequestTransit(ctx context.Context, input *model.Requ
 	return "Transit request created successfully", nil
 }
 
+// Location is the resolver for the location field.
+func (r *originResolver) Location(ctx context.Context, obj *model.Origin) (*model.Location, error) {
+	if obj.Location != nil && obj.Location.ID == "" {
+		return nil, nil
+	}
+
+	return r.locationLoader.Load(ctx, obj.Location.ID)
+}
+
+// RequestedBy is the resolver for the requested_by field.
+func (r *originResolver) RequestedBy(ctx context.Context, obj *model.Origin) (*model.User, error) {
+	if obj.RequestedBy != nil && obj.RequestedBy.ID == "" {
+		return nil, nil
+	}
+
+	return r.userLoader.Load(ctx, obj.RequestedBy.ID)
+}
+
 // GetUnroutedShipments is the resolver for the GetUnroutedShipments field.
 func (r *queryResolver) GetUnroutedShipments(ctx context.Context, locationID string) ([]*model.Shipment, error) {
 	shipment, err := r.shipmentService.GetUnroutedShipment(ctx, &genproto.GetUnroutedShipmentRequest{LocationId: locationID})
@@ -77,15 +117,45 @@ func (r *queryResolver) GetUnroutedShipments(ctx context.Context, locationID str
 	return shipmentsToGraphResponse(shipment.Shipment), nil
 }
 
+// IncomingShipments is the resolver for the IncomingShipments field.
+func (r *queryResolver) IncomingShipments(ctx context.Context, locationID string) ([]*model.TransferRequest, error) {
+	result, err := r.shipmentService.IncomingShipments(ctx, &genproto.IncomingShipmentRequest{LocationId: locationID})
+	if err != nil {
+		return nil, err
+	}
+
+	return transferRequestsToGraphResponse(result.TransferRequests), nil
+}
+
 // Origin is the resolver for the origin field.
 func (r *shipmentResolver) Origin(ctx context.Context, obj *model.Shipment) (*model.Location, error) {
+	if obj.Origin != nil && obj.Origin.ID == "" {
+		return nil, nil
+	}
+
 	return r.locationLoader.Load(ctx, obj.Origin.ID)
 }
 
 // Destination is the resolver for the destination field.
 func (r *shipmentResolver) Destination(ctx context.Context, obj *model.Shipment) (*model.Location, error) {
+	if obj.Destination != nil && obj.Destination.ID == "" {
+		return nil, nil
+	}
+
 	return r.locationLoader.Load(ctx, obj.Destination.ID)
 }
+
+// Shipment is the resolver for the shipment field.
+func (r *transferRequestResolver) Shipment(ctx context.Context, obj *model.TransferRequest) (*model.Shipment, error) {
+	if obj.Shipment != nil && obj.Shipment.ID == "" {
+		return nil, nil
+	}
+
+	return r.shipmentLoader.Load(ctx, obj.Shipment.ID)
+}
+
+// Destination returns generated.DestinationResolver implementation.
+func (r *Resolver) Destination() generated.DestinationResolver { return &destinationResolver{r} }
 
 // ItineraryLog returns generated.ItineraryLogResolver implementation.
 func (r *Resolver) ItineraryLog() generated.ItineraryLogResolver { return &itineraryLogResolver{r} }
@@ -93,13 +163,24 @@ func (r *Resolver) ItineraryLog() generated.ItineraryLogResolver { return &itine
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
+// Origin returns generated.OriginResolver implementation.
+func (r *Resolver) Origin() generated.OriginResolver { return &originResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 // Shipment returns generated.ShipmentResolver implementation.
 func (r *Resolver) Shipment() generated.ShipmentResolver { return &shipmentResolver{r} }
 
+// TransferRequest returns generated.TransferRequestResolver implementation.
+func (r *Resolver) TransferRequest() generated.TransferRequestResolver {
+	return &transferRequestResolver{r}
+}
+
+type destinationResolver struct{ *Resolver }
 type itineraryLogResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
+type originResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type shipmentResolver struct{ *Resolver }
+type transferRequestResolver struct{ *Resolver }

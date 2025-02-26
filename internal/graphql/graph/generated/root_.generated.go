@@ -34,11 +34,14 @@ type Config struct {
 
 type ResolverRoot interface {
 	Courier() CourierResolver
+	Destination() DestinationResolver
 	ItineraryLog() ItineraryLogResolver
 	Location() LocationResolver
 	Mutation() MutationResolver
+	Origin() OriginResolver
 	Query() QueryResolver
 	Shipment() ShipmentResolver
+	TransferRequest() TransferRequestResolver
 	User() UserResolver
 	UserEntity() UserEntityResolver
 }
@@ -48,6 +51,15 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Address struct {
+		City          func(childComplexity int) int
+		District      func(childComplexity int) int
+		Province      func(childComplexity int) int
+		StreetAddress func(childComplexity int) int
+		Subdistrict   func(childComplexity int) int
+		ZipCode       func(childComplexity int) int
+	}
+
 	Courier struct {
 		Email    func(childComplexity int) int
 		ID       func(childComplexity int) int
@@ -55,6 +67,18 @@ type ComplexityRoot struct {
 		Name     func(childComplexity int) int
 		Status   func(childComplexity int) int
 		UserID   func(childComplexity int) int
+	}
+
+	Destination struct {
+		AcceptedBy      func(childComplexity int) int
+		Location        func(childComplexity int) int
+		RecipientDetail func(childComplexity int) int
+	}
+
+	Entity struct {
+		Address func(childComplexity int) int
+		Contact func(childComplexity int) int
+		Name    func(childComplexity int) int
 	}
 
 	Item struct {
@@ -99,6 +123,11 @@ type ComplexityRoot struct {
 		RequestTransit     func(childComplexity int, input *model.RequestTransitInput) int
 	}
 
+	Origin struct {
+		Location    func(childComplexity int) int
+		RequestedBy func(childComplexity int) int
+	}
+
 	PartyDetail struct {
 		Address     func(childComplexity int) int
 		City        func(childComplexity int) int
@@ -117,6 +146,7 @@ type ComplexityRoot struct {
 		GetTransitPlaces     func(childComplexity int, id string) int
 		GetUnroutedShipments func(childComplexity int, locationID string) int
 		GetUser              func(childComplexity int, id string) int
+		IncomingShipments    func(childComplexity int, locationID string) int
 	}
 
 	Region struct {
@@ -139,6 +169,18 @@ type ComplexityRoot struct {
 		RoutingStatus   func(childComplexity int) int
 		SenderDetail    func(childComplexity int) int
 		TransportStatus func(childComplexity int) int
+	}
+
+	TransferRequest struct {
+		CargoID     func(childComplexity int) int
+		Courier     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Destination func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Origin      func(childComplexity int) int
+		RequestType func(childComplexity int) int
+		Shipment    func(childComplexity int) int
+		Status      func(childComplexity int) int
 	}
 
 	User struct {
@@ -173,6 +215,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Address.city":
+		if e.complexity.Address.City == nil {
+			break
+		}
+
+		return e.complexity.Address.City(childComplexity), true
+
+	case "Address.district":
+		if e.complexity.Address.District == nil {
+			break
+		}
+
+		return e.complexity.Address.District(childComplexity), true
+
+	case "Address.province":
+		if e.complexity.Address.Province == nil {
+			break
+		}
+
+		return e.complexity.Address.Province(childComplexity), true
+
+	case "Address.street_address":
+		if e.complexity.Address.StreetAddress == nil {
+			break
+		}
+
+		return e.complexity.Address.StreetAddress(childComplexity), true
+
+	case "Address.subdistrict":
+		if e.complexity.Address.Subdistrict == nil {
+			break
+		}
+
+		return e.complexity.Address.Subdistrict(childComplexity), true
+
+	case "Address.zip_code":
+		if e.complexity.Address.ZipCode == nil {
+			break
+		}
+
+		return e.complexity.Address.ZipCode(childComplexity), true
 
 	case "Courier.email":
 		if e.complexity.Courier.Email == nil {
@@ -215,6 +299,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Courier.UserID(childComplexity), true
+
+	case "Destination.accepted_by":
+		if e.complexity.Destination.AcceptedBy == nil {
+			break
+		}
+
+		return e.complexity.Destination.AcceptedBy(childComplexity), true
+
+	case "Destination.location":
+		if e.complexity.Destination.Location == nil {
+			break
+		}
+
+		return e.complexity.Destination.Location(childComplexity), true
+
+	case "Destination.recipient_detail":
+		if e.complexity.Destination.RecipientDetail == nil {
+			break
+		}
+
+		return e.complexity.Destination.RecipientDetail(childComplexity), true
+
+	case "Entity.address":
+		if e.complexity.Entity.Address == nil {
+			break
+		}
+
+		return e.complexity.Entity.Address(childComplexity), true
+
+	case "Entity.contact":
+		if e.complexity.Entity.Contact == nil {
+			break
+		}
+
+		return e.complexity.Entity.Contact(childComplexity), true
+
+	case "Entity.name":
+		if e.complexity.Entity.Name == nil {
+			break
+		}
+
+		return e.complexity.Entity.Name(childComplexity), true
 
 	case "Item.amount":
 		if e.complexity.Item.Amount == nil {
@@ -440,6 +566,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RequestTransit(childComplexity, args["input"].(*model.RequestTransitInput)), true
 
+	case "Origin.location":
+		if e.complexity.Origin.Location == nil {
+			break
+		}
+
+		return e.complexity.Origin.Location(childComplexity), true
+
+	case "Origin.requested_by":
+		if e.complexity.Origin.RequestedBy == nil {
+			break
+		}
+
+		return e.complexity.Origin.RequestedBy(childComplexity), true
+
 	case "PartyDetail.address":
 		if e.complexity.PartyDetail.Address == nil {
 			break
@@ -568,6 +708,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUser(childComplexity, args["id"].(string)), true
 
+	case "Query.IncomingShipments":
+		if e.complexity.Query.IncomingShipments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_IncomingShipments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IncomingShipments(childComplexity, args["location_id"].(string)), true
+
 	case "Region.city":
 		if e.complexity.Region.City == nil {
 			break
@@ -679,6 +831,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Shipment.TransportStatus(childComplexity), true
+
+	case "TransferRequest.cargo_id":
+		if e.complexity.TransferRequest.CargoID == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.CargoID(childComplexity), true
+
+	case "TransferRequest.courier":
+		if e.complexity.TransferRequest.Courier == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.Courier(childComplexity), true
+
+	case "TransferRequest.created_at":
+		if e.complexity.TransferRequest.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.CreatedAt(childComplexity), true
+
+	case "TransferRequest.destination":
+		if e.complexity.TransferRequest.Destination == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.Destination(childComplexity), true
+
+	case "TransferRequest.id":
+		if e.complexity.TransferRequest.ID == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.ID(childComplexity), true
+
+	case "TransferRequest.origin":
+		if e.complexity.TransferRequest.Origin == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.Origin(childComplexity), true
+
+	case "TransferRequest.request_type":
+		if e.complexity.TransferRequest.RequestType == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.RequestType(childComplexity), true
+
+	case "TransferRequest.shipment":
+		if e.complexity.TransferRequest.Shipment == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.Shipment(childComplexity), true
+
+	case "TransferRequest.status":
+		if e.complexity.TransferRequest.Status == nil {
+			break
+		}
+
+		return e.complexity.TransferRequest.Status(childComplexity), true
 
 	case "User.entity":
 		if e.complexity.User.Entity == nil {
@@ -951,6 +1166,44 @@ type Shipment {
     created_at: Time!
 }
 
+type TransferRequest {
+	id: ID!
+	request_type: String!
+	shipment: Shipment!
+	origin: Origin!
+	destination: Destination!
+	courier: Courier
+	cargo_id: String
+	status: String!
+	created_at: Time!
+}
+
+type Origin {
+	location: Location
+	requested_by: User
+}
+
+type Destination {
+	location: Location
+	accepted_by: User
+	recipient_detail: Entity
+}
+
+type Entity {
+	name: String
+	contact: String
+	address: Address
+}
+
+type Address {
+	province: String
+	city: String
+	district: String
+	subdistrict: String
+	street_address: String
+	zip_code: String
+}
+
 # Input
 
 input CreateShipmentInput {
@@ -989,6 +1242,7 @@ input RequestTransitInput {
 
 type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
+    IncomingShipments(location_id: ID!): [TransferRequest!]!
 }
 
 type Mutation {

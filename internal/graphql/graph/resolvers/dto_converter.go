@@ -179,3 +179,47 @@ func usersToGraphResponse(models []*genproto.User) []*model.User {
 
 	return users
 }
+
+func transferRequestToGraphResponse(req *genproto.TransferRequest) *model.TransferRequest {
+	if req == nil {
+		return nil
+	}
+
+	return &model.TransferRequest{
+		ID:          req.Id,
+		RequestType: req.RequestType,
+		Shipment:    &model.Shipment{ID: req.ShipmentId},
+		Origin: &model.Origin{
+			Location:    &model.Location{ID: req.Origin.Location},
+			RequestedBy: &model.User{ID: req.Origin.RequestedBy},
+		},
+		Destination: &model.Destination{
+			Location:   &model.Location{ID: req.Destinaion.Location},
+			AcceptedBy: &model.User{ID: req.Destinaion.AcceptedBy},
+			RecipientDetail: &model.Entity{
+				Name:    &req.Destinaion.RecipientDetail.Name,
+				Contact: &req.Destinaion.RecipientDetail.Contact,
+				Address: &model.Address{
+					Province:      &req.Destinaion.RecipientDetail.Address.Province,
+					City:          &req.Destinaion.RecipientDetail.Address.City,
+					District:      &req.Destinaion.RecipientDetail.Address.District,
+					Subdistrict:   &req.Destinaion.RecipientDetail.Address.Subdistrict,
+					StreetAddress: &req.Destinaion.RecipientDetail.Address.StreetAddress,
+					ZipCode:       &req.Destinaion.RecipientDetail.Address.ZipCode,
+				},
+			},
+		},
+		Courier:   &model.Courier{ID: req.CourierId},
+		CargoID:   &req.CargoId,
+		Status:    req.Status,
+		CreatedAt: req.CreatedAt.AsTime(),
+	}
+}
+
+func transferRequestsToGraphResponse(reqs []*genproto.TransferRequest) []*model.TransferRequest {
+	var graphRequests []*model.TransferRequest
+	for _, req := range reqs {
+		graphRequests = append(graphRequests, transferRequestToGraphResponse(req))
+	}
+	return graphRequests
+}

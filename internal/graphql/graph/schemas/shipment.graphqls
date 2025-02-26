@@ -38,6 +38,44 @@ type Shipment {
     created_at: Time!
 }
 
+type TransferRequest {
+	id: ID!
+	request_type: String!
+	shipment: Shipment!
+	origin: Origin!
+	destination: Destination!
+	courier: Courier
+	cargo_id: String
+	status: String!
+	created_at: Time!
+}
+
+type Origin {
+	location: Location
+	requested_by: User
+}
+
+type Destination {
+	location: Location
+	accepted_by: User
+	recipient_detail: Entity
+}
+
+type Entity {
+	name: String
+	contact: String
+	address: Address
+}
+
+type Address {
+	province: String
+	city: String
+	district: String
+	subdistrict: String
+	street_address: String
+	zip_code: String
+}
+
 # Input
 
 input CreateShipmentInput {
@@ -76,6 +114,7 @@ input RequestTransitInput {
 
 type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
+    IncomingShipments(location_id: ID!): [TransferRequest!]!
 }
 
 type Mutation {

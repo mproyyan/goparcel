@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+type Address struct {
+	Province      *string `json:"province,omitempty"`
+	City          *string `json:"city,omitempty"`
+	District      *string `json:"district,omitempty"`
+	Subdistrict   *string `json:"subdistrict,omitempty"`
+	StreetAddress *string `json:"street_address,omitempty"`
+	ZipCode       *string `json:"zip_code,omitempty"`
+}
+
 type Courier struct {
 	ID       string    `json:"id"`
 	UserID   string    `json:"user_id"`
@@ -33,6 +42,18 @@ type CreateShipmentInput struct {
 	Sender    *EntityInput `json:"sender"`
 	Recipient *EntityInput `json:"recipient"`
 	Items     []*ItemInput `json:"items"`
+}
+
+type Destination struct {
+	Location        *Location `json:"location,omitempty"`
+	AcceptedBy      *User     `json:"accepted_by,omitempty"`
+	RecipientDetail *Entity   `json:"recipient_detail,omitempty"`
+}
+
+type Entity struct {
+	Name    *string  `json:"name,omitempty"`
+	Contact *string  `json:"contact,omitempty"`
+	Address *Address `json:"address,omitempty"`
 }
 
 type EntityInput struct {
@@ -82,6 +103,11 @@ type LocationAddress struct {
 }
 
 type Mutation struct {
+}
+
+type Origin struct {
+	Location    *Location `json:"location,omitempty"`
+	RequestedBy *User     `json:"requested_by,omitempty"`
 }
 
 type PartyDetail struct {
@@ -147,6 +173,18 @@ type Shipment struct {
 	Destination     *Location       `json:"destination,omitempty"`
 	ItineraryLogs   []*ItineraryLog `json:"itinerary_logs"`
 	CreatedAt       time.Time       `json:"created_at"`
+}
+
+type TransferRequest struct {
+	ID          string       `json:"id"`
+	RequestType string       `json:"request_type"`
+	Shipment    *Shipment    `json:"shipment"`
+	Origin      *Origin      `json:"origin"`
+	Destination *Destination `json:"destination"`
+	Courier     *Courier     `json:"courier,omitempty"`
+	CargoID     *string      `json:"cargo_id,omitempty"`
+	Status      string       `json:"status"`
+	CreatedAt   time.Time    `json:"created_at"`
 }
 
 type User struct {

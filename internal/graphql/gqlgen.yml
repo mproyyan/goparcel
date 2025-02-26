@@ -159,6 +159,25 @@ models:
       location: # Need resolver for location field
         resolver: true
 
+  TransferRequest:
+    fields:
+      shipment: # Need resolver for shipment field
+        resolver: true
+  
+  Origin:
+    fields:
+      location: # Need resolver for location field
+        resolver: true
+      requested_by: # Need resolver for requested_by field
+        resolver: true
+  
+  Destination:
+    fields:
+      location: # Need resolver for location field
+        resolver: true
+      accepted_by: # Need resolver for accepted_by field
+        resolver: true
+
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
