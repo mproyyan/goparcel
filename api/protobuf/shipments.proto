@@ -15,6 +15,7 @@ service ShipmentService {
     rpc IncomingShipments(IncomingShipmentRequest) returns (TransferRequestResponse) {}
     rpc GetShipments(GetShipmentsRequest) returns (ShipmentResponse) {}
     rpc ScanArrivingShipment(ScanArrivingShipmentRequest) returns (google.protobuf.Empty) {}
+    rpc ShipPackage(ShipPackageRequest) returns (google.protobuf.Empty) {}
 }
 
 message CreateShipmentRequest {
@@ -130,4 +131,11 @@ message GetShipmentsRequest {
 message ScanArrivingShipmentRequest {
     string shipment_id = 1;
     string location_id = 2;
+}
+
+message ShipPackageRequest {
+    string shipment_id = 1;
+    string cargo_id = 2;
+    string origin = 3;
+    string destination = 4;
 }
