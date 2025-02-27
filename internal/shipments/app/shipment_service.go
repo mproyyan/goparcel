@@ -39,6 +39,11 @@ type LocationService interface {
 }
 
 func (s ShipmentService) CreateShipment(ctx context.Context, origin string, sender, recipient domain.Entity, items []domain.Item) error {
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "origin is not valid object id")
+	}
+
 	// Retrieve the sender's detailed address
 	senderDetailAddress, err := s.locationService.ResolveAddress(ctx, sender.Address.ZipCode)
 	if err != nil {
@@ -73,7 +78,8 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 		}
 
 		// Log itinerary with with status receive and location where they inputted
-		err = s.shipmentRepository.LogItinerary(ctx, shipmentID, origin, domain.Receive)
+		shipmentObjId, _ := primitive.ObjectIDFromHex(shipmentID)
+		err = s.shipmentRepository.LogItinerary(ctx, []primitive.ObjectID{shipmentObjId}, originObjId, domain.Receive)
 		if err != nil {
 			return cuserr.Decorate(err, "Failed to create itinerary log")
 		}
@@ -215,7 +221,7 @@ func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, s
 
 		// Currently activity type of itinerary log is always set to transit
 		// TODO: activity type based on request type
-		err = s.shipmentRepository.LogItinerary(ctx, shipmentObjId.Hex(), locationObjId.Hex(), domain.Transit)
+		err = s.shipmentRepository.LogItinerary(ctx, []primitive.ObjectID{shipmentObjId}, locationObjId, domain.Transit)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to log itinerary")
 		}

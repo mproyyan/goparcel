@@ -71,18 +71,7 @@ func (s *ShipmentRepository) CreateShipment(ctx context.Context, origin string, 
 	return id.Hex(), nil
 }
 
-func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentID string, locationID string, activityType domain.ActivityType) error {
-	// Convert string object id to literal object id
-	shipmentObjID, err := primitive.ObjectIDFromHex(shipmentID)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
-	}
-
-	locationObjID, err := primitive.ObjectIDFromHex(locationID)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "location_id is not valid object id")
-	}
-
+func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentIds []primitive.ObjectID, locationID primitive.ObjectID, activityType domain.ActivityType) error {
 	// Validate activity type
 	if activityType == domain.Unknown {
 		return status.Error(codes.InvalidArgument, "activity type is not valid")
@@ -92,12 +81,13 @@ func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentID string
 	logEntry := ItineraryLog{
 		ActivityType: activityType.String(),
 		Timestamp:    time.Now(),
-		Location:     &locationObjID,
+		Location:     &locationID,
 	}
 
 	// Push itinerary to itinerary logs
+	filter := bson.M{"_id": bson.M{"$in": shipmentIds}}
 	update := bson.M{"$push": bson.M{"itinerary_logs": logEntry}}
-	_, err = s.collection.UpdateOne(ctx, bson.M{"_id": shipmentObjID}, update)
+	_, err := s.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
