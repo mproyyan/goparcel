@@ -7,7 +7,7 @@ type Cargo {
   carriers: [Carrier!]!
   itineraries: [Itinerary!]!
   shipments: [Shipment!]!
-  lastKnownLocation: String!
+  last_known_location: Location
 }
 
 type Capacity {
@@ -16,15 +16,15 @@ type Capacity {
 }
 
 type Itinerary {
-  location: String!
-  estimatedTimeArrival: Time!
-  actualTimeArrival: Time
+  location: Location!
+  estimated_time_arrival: Time!
+  actual_time_arrival: Time
 }
 
 type Carrier {
     id: ID!
     user_id: ID!
-    nama: String!
+    name: String!
     email: String!
     status: String
     location: Location

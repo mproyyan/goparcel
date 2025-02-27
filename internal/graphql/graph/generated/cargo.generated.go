@@ -22,6 +22,13 @@ type CargoResolver interface {
 	Carriers(ctx context.Context, obj *model.Cargo) ([]*model.Carrier, error)
 
 	Shipments(ctx context.Context, obj *model.Cargo) ([]*model.Shipment, error)
+	LastKnownLocation(ctx context.Context, obj *model.Cargo) (*model.Location, error)
+}
+type CarrierResolver interface {
+	Location(ctx context.Context, obj *model.Carrier) (*model.Location, error)
+}
+type ItineraryResolver interface {
+	Location(ctx context.Context, obj *model.Itinerary) (*model.Location, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -396,8 +403,8 @@ func (ec *executionContext) fieldContext_Cargo_carriers(_ context.Context, field
 				return ec.fieldContext_Carrier_id(ctx, field)
 			case "user_id":
 				return ec.fieldContext_Carrier_user_id(ctx, field)
-			case "nama":
-				return ec.fieldContext_Carrier_nama(ctx, field)
+			case "name":
+				return ec.fieldContext_Carrier_name(ctx, field)
 			case "email":
 				return ec.fieldContext_Carrier_email(ctx, field)
 			case "status":
@@ -452,10 +459,10 @@ func (ec *executionContext) fieldContext_Cargo_itineraries(_ context.Context, fi
 			switch field.Name {
 			case "location":
 				return ec.fieldContext_Itinerary_location(ctx, field)
-			case "estimatedTimeArrival":
-				return ec.fieldContext_Itinerary_estimatedTimeArrival(ctx, field)
-			case "actualTimeArrival":
-				return ec.fieldContext_Itinerary_actualTimeArrival(ctx, field)
+			case "estimated_time_arrival":
+				return ec.fieldContext_Itinerary_estimated_time_arrival(ctx, field)
+			case "actual_time_arrival":
+				return ec.fieldContext_Itinerary_actual_time_arrival(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Itinerary", field.Name)
 		},
@@ -531,8 +538,8 @@ func (ec *executionContext) fieldContext_Cargo_shipments(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Cargo_lastKnownLocation(ctx context.Context, field graphql.CollectedField, obj *model.Cargo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Cargo_lastKnownLocation(ctx, field)
+func (ec *executionContext) _Cargo_last_known_location(ctx context.Context, field graphql.CollectedField, obj *model.Cargo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cargo_last_known_location(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -545,31 +552,40 @@ func (ec *executionContext) _Cargo_lastKnownLocation(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LastKnownLocation, nil
+		return ec.resolvers.Cargo().LastKnownLocation(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.Location)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOLocation2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐLocation(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Cargo_lastKnownLocation(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Cargo_last_known_location(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Cargo",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Location_name(ctx, field)
+			case "type":
+				return ec.fieldContext_Location_type(ctx, field)
+			case "warehouse":
+				return ec.fieldContext_Location_warehouse(ctx, field)
+			case "address":
+				return ec.fieldContext_Location_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Location", field.Name)
 		},
 	}
 	return fc, nil
@@ -663,8 +679,8 @@ func (ec *executionContext) fieldContext_Carrier_user_id(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Carrier_nama(ctx context.Context, field graphql.CollectedField, obj *model.Carrier) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Carrier_nama(ctx, field)
+func (ec *executionContext) _Carrier_name(ctx context.Context, field graphql.CollectedField, obj *model.Carrier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Carrier_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -677,7 +693,7 @@ func (ec *executionContext) _Carrier_nama(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Nama, nil
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -694,7 +710,7 @@ func (ec *executionContext) _Carrier_nama(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Carrier_nama(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Carrier_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Carrier",
 		Field:      field,
@@ -806,7 +822,7 @@ func (ec *executionContext) _Carrier_location(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Location, nil
+		return ec.resolvers.Carrier().Location(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -824,8 +840,8 @@ func (ec *executionContext) fieldContext_Carrier_location(_ context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Carrier",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -859,7 +875,7 @@ func (ec *executionContext) _Itinerary_location(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Location, nil
+		return ec.resolvers.Itinerary().Location(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -871,26 +887,38 @@ func (ec *executionContext) _Itinerary_location(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.Location)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNLocation2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Itinerary_location(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Itinerary",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Location_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Location_name(ctx, field)
+			case "type":
+				return ec.fieldContext_Location_type(ctx, field)
+			case "warehouse":
+				return ec.fieldContext_Location_warehouse(ctx, field)
+			case "address":
+				return ec.fieldContext_Location_address(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Location", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Itinerary_estimatedTimeArrival(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Itinerary_estimatedTimeArrival(ctx, field)
+func (ec *executionContext) _Itinerary_estimated_time_arrival(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Itinerary_estimated_time_arrival(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -920,7 +948,7 @@ func (ec *executionContext) _Itinerary_estimatedTimeArrival(ctx context.Context,
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Itinerary_estimatedTimeArrival(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Itinerary_estimated_time_arrival(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Itinerary",
 		Field:      field,
@@ -933,8 +961,8 @@ func (ec *executionContext) fieldContext_Itinerary_estimatedTimeArrival(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Itinerary_actualTimeArrival(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Itinerary_actualTimeArrival(ctx, field)
+func (ec *executionContext) _Itinerary_actual_time_arrival(ctx context.Context, field graphql.CollectedField, obj *model.Itinerary) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Itinerary_actual_time_arrival(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -961,7 +989,7 @@ func (ec *executionContext) _Itinerary_actualTimeArrival(ctx context.Context, fi
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Itinerary_actualTimeArrival(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Itinerary_actual_time_arrival(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Itinerary",
 		Field:      field,
@@ -1140,11 +1168,39 @@ func (ec *executionContext) _Cargo(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "lastKnownLocation":
-			out.Values[i] = ec._Cargo_lastKnownLocation(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+		case "last_known_location":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Cargo_last_known_location(ctx, field, obj)
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1182,27 +1238,58 @@ func (ec *executionContext) _Carrier(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Carrier_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "user_id":
 			out.Values[i] = ec._Carrier_user_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "nama":
-			out.Values[i] = ec._Carrier_nama(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._Carrier_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "email":
 			out.Values[i] = ec._Carrier_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "status":
 			out.Values[i] = ec._Carrier_status(ctx, field, obj)
 		case "location":
-			out.Values[i] = ec._Carrier_location(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Carrier_location(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1238,17 +1325,48 @@ func (ec *executionContext) _Itinerary(ctx context.Context, sel ast.SelectionSet
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Itinerary")
 		case "location":
-			out.Values[i] = ec._Itinerary_location(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Itinerary_location(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
-		case "estimatedTimeArrival":
-			out.Values[i] = ec._Itinerary_estimatedTimeArrival(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
 			}
-		case "actualTimeArrival":
-			out.Values[i] = ec._Itinerary_actualTimeArrival(ctx, field, obj)
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "estimated_time_arrival":
+			out.Values[i] = ec._Itinerary_estimated_time_arrival(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "actual_time_arrival":
+			out.Values[i] = ec._Itinerary_actual_time_arrival(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

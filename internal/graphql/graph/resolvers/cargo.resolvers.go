@@ -56,6 +56,45 @@ func (r *cargoResolver) Shipments(ctx context.Context, obj *model.Cargo) ([]*mod
 	return r.shipmentsLoader.Load(ctx, key)
 }
 
+// LastKnownLocation is the resolver for the last_known_location field.
+func (r *cargoResolver) LastKnownLocation(ctx context.Context, obj *model.Cargo) (*model.Location, error) {
+	if obj.LastKnownLocation == nil {
+		return nil, nil
+	}
+
+	if obj.LastKnownLocation.ID == "" {
+		return nil, nil
+	}
+
+	return r.locationLoader.Load(ctx, obj.LastKnownLocation.ID)
+}
+
+// Location is the resolver for the location field.
+func (r *carrierResolver) Location(ctx context.Context, obj *model.Carrier) (*model.Location, error) {
+	if obj.Location == nil {
+		return nil, nil
+	}
+
+	if obj.Location.ID == "" {
+		return nil, nil
+	}
+
+	return r.locationLoader.Load(ctx, obj.Location.ID)
+}
+
+// Location is the resolver for the location field.
+func (r *itineraryResolver) Location(ctx context.Context, obj *model.Itinerary) (*model.Location, error) {
+	if obj.Location == nil {
+		return nil, nil
+	}
+
+	if obj.Location.ID == "" {
+		return nil, nil
+	}
+
+	return r.locationLoader.Load(ctx, obj.Location.ID)
+}
+
 // GetMatchingCargos is the resolver for the GetMatchingCargos field.
 func (r *queryResolver) GetMatchingCargos(ctx context.Context, origin string, destination string) ([]*model.Cargo, error) {
 	result, err := r.cargoService.GetMatchingCargos(ctx, &genproto.GetMatchingCargosRequest{
@@ -74,4 +113,12 @@ func (r *queryResolver) GetMatchingCargos(ctx context.Context, origin string, de
 // Cargo returns generated.CargoResolver implementation.
 func (r *Resolver) Cargo() generated.CargoResolver { return &cargoResolver{r} }
 
+// Carrier returns generated.CarrierResolver implementation.
+func (r *Resolver) Carrier() generated.CarrierResolver { return &carrierResolver{r} }
+
+// Itinerary returns generated.ItineraryResolver implementation.
+func (r *Resolver) Itinerary() generated.ItineraryResolver { return &itineraryResolver{r} }
+
 type cargoResolver struct{ *Resolver }
+type carrierResolver struct{ *Resolver }
+type itineraryResolver struct{ *Resolver }

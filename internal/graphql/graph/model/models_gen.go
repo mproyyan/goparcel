@@ -32,13 +32,13 @@ type Cargo struct {
 	Carriers          []*Carrier   `json:"carriers"`
 	Itineraries       []*Itinerary `json:"itineraries"`
 	Shipments         []*Shipment  `json:"shipments"`
-	LastKnownLocation string       `json:"lastKnownLocation"`
+	LastKnownLocation *Location    `json:"last_known_location,omitempty"`
 }
 
 type Carrier struct {
 	ID       string    `json:"id"`
 	UserID   string    `json:"user_id"`
-	Nama     string    `json:"nama"`
+	Name     string    `json:"name"`
 	Email    string    `json:"email"`
 	Status   *string   `json:"status,omitempty"`
 	Location *Location `json:"location,omitempty"`
@@ -104,9 +104,9 @@ type ItemInput struct {
 }
 
 type Itinerary struct {
-	Location             string     `json:"location"`
-	EstimatedTimeArrival time.Time  `json:"estimatedTimeArrival"`
-	ActualTimeArrival    *time.Time `json:"actualTimeArrival,omitempty"`
+	Location             *Location  `json:"location"`
+	EstimatedTimeArrival time.Time  `json:"estimated_time_arrival"`
+	ActualTimeArrival    *time.Time `json:"actual_time_arrival,omitempty"`
 }
 
 type ItineraryLog struct {

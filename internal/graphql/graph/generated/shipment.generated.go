@@ -2472,8 +2472,8 @@ func (ec *executionContext) fieldContext_Query_GetMatchingCargos(ctx context.Con
 				return ec.fieldContext_Cargo_itineraries(ctx, field)
 			case "shipments":
 				return ec.fieldContext_Cargo_shipments(ctx, field)
-			case "lastKnownLocation":
-				return ec.fieldContext_Cargo_lastKnownLocation(ctx, field)
+			case "last_known_location":
+				return ec.fieldContext_Cargo_last_known_location(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Cargo", field.Name)
 		},

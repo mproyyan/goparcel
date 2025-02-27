@@ -242,7 +242,7 @@ func cargoToGraphResponse(cargo *genproto.Cargo) *model.Cargo {
 		Carriers:          convertCarriersToGraph(cargo.Carriers),
 		Itineraries:       convertItinerariesToGraph(cargo.Itineraries),
 		Shipments:         convertShipmentsToGraph(cargo.Shipments),
-		LastKnownLocation: cargo.LastKnownLocation,
+		LastKnownLocation: &model.Location{ID: cargo.LastKnownLocation},
 	}
 }
 
@@ -279,7 +279,7 @@ func convertItinerariesToGraph(itineraries []*genproto.Itinerary) []*model.Itine
 	var result []*model.Itinerary
 	for _, itinerary := range itineraries {
 		result = append(result, &model.Itinerary{
-			Location:             itinerary.Location,
+			Location:             &model.Location{ID: itinerary.Location},
 			EstimatedTimeArrival: itinerary.EstimatedTimeArrival.AsTime(),
 			ActualTimeArrival:    timestampConverter(itinerary.ActualTimeArrival),
 		})
@@ -308,7 +308,7 @@ func carrierToGraphResponse(carrier *genproto.Carrier) *model.Carrier {
 	return &model.Carrier{
 		ID:       carrier.Id,
 		UserID:   carrier.UserId,
-		Nama:     carrier.Name,
+		Name:     carrier.Name,
 		Email:    carrier.Email,
 		Status:   &carrier.Status,
 		Location: &model.Location{ID: carrier.LocationId},

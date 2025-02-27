@@ -34,8 +34,10 @@ type Config struct {
 
 type ResolverRoot interface {
 	Cargo() CargoResolver
+	Carrier() CarrierResolver
 	Courier() CourierResolver
 	Destination() DestinationResolver
+	Itinerary() ItineraryResolver
 	ItineraryLog() ItineraryLogResolver
 	Location() LocationResolver
 	Mutation() MutationResolver
@@ -82,7 +84,7 @@ type ComplexityRoot struct {
 		Email    func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Location func(childComplexity int) int
-		Nama     func(childComplexity int) int
+		Name     func(childComplexity int) int
 		Status   func(childComplexity int) int
 		UserID   func(childComplexity int) int
 	}
@@ -336,7 +338,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Cargo.Itineraries(childComplexity), true
 
-	case "Cargo.lastKnownLocation":
+	case "Cargo.last_known_location":
 		if e.complexity.Cargo.LastKnownLocation == nil {
 			break
 		}
@@ -392,12 +394,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Carrier.Location(childComplexity), true
 
-	case "Carrier.nama":
-		if e.complexity.Carrier.Nama == nil {
+	case "Carrier.name":
+		if e.complexity.Carrier.Name == nil {
 			break
 		}
 
-		return e.complexity.Carrier.Nama(childComplexity), true
+		return e.complexity.Carrier.Name(childComplexity), true
 
 	case "Carrier.status":
 		if e.complexity.Carrier.Status == nil {
@@ -525,14 +527,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.Weight(childComplexity), true
 
-	case "Itinerary.actualTimeArrival":
+	case "Itinerary.actual_time_arrival":
 		if e.complexity.Itinerary.ActualTimeArrival == nil {
 			break
 		}
 
 		return e.complexity.Itinerary.ActualTimeArrival(childComplexity), true
 
-	case "Itinerary.estimatedTimeArrival":
+	case "Itinerary.estimated_time_arrival":
 		if e.complexity.Itinerary.EstimatedTimeArrival == nil {
 			break
 		}
@@ -1279,7 +1281,7 @@ var sources = []*ast.Source{
   carriers: [Carrier!]!
   itineraries: [Itinerary!]!
   shipments: [Shipment!]!
-  lastKnownLocation: String!
+  last_known_location: Location
 }
 
 type Capacity {
@@ -1288,15 +1290,15 @@ type Capacity {
 }
 
 type Itinerary {
-  location: String!
-  estimatedTimeArrival: Time!
-  actualTimeArrival: Time
+  location: Location!
+  estimated_time_arrival: Time!
+  actual_time_arrival: Time
 }
 
 type Carrier {
     id: ID!
     user_id: ID!
-    nama: String!
+    name: String!
     email: String!
     status: String
     location: Location

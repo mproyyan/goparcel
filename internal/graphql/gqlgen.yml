@@ -186,6 +186,18 @@ models:
         resolver: true
       carriers:
         resolver: true
+      last_known_location:
+        resolver: true
+  
+  Carrier:
+    fields:
+      location:
+        resolver: true
+
+  Itinerary:
+    fields:
+      location:
+        resolver: true
 
   ID:
     model:
