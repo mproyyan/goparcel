@@ -88,3 +88,23 @@ func NewCourierServiceClient() (client genproto.CourierServiceClient, close func
 	// Create courier service client and return it
 	return genproto.NewCourierServiceClient(conn), conn.Close, nil
 }
+
+func NewCargoServiceClient() (client genproto.CargoServiceClient, close func() error, err error) {
+	// Get address from env
+	grpcAddr := os.Getenv("CARGO_SERVICE_ADDR")
+	if grpcAddr == "" {
+		return nil, func() error { return nil }, errors.New("empty env CARGO_SERVICE_ADDR")
+	}
+
+	// Setup new client with insecure connection
+	conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(
+		insecure.NewCredentials(),
+	))
+
+	if err != nil {
+		return nil, func() error { return nil }, err
+	}
+
+	// Create courier service client and return it
+	return genproto.NewCargoServiceClient(conn), conn.Close, nil
+}

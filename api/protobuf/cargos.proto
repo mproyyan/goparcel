@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package protobuf;
+
+option go_package = "github.com/mproyyan/goparcel/internal/common/genproto";
+
+service CargoService {
+    rpc GetMatchingCargos(GetMatchingCargosRequest) returns (CargoResponse) {} 
+}
+
+message GetMatchingCargosRequest {
+    string origin = 1;
+    string destination = 2;
+}
+
+message CargoResponse {
+    repeated Cargo cargos = 1;
+}
+
+message Cargo {
+    string id = 1;
+    string name = 2;
+    string status = 3;
+    Capacity max_capacity = 4;
+    Capacity current_load = 5;
+    repeated string carriers = 6;
+    repeated Itinerary itineraries = 7;
+    repeated string shipments = 8;
+    string last_known_location = 9;
+  }
+  
+message Capacity {
+    double weight = 1;
+    double volume = 2;
+}
+  
+message Itinerary {
+    string location = 1;
+    google.protobuf.Timestamp estimated_time_arrival = 2;
+    google.protobuf.Timestamp actual_time_arrival = 3;
+}
