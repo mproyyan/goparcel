@@ -53,11 +53,19 @@ func main() {
 	}
 	defer close()
 
+	// Connect to cargo service
+	cargoServiceClient, close, err := client.NewCargoServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to cargo service", err)
+	}
+	defer close()
+
 	resolver := resolvers.NewResolver(
 		locationServiceClient,
 		shipmentServiceClient,
 		courierServiceClient,
 		userServiceClient,
+		cargoServiceClient,
 	)
 
 	srv := handler.New(generated.NewExecutableSchema(generated.Config{

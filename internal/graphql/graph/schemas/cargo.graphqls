@@ -1,0 +1,35 @@
+type Cargo {
+  id: ID!
+  name: String!
+  status: String
+  maxCapacity: Capacity!
+  currentLoad: Capacity!
+  carriers: [Carrier!]!
+  itineraries: [Itinerary!]!
+  shipments: [Shipment!]!
+  lastKnownLocation: String!
+}
+
+type Capacity {
+  weight: Float!
+  volume: Float!
+}
+
+type Itinerary {
+  location: String!
+  estimatedTimeArrival: Time!
+  actualTimeArrival: Time
+}
+
+type Carrier {
+    id: ID!
+    user_id: ID!
+    nama: String!
+    email: String!
+    status: String
+    location: Location
+}
+
+extend type Query {
+    GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+}

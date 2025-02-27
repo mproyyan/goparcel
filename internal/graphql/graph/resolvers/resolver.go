@@ -30,6 +30,7 @@ type Resolver struct {
 	shipmentService genproto.ShipmentServiceClient
 	courierService  genproto.CourierServiceClient
 	userService     genproto.UserServiceClient
+	cargoService    genproto.CargoServiceClient
 }
 
 func NewResolver(
@@ -37,12 +38,14 @@ func NewResolver(
 	shipmentService genproto.ShipmentServiceClient,
 	courierService genproto.CourierServiceClient,
 	userService genproto.UserServiceClient,
+	cargoService genproto.CargoServiceClient,
 ) *Resolver {
 	resolver := &Resolver{
 		locationService: locationService,
 		shipmentService: shipmentService,
 		courierService:  courierService,
 		userService:     userService,
+		cargoService:    cargoService,
 	}
 
 	// Initiate dataloader

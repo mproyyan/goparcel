@@ -60,6 +60,32 @@ type ComplexityRoot struct {
 		ZipCode       func(childComplexity int) int
 	}
 
+	Capacity struct {
+		Volume func(childComplexity int) int
+		Weight func(childComplexity int) int
+	}
+
+	Cargo struct {
+		Carriers          func(childComplexity int) int
+		CurrentLoad       func(childComplexity int) int
+		ID                func(childComplexity int) int
+		Itineraries       func(childComplexity int) int
+		LastKnownLocation func(childComplexity int) int
+		MaxCapacity       func(childComplexity int) int
+		Name              func(childComplexity int) int
+		Shipments         func(childComplexity int) int
+		Status            func(childComplexity int) int
+	}
+
+	Carrier struct {
+		Email    func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Location func(childComplexity int) int
+		Nama     func(childComplexity int) int
+		Status   func(childComplexity int) int
+		UserID   func(childComplexity int) int
+	}
+
 	Courier struct {
 		Email    func(childComplexity int) int
 		ID       func(childComplexity int) int
@@ -86,6 +112,12 @@ type ComplexityRoot struct {
 		Name   func(childComplexity int) int
 		Volume func(childComplexity int) int
 		Weight func(childComplexity int) int
+	}
+
+	Itinerary struct {
+		ActualTimeArrival    func(childComplexity int) int
+		EstimatedTimeArrival func(childComplexity int) int
+		Location             func(childComplexity int) int
 	}
 
 	ItineraryLog struct {
@@ -143,6 +175,7 @@ type ComplexityRoot struct {
 	Query struct {
 		GetAvailableCouriers func(childComplexity int, locationID string) int
 		GetLocation          func(childComplexity int, id string) int
+		GetMatchingCargos    func(childComplexity int, origin string, destination string) int
 		GetRegion            func(childComplexity int, zipCode string) int
 		GetTransitPlaces     func(childComplexity int, id string) int
 		GetUnroutedShipments func(childComplexity int, locationID string) int
@@ -260,6 +293,125 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Address.ZipCode(childComplexity), true
 
+	case "Capacity.volume":
+		if e.complexity.Capacity.Volume == nil {
+			break
+		}
+
+		return e.complexity.Capacity.Volume(childComplexity), true
+
+	case "Capacity.weight":
+		if e.complexity.Capacity.Weight == nil {
+			break
+		}
+
+		return e.complexity.Capacity.Weight(childComplexity), true
+
+	case "Cargo.carriers":
+		if e.complexity.Cargo.Carriers == nil {
+			break
+		}
+
+		return e.complexity.Cargo.Carriers(childComplexity), true
+
+	case "Cargo.currentLoad":
+		if e.complexity.Cargo.CurrentLoad == nil {
+			break
+		}
+
+		return e.complexity.Cargo.CurrentLoad(childComplexity), true
+
+	case "Cargo.id":
+		if e.complexity.Cargo.ID == nil {
+			break
+		}
+
+		return e.complexity.Cargo.ID(childComplexity), true
+
+	case "Cargo.itineraries":
+		if e.complexity.Cargo.Itineraries == nil {
+			break
+		}
+
+		return e.complexity.Cargo.Itineraries(childComplexity), true
+
+	case "Cargo.lastKnownLocation":
+		if e.complexity.Cargo.LastKnownLocation == nil {
+			break
+		}
+
+		return e.complexity.Cargo.LastKnownLocation(childComplexity), true
+
+	case "Cargo.maxCapacity":
+		if e.complexity.Cargo.MaxCapacity == nil {
+			break
+		}
+
+		return e.complexity.Cargo.MaxCapacity(childComplexity), true
+
+	case "Cargo.name":
+		if e.complexity.Cargo.Name == nil {
+			break
+		}
+
+		return e.complexity.Cargo.Name(childComplexity), true
+
+	case "Cargo.shipments":
+		if e.complexity.Cargo.Shipments == nil {
+			break
+		}
+
+		return e.complexity.Cargo.Shipments(childComplexity), true
+
+	case "Cargo.status":
+		if e.complexity.Cargo.Status == nil {
+			break
+		}
+
+		return e.complexity.Cargo.Status(childComplexity), true
+
+	case "Carrier.email":
+		if e.complexity.Carrier.Email == nil {
+			break
+		}
+
+		return e.complexity.Carrier.Email(childComplexity), true
+
+	case "Carrier.id":
+		if e.complexity.Carrier.ID == nil {
+			break
+		}
+
+		return e.complexity.Carrier.ID(childComplexity), true
+
+	case "Carrier.location":
+		if e.complexity.Carrier.Location == nil {
+			break
+		}
+
+		return e.complexity.Carrier.Location(childComplexity), true
+
+	case "Carrier.nama":
+		if e.complexity.Carrier.Nama == nil {
+			break
+		}
+
+		return e.complexity.Carrier.Nama(childComplexity), true
+
+	case "Carrier.status":
+		if e.complexity.Carrier.Status == nil {
+			break
+		}
+
+		return e.complexity.Carrier.Status(childComplexity), true
+
+	case "Carrier.user_id":
+		if e.complexity.Carrier.UserID == nil {
+			break
+		}
+
+		return e.complexity.Carrier.UserID(childComplexity), true
+
 	case "Courier.email":
 		if e.complexity.Courier.Email == nil {
 			break
@@ -371,6 +523,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Item.Weight(childComplexity), true
+
+	case "Itinerary.actualTimeArrival":
+		if e.complexity.Itinerary.ActualTimeArrival == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.ActualTimeArrival(childComplexity), true
+
+	case "Itinerary.estimatedTimeArrival":
+		if e.complexity.Itinerary.EstimatedTimeArrival == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.EstimatedTimeArrival(childComplexity), true
+
+	case "Itinerary.location":
+		if e.complexity.Itinerary.Location == nil {
+			break
+		}
+
+		return e.complexity.Itinerary.Location(childComplexity), true
 
 	case "ItineraryLog.activity_type":
 		if e.complexity.ItineraryLog.ActivityType == nil {
@@ -673,6 +846,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetLocation(childComplexity, args["id"].(string)), true
+
+	case "Query.GetMatchingCargos":
+		if e.complexity.Query.GetMatchingCargos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetMatchingCargos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetMatchingCargos(childComplexity, args["origin"].(string), args["destination"].(string)), true
 
 	case "Query.GetRegion":
 		if e.complexity.Query.GetRegion == nil {
@@ -1084,6 +1269,41 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schemas/cargo.graphqls", Input: `type Cargo {
+  id: ID!
+  name: String!
+  status: String
+  maxCapacity: Capacity!
+  currentLoad: Capacity!
+  carriers: [Carrier!]!
+  itineraries: [Itinerary!]!
+  shipments: [Shipment!]!
+  lastKnownLocation: String!
+}
+
+type Capacity {
+  weight: Float!
+  volume: Float!
+}
+
+type Itinerary {
+  location: String!
+  estimatedTimeArrival: Time!
+  actualTimeArrival: Time
+}
+
+type Carrier {
+    id: ID!
+    user_id: ID!
+    nama: String!
+    email: String!
+    status: String
+    location: Location
+}
+
+extend type Query {
+    GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+}`, BuiltIn: false},
 	{Name: "../schemas/courier.graphqls", Input: `type Courier {
     id: ID!
     user_id: ID!

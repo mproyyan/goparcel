@@ -1,8 +1,11 @@
 package resolvers
 
 import (
+	"time"
+
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func safePointer[T any](p *T, defaultValue T) T {
@@ -222,4 +225,81 @@ func transferRequestsToGraphResponse(reqs []*genproto.TransferRequest) []*model.
 		graphRequests = append(graphRequests, transferRequestToGraphResponse(req))
 	}
 	return graphRequests
+}
+
+// cargoToGraphResponse mengonversi genproto.Cargo ke model.Cargo
+func cargoToGraphResponse(cargo *genproto.Cargo) *model.Cargo {
+	if cargo == nil {
+		return nil
+	}
+
+	return &model.Cargo{
+		ID:                cargo.Id,
+		Name:              cargo.Name,
+		Status:            &cargo.Status,
+		MaxCapacity:       convertCapacityToGraph(cargo.MaxCapacity),
+		CurrentLoad:       convertCapacityToGraph(cargo.CurrentLoad),
+		Carriers:          convertCarriersToGraph(cargo.Carriers),
+		Itineraries:       convertItinerariesToGraph(cargo.Itineraries),
+		Shipments:         convertShipmentsToGraph(cargo.Shipments),
+		LastKnownLocation: cargo.LastKnownLocation,
+	}
+}
+
+// cargosToGraphResponse mengonversi slice genproto.Cargo ke slice model.Cargo
+func cargosToGraphResponse(cargos []*genproto.Cargo) []*model.Cargo {
+	var result []*model.Cargo
+	for _, cargo := range cargos {
+		result = append(result, cargoToGraphResponse(cargo))
+	}
+	return result
+}
+
+// convertCapacityToGraph mengonversi genproto.Capacity ke model.Capacity
+func convertCapacityToGraph(capacity *genproto.Capacity) *model.Capacity {
+	if capacity == nil {
+		return nil
+	}
+	return &model.Capacity{
+		Weight: capacity.Weight,
+		Volume: capacity.Volume,
+	}
+}
+
+// convertCarriersToGraph mengonversi slice string ke slice model.Carrier
+func convertCarriersToGraph(carriers []string) []*model.Carrier {
+	var result []*model.Carrier
+	for _, carrierID := range carriers {
+		result = append(result, &model.Carrier{ID: carrierID})
+	}
+	return result
+}
+
+func convertItinerariesToGraph(itineraries []*genproto.Itinerary) []*model.Itinerary {
+	var result []*model.Itinerary
+	for _, itinerary := range itineraries {
+		result = append(result, &model.Itinerary{
+			Location:             itinerary.Location,
+			EstimatedTimeArrival: itinerary.EstimatedTimeArrival.AsTime(),
+			ActualTimeArrival:    timestampConverter(itinerary.ActualTimeArrival),
+		})
+	}
+	return result
+}
+
+func convertShipmentsToGraph(shipments []string) []*model.Shipment {
+	var result []*model.Shipment
+	for _, shipmentID := range shipments {
+		result = append(result, &model.Shipment{ID: shipmentID})
+	}
+	return result
+}
+
+func timestampConverter(t *timestamppb.Timestamp) *time.Time {
+	if t == nil {
+		return nil
+	}
+
+	converted := t.AsTime()
+	return &converted
 }

@@ -18,6 +18,32 @@ type Address struct {
 	ZipCode       *string `json:"zip_code,omitempty"`
 }
 
+type Capacity struct {
+	Weight float64 `json:"weight"`
+	Volume float64 `json:"volume"`
+}
+
+type Cargo struct {
+	ID                string       `json:"id"`
+	Name              string       `json:"name"`
+	Status            *string      `json:"status,omitempty"`
+	MaxCapacity       *Capacity    `json:"maxCapacity"`
+	CurrentLoad       *Capacity    `json:"currentLoad"`
+	Carriers          []*Carrier   `json:"carriers"`
+	Itineraries       []*Itinerary `json:"itineraries"`
+	Shipments         []*Shipment  `json:"shipments"`
+	LastKnownLocation string       `json:"lastKnownLocation"`
+}
+
+type Carrier struct {
+	ID       string    `json:"id"`
+	UserID   string    `json:"user_id"`
+	Nama     string    `json:"nama"`
+	Email    string    `json:"email"`
+	Status   *string   `json:"status,omitempty"`
+	Location *Location `json:"location,omitempty"`
+}
+
 type Courier struct {
 	ID       string    `json:"id"`
 	UserID   string    `json:"user_id"`
@@ -75,6 +101,12 @@ type ItemInput struct {
 	Amount int32        `json:"amount"`
 	Weight int32        `json:"weight"`
 	Volume *VolumeInput `json:"volume,omitempty"`
+}
+
+type Itinerary struct {
+	Location             string     `json:"location"`
+	EstimatedTimeArrival time.Time  `json:"estimatedTimeArrival"`
+	ActualTimeArrival    *time.Time `json:"actualTimeArrival,omitempty"`
 }
 
 type ItineraryLog struct {
