@@ -311,9 +311,23 @@ func (s ShipmentService) RecordItinerary(ctx context.Context, shipmentIds []stri
 		return status.Error(codes.InvalidArgument, "location id is not valid object id")
 	}
 
-	err = s.shipmentRepository.LogItinerary(ctx, objIds, locationObjId, activity)
+	s.transaction.Execute(ctx, func(ctx context.Context) error {
+		// if activity is load then update transport status
+		err = s.shipmentRepository.UpdateTransportStatus(ctx, objIds, domain.OnBoardCargo)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to update transport status")
+		}
+
+		err = s.shipmentRepository.LogItinerary(ctx, objIds, locationObjId, activity)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to create log itinerary")
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		return cuserr.Decorate(err, "failed to create log itinerary")
+		return cuserr.MongoError(err)
 	}
 
 	return nil
