@@ -126,6 +126,20 @@ func (g GrpcServer) ShipPackage(ctx context.Context, request *genproto.ShipPacka
 	return &emptypb.Empty{}, nil
 }
 
+func (g GrpcServer) AddItineraryHistory(ctx context.Context, request *genproto.AddItineraryHistoryRequest) (*emptypb.Empty, error) {
+	activityType := domain.StringToActivityType(request.Activity)
+	if activityType == domain.Unknown {
+		return nil, status.Error(codes.InvalidArgument, "invalid activity type")
+	}
+
+	err := g.service.RecordItinerary(ctx, request.ShipmentIds, request.LocationId, activityType)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to record itinerary")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func protoRequestToItems(packages []*genproto.Package) []domain.Item {
 	var items []domain.Item
 	for _, pkg := range packages {

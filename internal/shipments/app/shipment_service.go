@@ -295,3 +295,26 @@ func (s ShipmentService) ShipPackage(ctx context.Context, shipmentId, cargoId, o
 
 	return nil
 }
+
+func (s ShipmentService) RecordItinerary(ctx context.Context, shipmentIds []string, locationId string, activity domain.ActivityType) error {
+	var objIds []primitive.ObjectID
+	for _, id := range shipmentIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+		}
+		objIds = append(objIds, objId)
+	}
+
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
+	err = s.shipmentRepository.LogItinerary(ctx, objIds, locationObjId, activity)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to create log itinerary")
+	}
+
+	return nil
+}

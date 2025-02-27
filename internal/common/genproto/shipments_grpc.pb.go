@@ -27,6 +27,7 @@ const (
 	ShipmentService_GetShipments_FullMethodName         = "/protobuf.ShipmentService/GetShipments"
 	ShipmentService_ScanArrivingShipment_FullMethodName = "/protobuf.ShipmentService/ScanArrivingShipment"
 	ShipmentService_ShipPackage_FullMethodName          = "/protobuf.ShipmentService/ShipPackage"
+	ShipmentService_AddItineraryHistory_FullMethodName  = "/protobuf.ShipmentService/AddItineraryHistory"
 )
 
 // ShipmentServiceClient is the client API for ShipmentService service.
@@ -40,6 +41,7 @@ type ShipmentServiceClient interface {
 	GetShipments(ctx context.Context, in *GetShipmentsRequest, opts ...grpc.CallOption) (*ShipmentResponse, error)
 	ScanArrivingShipment(ctx context.Context, in *ScanArrivingShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ShipPackage(ctx context.Context, in *ShipPackageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	AddItineraryHistory(ctx context.Context, in *AddItineraryHistoryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type shipmentServiceClient struct {
@@ -120,6 +122,16 @@ func (c *shipmentServiceClient) ShipPackage(ctx context.Context, in *ShipPackage
 	return out, nil
 }
 
+func (c *shipmentServiceClient) AddItineraryHistory(ctx context.Context, in *AddItineraryHistoryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ShipmentService_AddItineraryHistory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShipmentServiceServer is the server API for ShipmentService service.
 // All implementations must embed UnimplementedShipmentServiceServer
 // for forward compatibility.
@@ -131,6 +143,7 @@ type ShipmentServiceServer interface {
 	GetShipments(context.Context, *GetShipmentsRequest) (*ShipmentResponse, error)
 	ScanArrivingShipment(context.Context, *ScanArrivingShipmentRequest) (*emptypb.Empty, error)
 	ShipPackage(context.Context, *ShipPackageRequest) (*emptypb.Empty, error)
+	AddItineraryHistory(context.Context, *AddItineraryHistoryRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedShipmentServiceServer()
 }
 
@@ -161,6 +174,9 @@ func (UnimplementedShipmentServiceServer) ScanArrivingShipment(context.Context, 
 }
 func (UnimplementedShipmentServiceServer) ShipPackage(context.Context, *ShipPackageRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ShipPackage not implemented")
+}
+func (UnimplementedShipmentServiceServer) AddItineraryHistory(context.Context, *AddItineraryHistoryRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddItineraryHistory not implemented")
 }
 func (UnimplementedShipmentServiceServer) mustEmbedUnimplementedShipmentServiceServer() {}
 func (UnimplementedShipmentServiceServer) testEmbeddedByValue()                         {}
@@ -309,6 +325,24 @@ func _ShipmentService_ShipPackage_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShipmentService_AddItineraryHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddItineraryHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShipmentServiceServer).AddItineraryHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShipmentService_AddItineraryHistory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShipmentServiceServer).AddItineraryHistory(ctx, req.(*AddItineraryHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShipmentService_ServiceDesc is the grpc.ServiceDesc for ShipmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -343,6 +377,10 @@ var ShipmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ShipPackage",
 			Handler:    _ShipmentService_ShipPackage_Handler,
+		},
+		{
+			MethodName: "AddItineraryHistory",
+			Handler:    _ShipmentService_AddItineraryHistory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
