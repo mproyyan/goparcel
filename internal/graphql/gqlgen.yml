@@ -179,6 +179,11 @@ models:
         resolver: true
       accepted_by: # Need resolver for accepted_by field
         resolver: true
+  
+  Cargo:
+    fields:
+      shipments:
+        resolver: true
 
   ID:
     model:

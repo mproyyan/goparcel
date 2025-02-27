@@ -33,6 +33,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Cargo() CargoResolver
 	Courier() CourierResolver
 	Destination() DestinationResolver
 	ItineraryLog() ItineraryLogResolver

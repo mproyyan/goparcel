@@ -7,10 +7,33 @@ package resolvers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/mproyyan/goparcel/internal/common/genproto"
+	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
+
+// Shipments is the resolver for the shipments field.
+func (r *cargoResolver) Shipments(ctx context.Context, obj *model.Cargo) ([]*model.Shipment, error) {
+	if obj.ID == "" || obj.Shipments == nil {
+		return nil, nil
+	}
+
+	var shipmentIds []string
+	for _, shipment := range obj.Shipments {
+		if shipment == nil {
+			continue
+		}
+
+		shipmentIds = append(shipmentIds, shipment.ID)
+	}
+
+	stringShipmentIds := strings.Join(shipmentIds, ",")
+	key := fmt.Sprintf("%s:%s", obj.ID, stringShipmentIds)
+
+	return r.shipmentsLoader.Load(ctx, key)
+}
 
 // GetMatchingCargos is the resolver for the GetMatchingCargos field.
 func (r *queryResolver) GetMatchingCargos(ctx context.Context, origin string, destination string) ([]*model.Cargo, error) {
@@ -26,3 +49,8 @@ func (r *queryResolver) GetMatchingCargos(ctx context.Context, origin string, de
 
 	return cargosToGraphResponse(result.Cargos), nil
 }
+
+// Cargo returns generated.CargoResolver implementation.
+func (r *Resolver) Cargo() generated.CargoResolver { return &cargoResolver{r} }
+
+type cargoResolver struct{ *Resolver }

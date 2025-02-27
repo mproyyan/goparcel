@@ -19,11 +19,12 @@ import (
 
 type Resolver struct {
 	// Loaders
-	locationLoader *dataloadgen.Loader[string, *model.Location]
-	entityLoader   *dataloadgen.Loader[string, *model.UserEntity]
-	shipmentLoader *dataloadgen.Loader[string, *model.Shipment]
-	userLoader     *dataloadgen.Loader[string, *model.User]
-	courierLoader  *dataloadgen.Loader[string, *model.Courier]
+	locationLoader  *dataloadgen.Loader[string, *model.Location]
+	entityLoader    *dataloadgen.Loader[string, *model.UserEntity]
+	shipmentLoader  *dataloadgen.Loader[string, *model.Shipment]
+	userLoader      *dataloadgen.Loader[string, *model.User]
+	courierLoader   *dataloadgen.Loader[string, *model.Courier]
+	shipmentsLoader *dataloadgen.Loader[string, []*model.Shipment]
 
 	// GRPC Clients
 	locationService genproto.LocationServiceClient
@@ -54,6 +55,7 @@ func NewResolver(
 	resolver.shipmentLoader = dataloadgen.NewLoader(resolver.loadShipment, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.userLoader = dataloadgen.NewLoader(resolver.loadUser, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.courierLoader = dataloadgen.NewLoader(resolver.loadCourier, dataloadgen.WithWait(time.Millisecond*5))
+	resolver.shipmentsLoader = dataloadgen.NewLoader(resolver.loadShipments, dataloadgen.WithWait(time.Millisecond*5))
 
 	return resolver
 }
@@ -277,4 +279,78 @@ func (r *Resolver) loadCourier(ctx context.Context, keys []string) ([]*model.Cou
 	}
 
 	return results, errors
+}
+
+func (r *Resolver) loadShipments(ctx context.Context, keys []string) ([][]*model.Shipment, []error) {
+	if len(keys) == 0 {
+		return nil, nil
+	}
+
+	// Parse the keys into a map of Cargo ID -> Shipment IDs
+	cargoShipmentMap := make(map[string][]string)
+	var allShipmentIDs []string
+	seen := make(map[string]struct{}) // To prevent duplicate shipment ID retrievals
+
+	for _, key := range keys {
+		// Example key: "cargo123:shipmentA,shipmentB,shipmentC"
+		parts := strings.SplitN(key, ":", 2)
+		if len(parts) != 2 {
+			log.Println("Invalid key format:", key)
+			continue
+		}
+
+		cargoID := parts[0]
+		shipmentIDs := strings.Split(parts[1], ",") // Extract shipment IDs
+
+		cargoShipmentMap[cargoID] = shipmentIDs
+
+		// Collect unique shipment IDs
+		for _, id := range shipmentIDs {
+			if _, exists := seen[id]; !exists {
+				seen[id] = struct{}{}
+				allShipmentIDs = append(allShipmentIDs, id)
+			}
+		}
+	}
+
+	// If no valid shipment IDs, return empty results
+	if len(allShipmentIDs) == 0 {
+		return nil, nil
+	}
+
+	// Fetch shipments from the RPC service
+	log.Println("Fetching shipments from RPC service for shipment IDs:", allShipmentIDs)
+	resp, err := r.shipmentService.GetShipments(ctx, &genproto.GetShipmentsRequest{Ids: allShipmentIDs})
+	if err != nil {
+		log.Println("Error fetching shipments:", err)
+		return nil, []error{err}
+	}
+
+	// Create a map of Shipment ID -> Shipment object
+	shipmentMap := make(map[string]*model.Shipment)
+	for _, shipment := range resp.Shipment {
+		shipmentMap[shipment.Id] = shipmentToGraphResponse(shipment)
+	}
+
+	// Prepare the results in the same order as the keys
+	results := make([][]*model.Shipment, len(keys))
+	for i, key := range keys {
+		parts := strings.SplitN(key, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		shipmentIDs := strings.Split(parts[1], ",")
+		var shipments []*model.Shipment
+
+		for _, shipmentID := range shipmentIDs {
+			if shipment, found := shipmentMap[shipmentID]; found {
+				shipments = append(shipments, shipment)
+			}
+		}
+
+		results[i] = shipments // Assign shipments to the corresponding cargo key
+	}
+
+	return results, nil
 }
