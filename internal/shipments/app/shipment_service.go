@@ -229,3 +229,63 @@ func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, s
 
 	return nil
 }
+
+func (s ShipmentService) ShipPackage(ctx context.Context, shipmentId, cargoId, origin, destnation, userId string) error {
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo_id is not valid object id")
+	}
+
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "origin is not valid object id")
+	}
+
+	destinationObjId, err := primitive.ObjectIDFromHex(destnation)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	userObjId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "user_id is not valid object id")
+	}
+
+	// Cannot create another transfer request if shipment still have pending transfer request
+	_, found, err := s.transferRequestRepository.LatestPendingTransferRequest(ctx, shipmentObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to find latest pending transfer request from repository")
+	}
+
+	if found {
+		return status.Error(codes.InvalidArgument, "shipment still have pending transfer request")
+	}
+
+	// Start transaction
+	s.transaction.Execute(ctx, func(ctx context.Context) error {
+		// Create new transfer request with shipment type
+		err := s.transferRequestRepository.ShipPackage(ctx, shipmentObjId, cargoObjId, originObjId, destinationObjId, userObjId)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to create new transfer request with shipment type")
+		}
+
+		// Update shipment routing status to routed
+		err = s.shipmentRepository.UpdateRoutingStatus(ctx, shipmentObjId, domain.Routed)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to update routing status to 'routed'")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}

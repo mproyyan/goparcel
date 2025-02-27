@@ -137,6 +137,30 @@ func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context,
 	return nil
 }
 
+func (t *TransferRequestRepository) ShipPackage(ctx context.Context, shipmentId, cargoId, origin, destination, requestedBy primitive.ObjectID) error {
+	transitRequest := TransferRequestModel{
+		RequestType: domain.RequestTypeShipment.String(),
+		ShipmentID:  shipmentId,
+		Origin: Origin{
+			Location:    origin,
+			RequestedBy: requestedBy,
+		},
+		Destination: Destination{
+			Location: &destination,
+		},
+		CargoID:   &cargoId,
+		Status:    domain.StatusPending.String(),
+		CreatedAt: time.Now(),
+	}
+
+	_, err := t.collection.InsertOne(ctx, transitRequest)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
 // Helper function
 
 func transferRequestModelToDomain(model TransferRequestModel) domain.TransferRequest {

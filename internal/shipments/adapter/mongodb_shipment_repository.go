@@ -172,6 +172,28 @@ func (s *ShipmentRepository) GetShipment(ctx context.Context, id primitive.Objec
 	return shipmentModelToDomain(&shipment), nil
 }
 
+func (s *ShipmentRepository) UpdateRoutingStatus(ctx context.Context, shipmentId primitive.ObjectID, status domain.RoutingStatus) error {
+	filter := bson.M{"_id": shipmentId}
+	update := bson.M{"$set": bson.M{"routing_status": status.String()}}
+	_, err := s.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
+func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipmentId primitive.ObjectID, status domain.TransportStatus) error {
+	filter := bson.M{"_id": shipmentId}
+	update := bson.M{"$set": bson.M{"transport_status": status.String()}}
+	_, err := s.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
 // generateAWB generates a unique Airway Bill (AWB) number
 func generateAWB(length int) string {
 	src := rand.NewSource(time.Now().UnixNano())
