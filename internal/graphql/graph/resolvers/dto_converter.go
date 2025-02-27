@@ -303,3 +303,23 @@ func timestampConverter(t *timestamppb.Timestamp) *time.Time {
 	converted := t.AsTime()
 	return &converted
 }
+
+func carrierToGraphResponse(carrier *genproto.Carrier) *model.Carrier {
+	return &model.Carrier{
+		ID:       carrier.Id,
+		UserID:   carrier.UserId,
+		Nama:     carrier.Name,
+		Email:    carrier.Email,
+		Status:   &carrier.Status,
+		Location: &model.Location{ID: carrier.LocationId},
+	}
+}
+
+func carriersToGraphResponse(carriers []*genproto.Carrier) []*model.Carrier {
+	var response []*model.Carrier
+	for _, carrier := range carriers {
+		response = append(response, carrierToGraphResponse(carrier))
+	}
+
+	return response
+}

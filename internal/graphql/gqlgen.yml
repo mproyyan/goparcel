@@ -184,6 +184,8 @@ models:
     fields:
       shipments:
         resolver: true
+      carriers:
+        resolver: true
 
   ID:
     model:

@@ -25,6 +25,7 @@ type Resolver struct {
 	userLoader      *dataloadgen.Loader[string, *model.User]
 	courierLoader   *dataloadgen.Loader[string, *model.Courier]
 	shipmentsLoader *dataloadgen.Loader[string, []*model.Shipment]
+	carriersLoader  *dataloadgen.Loader[string, []*model.Carrier]
 
 	// GRPC Clients
 	locationService genproto.LocationServiceClient
@@ -56,6 +57,7 @@ func NewResolver(
 	resolver.userLoader = dataloadgen.NewLoader(resolver.loadUser, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.courierLoader = dataloadgen.NewLoader(resolver.loadCourier, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.shipmentsLoader = dataloadgen.NewLoader(resolver.loadShipments, dataloadgen.WithWait(time.Millisecond*5))
+	resolver.carriersLoader = dataloadgen.NewLoader(resolver.loadCarriers, dataloadgen.WithWait(time.Millisecond*5))
 
 	return resolver
 }
@@ -350,6 +352,80 @@ func (r *Resolver) loadShipments(ctx context.Context, keys []string) ([][]*model
 		}
 
 		results[i] = shipments // Assign shipments to the corresponding cargo key
+	}
+
+	return results, nil
+}
+
+func (r *Resolver) loadCarriers(ctx context.Context, keys []string) ([][]*model.Carrier, []error) {
+	if len(keys) == 0 {
+		return nil, nil
+	}
+
+	// Parse the keys into a map of Cargo ID -> Carrier IDs
+	cargoCarrierMap := make(map[string][]string)
+	var allCarrierIDs []string
+	seen := make(map[string]struct{}) // To prevent duplicate carrier ID retrievals
+
+	for _, key := range keys {
+		// Example key: "cargo123:CarrierA,CarrierB,CarrierC"
+		parts := strings.SplitN(key, ":", 2)
+		if len(parts) != 2 {
+			log.Println("Invalid key format:", key)
+			continue
+		}
+
+		cargoID := parts[0]
+		carrierIds := strings.Split(parts[1], ",") // Extract carrier IDs
+
+		cargoCarrierMap[cargoID] = carrierIds
+
+		// Collect unique carrier IDs
+		for _, id := range carrierIds {
+			if _, exists := seen[id]; !exists {
+				seen[id] = struct{}{}
+				allCarrierIDs = append(allCarrierIDs, id)
+			}
+		}
+	}
+
+	// If no valid carrier IDs, return empty results
+	if len(allCarrierIDs) == 0 {
+		return nil, nil
+	}
+
+	// Fetch carriers from the RPC service
+	log.Println("Fetching carriers from RPC service for carrier IDs:", allCarrierIDs)
+	resp, err := r.userService.GetCarriers(ctx, &genproto.GetCarriersRequest{Ids: allCarrierIDs})
+	if err != nil {
+		log.Println("Error fetching carriers:", err)
+		return nil, []error{err}
+	}
+
+	// Create a map of Carrier ID -> carrier object
+	carrierMap := make(map[string]*model.Carrier)
+	for _, carrier := range resp.Carriers {
+		carrierMap[carrier.Id] = carrierToGraphResponse(carrier)
+	}
+
+	// Prepare the results in the same order as the keys
+	results := make([][]*model.Carrier, len(keys))
+	for i, key := range keys {
+		parts := strings.SplitN(key, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		carrierIds := strings.Split(parts[1], ",")
+		var carriers []*model.Carrier
+
+		for _, carrierId := range carrierIds {
+			if carrier, found := carrierMap[carrierId]; found {
+				carriers = append(carriers, carrier)
+			}
+		}
+
+		results[i] = carriers // Assign carrier to the corresponding cargo key
 	}
 
 	return results, nil

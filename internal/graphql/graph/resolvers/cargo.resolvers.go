@@ -14,6 +14,27 @@ import (
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
 
+// Carriers is the resolver for the carriers field.
+func (r *cargoResolver) Carriers(ctx context.Context, obj *model.Cargo) ([]*model.Carrier, error) {
+	if obj.ID == "" || obj.Carriers == nil {
+		return nil, nil
+	}
+
+	var carrierIds []string
+	for _, carrier := range obj.Carriers {
+		if carrier == nil {
+			continue
+		}
+
+		carrierIds = append(carrierIds, carrier.ID)
+	}
+
+	stringCarrierIds := strings.Join(carrierIds, ",")
+	key := fmt.Sprintf("%s:%s", obj.ID, stringCarrierIds)
+
+	return r.carriersLoader.Load(ctx, key)
+}
+
 // Shipments is the resolver for the shipments field.
 func (r *cargoResolver) Shipments(ctx context.Context, obj *model.Cargo) ([]*model.Shipment, error) {
 	if obj.ID == "" || obj.Shipments == nil {
