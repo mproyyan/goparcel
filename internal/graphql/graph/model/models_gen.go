@@ -193,6 +193,13 @@ type RequestTransitInput struct {
 	CourierID   string `json:"courier_id"`
 }
 
+type ShipPackageInput struct {
+	ShipmentID  string `json:"shipment_id"`
+	Origin      string `json:"origin"`
+	Destination string `json:"destination"`
+	CargoID     string `json:"cargo_id"`
+}
+
 type Shipment struct {
 	ID              string          `json:"id"`
 	AirwayBill      string          `json:"airway_bill"`

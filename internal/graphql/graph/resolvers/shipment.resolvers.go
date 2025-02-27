@@ -109,6 +109,28 @@ func (r *mutationResolver) ScanArrivingShipment(ctx context.Context, locationID 
 	return "The shipment has been scanned successfully", nil
 }
 
+// ShipPackage is the resolver for the ShipPackage field.
+func (r *mutationResolver) ShipPackage(ctx context.Context, input model.ShipPackageInput) (string, error) {
+	authUser, err := middlewares.GetAuthUser(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	ctx = auth.SendAuthUser(ctx, authUser.UserID, authUser.ModelID)
+	_, err = r.shipmentService.ShipPackage(ctx, &genproto.ShipPackageRequest{
+		ShipmentId:  input.ShipmentID,
+		CargoId:     input.CargoID,
+		Origin:      input.Origin,
+		Destination: input.Destination,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "successfully created a shipment request", nil
+}
+
 // Location is the resolver for the location field.
 func (r *originResolver) Location(ctx context.Context, obj *model.Origin) (*model.Location, error) {
 	if obj.Location != nil && obj.Location.ID == "" {

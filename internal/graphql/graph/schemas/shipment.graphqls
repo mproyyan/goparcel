@@ -112,6 +112,13 @@ input RequestTransitInput {
     courier_id: ID!
 }
 
+input ShipPackageInput {
+    shipment_id: ID!
+    origin: ID!
+    destination: ID!
+    cargo_id: ID!
+}
+
 type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
     IncomingShipments(location_id: ID!): [TransferRequest!]!
@@ -121,4 +128,5 @@ type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
     RequestTransit(input: RequestTransitInput): String!
     ScanArrivingShipment(location_id: ID! shipment_id: ID!): String!
+    ShipPackage(input: ShipPackageInput!): String!
 }

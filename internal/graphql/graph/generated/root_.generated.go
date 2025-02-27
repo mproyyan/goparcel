@@ -157,6 +157,7 @@ type ComplexityRoot struct {
 		RegisterAsOperator   func(childComplexity int, input model.RegisterAsOperatorInput) int
 		RequestTransit       func(childComplexity int, input *model.RequestTransitInput) int
 		ScanArrivingShipment func(childComplexity int, locationID string, shipmentID string) int
+		ShipPackage          func(childComplexity int, input model.ShipPackageInput) int
 	}
 
 	Origin struct {
@@ -756,6 +757,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ScanArrivingShipment(childComplexity, args["location_id"].(string), args["shipment_id"].(string)), true
 
+	case "Mutation.ShipPackage":
+		if e.complexity.Mutation.ShipPackage == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ShipPackage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ShipPackage(childComplexity, args["input"].(model.ShipPackageInput)), true
+
 	case "Origin.location":
 		if e.complexity.Origin.Location == nil {
 			break
@@ -1174,6 +1187,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputRegisterAsCourierInput,
 		ec.unmarshalInputRegisterAsOperatorInput,
 		ec.unmarshalInputRequestTransitInput,
+		ec.unmarshalInputShipPackageInput,
 		ec.unmarshalInputVolumeInput,
 	)
 	first := true
@@ -1490,6 +1504,13 @@ input RequestTransitInput {
     courier_id: ID!
 }
 
+input ShipPackageInput {
+    shipment_id: ID!
+    origin: ID!
+    destination: ID!
+    cargo_id: ID!
+}
+
 type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
     IncomingShipments(location_id: ID!): [TransferRequest!]!
@@ -1499,6 +1520,7 @@ type Mutation {
     CreateShipment(input: CreateShipmentInput): String!
     RequestTransit(input: RequestTransitInput): String!
     ScanArrivingShipment(location_id: ID! shipment_id: ID!): String!
+    ShipPackage(input: ShipPackageInput!): String!
 }
 `, BuiltIn: false},
 	{Name: "../schemas/user.graphqls", Input: `directive @skipAuth on FIELD_DEFINITION
