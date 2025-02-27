@@ -24,6 +24,7 @@ type Resolver struct {
 	shipmentLoader  *dataloadgen.Loader[string, *model.Shipment]
 	userLoader      *dataloadgen.Loader[string, *model.User]
 	courierLoader   *dataloadgen.Loader[string, *model.Courier]
+	cargoLoader     *dataloadgen.Loader[string, *model.Cargo]
 	shipmentsLoader *dataloadgen.Loader[string, []*model.Shipment]
 	carriersLoader  *dataloadgen.Loader[string, []*model.Carrier]
 
@@ -58,6 +59,7 @@ func NewResolver(
 	resolver.courierLoader = dataloadgen.NewLoader(resolver.loadCourier, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.shipmentsLoader = dataloadgen.NewLoader(resolver.loadShipments, dataloadgen.WithWait(time.Millisecond*5))
 	resolver.carriersLoader = dataloadgen.NewLoader(resolver.loadCarriers, dataloadgen.WithWait(time.Millisecond*5))
+	resolver.cargoLoader = dataloadgen.NewLoader(resolver.loadCargo, dataloadgen.WithWait(time.Millisecond*5))
 
 	return resolver
 }
@@ -429,4 +431,35 @@ func (r *Resolver) loadCarriers(ctx context.Context, keys []string) ([][]*model.
 	}
 
 	return results, nil
+}
+
+func (r *Resolver) loadCargo(ctx context.Context, keys []string) ([]*model.Cargo, []error) {
+	if len(keys) <= 0 {
+		return nil, nil
+	}
+
+	log.Println("Fetching cargos from RPC service for keys:", keys)
+
+	resp, err := r.cargoService.GetCargos(ctx, &genproto.GetCargosRequest{Ids: keys})
+	if err != nil {
+		log.Println("Error fetching cargos:", err)
+		return nil, []error{err}
+	}
+
+	cargoMap := make(map[string]*model.Cargo)
+	for _, cargo := range resp.Cargos {
+		cargoMap[cargo.Id] = cargoToGraphResponse(cargo)
+	}
+
+	results := make([]*model.Cargo, len(keys))
+	errors := make([]error, len(keys))
+	for i, key := range keys {
+		if cargo, found := cargoMap[key]; found {
+			results[i] = cargo
+		} else {
+			errors[i] = fmt.Errorf("cargo not found for ID: %s", key)
+		}
+	}
+
+	return results, errors
 }

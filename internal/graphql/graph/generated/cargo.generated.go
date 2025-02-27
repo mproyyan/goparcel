@@ -1566,4 +1566,11 @@ func (ec *executionContext) marshalNItinerary2ᚖgithubᚗcomᚋmproyyanᚋgopar
 	return ec._Itinerary(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOCargo2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCargo(ctx context.Context, sel ast.SelectionSet, v *model.Cargo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Cargo(ctx, sel, v)
+}
+
 // endregion ***************************** type.gotpl *****************************

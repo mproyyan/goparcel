@@ -165,6 +165,8 @@ models:
         resolver: true
       courier: # Need resolver for courier field
         resolver: true
+      cargo:
+        resolver: true
   
   Origin:
     fields:

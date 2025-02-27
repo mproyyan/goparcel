@@ -221,7 +221,7 @@ type TransferRequest struct {
 	Origin      *Origin      `json:"origin"`
 	Destination *Destination `json:"destination"`
 	Courier     *Courier     `json:"courier,omitempty"`
-	CargoID     *string      `json:"cargo_id,omitempty"`
+	Cargo       *Cargo       `json:"cargo,omitempty"`
 	Status      string       `json:"status"`
 	CreatedAt   time.Time    `json:"created_at"`
 }

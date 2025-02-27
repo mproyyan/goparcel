@@ -45,7 +45,7 @@ type TransferRequest {
 	origin: Origin!
 	destination: Destination!
 	courier: Courier
-	cargo_id: String
+	cargo: Cargo
 	status: String!
 	created_at: Time!
 }

@@ -60,6 +60,7 @@ type TransferRequestResolver interface {
 	Shipment(ctx context.Context, obj *model.TransferRequest) (*model.Shipment, error)
 
 	Courier(ctx context.Context, obj *model.TransferRequest) (*model.Courier, error)
+	Cargo(ctx context.Context, obj *model.TransferRequest) (*model.Cargo, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -2472,8 +2473,8 @@ func (ec *executionContext) fieldContext_Query_IncomingShipments(ctx context.Con
 				return ec.fieldContext_TransferRequest_destination(ctx, field)
 			case "courier":
 				return ec.fieldContext_TransferRequest_courier(ctx, field)
-			case "cargo_id":
-				return ec.fieldContext_TransferRequest_cargo_id(ctx, field)
+			case "cargo":
+				return ec.fieldContext_TransferRequest_cargo(ctx, field)
 			case "status":
 				return ec.fieldContext_TransferRequest_status(ctx, field)
 			case "created_at":
@@ -3964,8 +3965,8 @@ func (ec *executionContext) fieldContext_TransferRequest_courier(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _TransferRequest_cargo_id(ctx context.Context, field graphql.CollectedField, obj *model.TransferRequest) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TransferRequest_cargo_id(ctx, field)
+func (ec *executionContext) _TransferRequest_cargo(ctx context.Context, field graphql.CollectedField, obj *model.TransferRequest) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TransferRequest_cargo(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3978,7 +3979,7 @@ func (ec *executionContext) _TransferRequest_cargo_id(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CargoID, nil
+		return ec.resolvers.TransferRequest().Cargo(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3987,19 +3988,39 @@ func (ec *executionContext) _TransferRequest_cargo_id(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.Cargo)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOCargo2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCargo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_TransferRequest_cargo_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_TransferRequest_cargo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TransferRequest",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cargo_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cargo_name(ctx, field)
+			case "status":
+				return ec.fieldContext_Cargo_status(ctx, field)
+			case "maxCapacity":
+				return ec.fieldContext_Cargo_maxCapacity(ctx, field)
+			case "currentLoad":
+				return ec.fieldContext_Cargo_currentLoad(ctx, field)
+			case "carriers":
+				return ec.fieldContext_Cargo_carriers(ctx, field)
+			case "itineraries":
+				return ec.fieldContext_Cargo_itineraries(ctx, field)
+			case "shipments":
+				return ec.fieldContext_Cargo_shipments(ctx, field)
+			case "last_known_location":
+				return ec.fieldContext_Cargo_last_known_location(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cargo", field.Name)
 		},
 	}
 	return fc, nil
@@ -5441,8 +5462,39 @@ func (ec *executionContext) _TransferRequest(ctx context.Context, sel ast.Select
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "cargo_id":
-			out.Values[i] = ec._TransferRequest_cargo_id(ctx, field, obj)
+		case "cargo":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TransferRequest_cargo(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "status":
 			out.Values[i] = ec._TransferRequest_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

@@ -213,7 +213,7 @@ func transferRequestToGraphResponse(req *genproto.TransferRequest) *model.Transf
 			},
 		},
 		Courier:   &model.Courier{ID: req.CourierId},
-		CargoID:   &req.CargoId,
+		Cargo:     &model.Cargo{ID: req.CargoId},
 		Status:    req.Status,
 		CreatedAt: req.CreatedAt.AsTime(),
 	}

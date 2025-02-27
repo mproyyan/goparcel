@@ -211,7 +211,7 @@ type ComplexityRoot struct {
 	}
 
 	TransferRequest struct {
-		CargoID     func(childComplexity int) int
+		Cargo       func(childComplexity int) int
 		Courier     func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		Destination func(childComplexity int) int
@@ -1059,12 +1059,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Shipment.TransportStatus(childComplexity), true
 
-	case "TransferRequest.cargo_id":
-		if e.complexity.TransferRequest.CargoID == nil {
+	case "TransferRequest.cargo":
+		if e.complexity.TransferRequest.Cargo == nil {
 			break
 		}
 
-		return e.complexity.TransferRequest.CargoID(childComplexity), true
+		return e.complexity.TransferRequest.Cargo(childComplexity), true
 
 	case "TransferRequest.courier":
 		if e.complexity.TransferRequest.Courier == nil {
@@ -1437,7 +1437,7 @@ type TransferRequest {
 	origin: Origin!
 	destination: Destination!
 	courier: Courier
-	cargo_id: String
+	cargo: Cargo
 	status: String!
 	created_at: Time!
 }

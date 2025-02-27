@@ -205,6 +205,19 @@ func (r *transferRequestResolver) Courier(ctx context.Context, obj *model.Transf
 	return r.courierLoader.Load(ctx, obj.Courier.ID)
 }
 
+// Cargo is the resolver for the cargo field.
+func (r *transferRequestResolver) Cargo(ctx context.Context, obj *model.TransferRequest) (*model.Cargo, error) {
+	if obj.Cargo == nil {
+		return nil, nil
+	}
+
+	if obj.Cargo.ID == "" {
+		return nil, nil
+	}
+
+	return r.cargoLoader.Load(ctx, obj.Cargo.ID)
+}
+
 // Destination returns generated.DestinationResolver implementation.
 func (r *Resolver) Destination() generated.DestinationResolver { return &destinationResolver{r} }
 
