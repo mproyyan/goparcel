@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	CargoService_GetCargos_FullMethodName         = "/protobuf.CargoService/GetCargos"
 	CargoService_GetMatchingCargos_FullMethodName = "/protobuf.CargoService/GetMatchingCargos"
 )
 
@@ -26,6 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CargoServiceClient interface {
+	GetCargos(ctx context.Context, in *GetCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error)
 	GetMatchingCargos(ctx context.Context, in *GetMatchingCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error)
 }
 
@@ -35,6 +37,16 @@ type cargoServiceClient struct {
 
 func NewCargoServiceClient(cc grpc.ClientConnInterface) CargoServiceClient {
 	return &cargoServiceClient{cc}
+}
+
+func (c *cargoServiceClient) GetCargos(ctx context.Context, in *GetCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CargoResponse)
+	err := c.cc.Invoke(ctx, CargoService_GetCargos_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *cargoServiceClient) GetMatchingCargos(ctx context.Context, in *GetMatchingCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error) {
@@ -51,6 +63,7 @@ func (c *cargoServiceClient) GetMatchingCargos(ctx context.Context, in *GetMatch
 // All implementations must embed UnimplementedCargoServiceServer
 // for forward compatibility.
 type CargoServiceServer interface {
+	GetCargos(context.Context, *GetCargosRequest) (*CargoResponse, error)
 	GetMatchingCargos(context.Context, *GetMatchingCargosRequest) (*CargoResponse, error)
 	mustEmbedUnimplementedCargoServiceServer()
 }
@@ -62,6 +75,9 @@ type CargoServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCargoServiceServer struct{}
 
+func (UnimplementedCargoServiceServer) GetCargos(context.Context, *GetCargosRequest) (*CargoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCargos not implemented")
+}
 func (UnimplementedCargoServiceServer) GetMatchingCargos(context.Context, *GetMatchingCargosRequest) (*CargoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMatchingCargos not implemented")
 }
@@ -84,6 +100,24 @@ func RegisterCargoServiceServer(s grpc.ServiceRegistrar, srv CargoServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&CargoService_ServiceDesc, srv)
+}
+
+func _CargoService_GetCargos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCargosRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).GetCargos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_GetCargos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).GetCargos(ctx, req.(*GetCargosRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _CargoService_GetMatchingCargos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -111,6 +145,10 @@ var CargoService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "protobuf.CargoService",
 	HandlerType: (*CargoServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetCargos",
+			Handler:    _CargoService_GetCargos_Handler,
+		},
 		{
 			MethodName: "GetMatchingCargos",
 			Handler:    _CargoService_GetMatchingCargos_Handler,

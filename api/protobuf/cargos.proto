@@ -7,6 +7,7 @@ package protobuf;
 option go_package = "github.com/mproyyan/goparcel/internal/common/genproto";
 
 service CargoService {
+    rpc GetCargos(GetCargosRequest) returns (CargoResponse) {}
     rpc GetMatchingCargos(GetMatchingCargosRequest) returns (CargoResponse) {} 
 }
 
@@ -40,4 +41,8 @@ message Itinerary {
     string location = 1;
     google.protobuf.Timestamp estimated_time_arrival = 2;
     google.protobuf.Timestamp actual_time_arrival = 3;
+}
+
+message GetCargosRequest {
+    repeated string ids = 1;
 }

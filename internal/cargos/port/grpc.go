@@ -28,6 +28,15 @@ func (g GrpcServer) GetMatchingCargos(ctx context.Context, request *genproto.Get
 	return &genproto.CargoResponse{Cargos: cargosToProtoResponse(cargos)}, nil
 }
 
+func (g GrpcServer) GetCargos(ctx context.Context, request *genproto.GetCargosRequest) (*genproto.CargoResponse, error) {
+	cargos, err := g.service.GetCargos(ctx, request.Ids)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get cargos")
+	}
+
+	return &genproto.CargoResponse{Cargos: cargosToProtoResponse(cargos)}, nil
+}
+
 func cargoToProtoResponse(cargo *domain.Cargo) *genproto.Cargo {
 	if cargo == nil {
 		return nil

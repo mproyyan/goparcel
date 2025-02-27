@@ -46,6 +46,28 @@ func NewCargoRepository(db *mongo.Database) *CargoRepository {
 	return &CargoRepository{collection: db.Collection("cargos")}
 }
 
+func (c *CargoRepository) GetCargos(ctx context.Context, ids []primitive.ObjectID) ([]*domain.Cargo, error) {
+	filter := bson.M{}
+
+	// If ids not empty then fetch cargos based on the ids
+	if len(ids) > 0 {
+		filter["_id"] = bson.M{"$in": ids}
+	}
+
+	cursor, err := c.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var cargos []*CargoModel
+	if err := cursor.All(ctx, &cargos); err != nil {
+		return nil, err
+	}
+
+	return cargoModelsToDomain(cargos), nil
+}
+
 func (c *CargoRepository) FindMatchingCargos(ctx context.Context, origin primitive.ObjectID, destination primitive.ObjectID) ([]*domain.Cargo, error) {
 	var cargos []*CargoModel
 
