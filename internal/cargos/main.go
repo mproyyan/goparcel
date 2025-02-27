@@ -9,6 +9,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/cargos/adapter"
 	"github.com/mproyyan/goparcel/internal/cargos/app"
 	"github.com/mproyyan/goparcel/internal/cargos/port"
+	"github.com/mproyyan/goparcel/internal/common/client"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/common/server"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,10 +35,19 @@ func main() {
 		log.Fatalf("MongoDB not responding: %v", err)
 	}
 
+	// Connect to shipment service
+	shipmentServiceClient, close, err := client.NewShipmentServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to shipment service", err)
+	}
+	defer close()
+
 	// Dependency
 	database := databaseClient.Database(os.Getenv("MONGO_DATABASE"))
 	cargoRepository := adapter.NewCargoRepository(database)
-	cargoService := app.NewCargoService(cargoRepository)
+	carrierRepository := adapter.NewCarrierRepository(database)
+	shipmentService := adapter.NewShipmentService(shipmentServiceClient)
+	cargoService := app.NewCargoService(cargoRepository, carrierRepository, shipmentService)
 
 	server.RunGrpcServer(func(server *grpc.Server) {
 		service := port.NewGrpcServer(cargoService)

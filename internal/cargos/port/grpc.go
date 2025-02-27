@@ -5,8 +5,12 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/cargos/app"
 	"github.com/mproyyan/goparcel/internal/cargos/domain"
+	"github.com/mproyyan/goparcel/internal/common/auth"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -35,6 +39,20 @@ func (g GrpcServer) GetCargos(ctx context.Context, request *genproto.GetCargosRe
 	}
 
 	return &genproto.CargoResponse{Cargos: cargosToProtoResponse(cargos)}, nil
+}
+
+func (g GrpcServer) LoadShipment(ctx context.Context, request *genproto.LoadShipmentRequest) (*emptypb.Empty, error) {
+	authUser, err := auth.RetrieveAuthUser(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+
+	err = g.service.LoadShipment(ctx, authUser.ModelID, request.LocationId, request.ShipmentId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to load shipment")
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 func cargoToProtoResponse(cargo *domain.Cargo) *genproto.Cargo {

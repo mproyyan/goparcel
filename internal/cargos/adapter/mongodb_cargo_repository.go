@@ -6,6 +6,7 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/cargos/domain"
 	"github.com/mproyyan/goparcel/internal/common/db"
+	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -113,6 +114,17 @@ func (c *CargoRepository) FindMatchingCargos(ctx context.Context, origin primiti
 	}
 
 	return cargoModelsToDomain(cargos), nil
+}
+
+func (c *CargoRepository) LoadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error {
+	filter := bson.M{"_id": cargoId}
+	update := bson.M{"$addToSet": bson.M{"shipments": shipmentId}}
+	_, err := c.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
 }
 
 // Helper function

@@ -9,6 +9,7 @@ import (
 type CargoRepository interface {
 	GetCargos(ctx context.Context, ids []primitive.ObjectID) ([]*Cargo, error)
 	FindMatchingCargos(ctx context.Context, origin, destination primitive.ObjectID) ([]*Cargo, error)
+	LoadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error
 }
 
 type CarrierRepository interface {
