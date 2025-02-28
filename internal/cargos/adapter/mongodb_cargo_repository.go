@@ -140,9 +140,13 @@ func (c *CargoRepository) GetCargo(ctx context.Context, id primitive.ObjectID) (
 
 func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId primitive.ObjectID, locationId primitive.ObjectID) error {
 	filter := bson.M{
-		"_id":                             cargoId,
-		"itineraries.location":            locationId,
-		"itineraries.actual_time_arrival": bson.M{"$exists": false}, // Prevents overwriting
+		"_id": cargoId,
+		"itineraries": bson.M{
+			"$elemMatch": bson.M{
+				"location":            locationId,
+				"actual_time_arrival": bson.M{"$exists": false}, // Ensure we only update itineraries that haven't been marked
+			},
+		},
 	}
 
 	update := bson.M{
