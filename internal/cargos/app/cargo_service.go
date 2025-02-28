@@ -17,7 +17,7 @@ type CargoService struct {
 }
 
 type ShipmentService interface {
-	AddItineraryHistory(ctx context.Context, shipmentId, locationId, activityType string) error
+	AddItineraryHistory(ctx context.Context, shipmentIds []string, locationId, activityType string) error
 }
 
 func NewCargoService(
@@ -102,7 +102,7 @@ func (c CargoService) LoadShipment(ctx context.Context, carrierId, locationId, s
 		return cuserr.Decorate(err, "failed to load shipment using repository")
 	}
 
-	err = c.shipmentService.AddItineraryHistory(ctx, shipmentId, locationObjId.Hex(), "load")
+	err = c.shipmentService.AddItineraryHistory(ctx, []string{shipmentId}, locationObjId.Hex(), "load")
 	if err != nil {
 		return cuserr.Decorate(err, "shipment service failed to add itinerary hostory")
 	}
