@@ -164,6 +164,20 @@ func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId primitive.Obj
 	return nil
 }
 
+func (c *CargoRepository) UnloadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error {
+	filter := bson.M{"_id": cargoId}
+	update := bson.M{
+		"$pull": bson.M{"shipments": shipmentId},
+	}
+
+	_, err := c.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
 // Helper function
 
 func cargoModelToDomain(model *CargoModel) *domain.Cargo {

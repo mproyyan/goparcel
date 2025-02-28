@@ -24,6 +24,7 @@ const (
 	CargoService_GetMatchingCargos_FullMethodName = "/protobuf.CargoService/GetMatchingCargos"
 	CargoService_LoadShipment_FullMethodName      = "/protobuf.CargoService/LoadShipment"
 	CargoService_MarkArrival_FullMethodName       = "/protobuf.CargoService/MarkArrival"
+	CargoService_UnloadShipment_FullMethodName    = "/protobuf.CargoService/UnloadShipment"
 )
 
 // CargoServiceClient is the client API for CargoService service.
@@ -34,6 +35,7 @@ type CargoServiceClient interface {
 	GetMatchingCargos(ctx context.Context, in *GetMatchingCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error)
 	LoadShipment(ctx context.Context, in *LoadShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	MarkArrival(ctx context.Context, in *MarkArrivalRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UnloadShipment(ctx context.Context, in *UnloadShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type cargoServiceClient struct {
@@ -84,6 +86,16 @@ func (c *cargoServiceClient) MarkArrival(ctx context.Context, in *MarkArrivalReq
 	return out, nil
 }
 
+func (c *cargoServiceClient) UnloadShipment(ctx context.Context, in *UnloadShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, CargoService_UnloadShipment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CargoServiceServer is the server API for CargoService service.
 // All implementations must embed UnimplementedCargoServiceServer
 // for forward compatibility.
@@ -92,6 +104,7 @@ type CargoServiceServer interface {
 	GetMatchingCargos(context.Context, *GetMatchingCargosRequest) (*CargoResponse, error)
 	LoadShipment(context.Context, *LoadShipmentRequest) (*emptypb.Empty, error)
 	MarkArrival(context.Context, *MarkArrivalRequest) (*emptypb.Empty, error)
+	UnloadShipment(context.Context, *UnloadShipmentRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCargoServiceServer()
 }
 
@@ -113,6 +126,9 @@ func (UnimplementedCargoServiceServer) LoadShipment(context.Context, *LoadShipme
 }
 func (UnimplementedCargoServiceServer) MarkArrival(context.Context, *MarkArrivalRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MarkArrival not implemented")
+}
+func (UnimplementedCargoServiceServer) UnloadShipment(context.Context, *UnloadShipmentRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnloadShipment not implemented")
 }
 func (UnimplementedCargoServiceServer) mustEmbedUnimplementedCargoServiceServer() {}
 func (UnimplementedCargoServiceServer) testEmbeddedByValue()                      {}
@@ -207,6 +223,24 @@ func _CargoService_MarkArrival_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CargoService_UnloadShipment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnloadShipmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).UnloadShipment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_UnloadShipment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).UnloadShipment(ctx, req.(*UnloadShipmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CargoService_ServiceDesc is the grpc.ServiceDesc for CargoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,6 +263,10 @@ var CargoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MarkArrival",
 			Handler:    _CargoService_MarkArrival_Handler,
+		},
+		{
+			MethodName: "UnloadShipment",
+			Handler:    _CargoService_UnloadShipment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

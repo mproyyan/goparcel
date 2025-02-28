@@ -12,6 +12,7 @@ type CargoRepository interface {
 	FindMatchingCargos(ctx context.Context, origin, destination primitive.ObjectID) ([]*Cargo, error)
 	LoadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error
 	MarkArrival(ctx context.Context, cargoId, locationId primitive.ObjectID) error
+	UnloadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error
 }
 
 type CarrierRepository interface {

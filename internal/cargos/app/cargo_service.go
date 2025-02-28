@@ -143,3 +143,22 @@ func (c CargoService) MarkArrival(ctx context.Context, cargoId, locationId strin
 
 	return nil
 }
+
+func (c CargoService) UnloadShipment(ctx context.Context, cargoId, shipmentId string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
+	}
+
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+	}
+
+	err = c.cargoRepository.UnloadShipment(ctx, cargoObjId, shipmentObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to unload shipment using repository")
+	}
+
+	return nil
+}
