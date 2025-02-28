@@ -117,6 +117,20 @@ func (r *mutationResolver) LoadShipment(ctx context.Context, shipmentID string, 
 	return "shipment loaded successfully", nil
 }
 
+// MarkArrival is the resolver for the MarkArrival field.
+func (r *mutationResolver) MarkArrival(ctx context.Context, cargoID string, locationID string) (string, error) {
+	_, err := r.cargoService.MarkArrival(ctx, &genproto.MarkArrivalRequest{
+		CargoId:    cargoID,
+		LocationId: locationID,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "successfully marked the location as arrived", nil
+}
+
 // GetMatchingCargos is the resolver for the GetMatchingCargos field.
 func (r *queryResolver) GetMatchingCargos(ctx context.Context, origin string, destination string) ([]*model.Cargo, error) {
 	result, err := r.cargoService.GetMatchingCargos(ctx, &genproto.GetMatchingCargosRequest{

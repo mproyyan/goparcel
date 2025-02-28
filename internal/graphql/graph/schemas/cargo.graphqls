@@ -36,4 +36,5 @@ extend type Query {
 
 extend type Mutation {
   LoadShipment(shipment_id: ID! location_id: ID!): String!
+  MarkArrival(cargo_id: ID! location_id: ID!): String!
 }

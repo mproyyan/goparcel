@@ -153,6 +153,7 @@ type ComplexityRoot struct {
 		CreateShipment       func(childComplexity int, input *model.CreateShipmentInput) int
 		LoadShipment         func(childComplexity int, shipmentID string, locationID string) int
 		Login                func(childComplexity int, email string, password string) int
+		MarkArrival          func(childComplexity int, cargoID string, locationID string) int
 		RegisterAsCarrier    func(childComplexity int, input model.RegisterAsCarrierInput) int
 		RegisterAsCourier    func(childComplexity int, input model.RegisterAsCourierInput) int
 		RegisterAsOperator   func(childComplexity int, input model.RegisterAsOperatorInput) int
@@ -709,6 +710,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Login(childComplexity, args["email"].(string), args["password"].(string)), true
+
+	case "Mutation.MarkArrival":
+		if e.complexity.Mutation.MarkArrival == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_MarkArrival_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkArrival(childComplexity, args["cargo_id"].(string), args["location_id"].(string)), true
 
 	case "Mutation.RegisterAsCarrier":
 		if e.complexity.Mutation.RegisterAsCarrier == nil {
@@ -1337,6 +1350,7 @@ extend type Query {
 
 extend type Mutation {
   LoadShipment(shipment_id: ID! location_id: ID!): String!
+  MarkArrival(cargo_id: ID! location_id: ID!): String!
 }`, BuiltIn: false},
 	{Name: "../schemas/courier.graphqls", Input: `type Courier {
     id: ID!
