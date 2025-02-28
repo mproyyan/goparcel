@@ -151,6 +151,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateLocation       func(childComplexity int, input *model.CreateLocationInput) int
 		CreateShipment       func(childComplexity int, input *model.CreateShipmentInput) int
+		LoadShipment         func(childComplexity int, shipmentID string, locationID string) int
 		Login                func(childComplexity int, email string, password string) int
 		RegisterAsCarrier    func(childComplexity int, input model.RegisterAsCarrierInput) int
 		RegisterAsCourier    func(childComplexity int, input model.RegisterAsCourierInput) int
@@ -684,6 +685,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateShipment(childComplexity, args["input"].(*model.CreateShipmentInput)), true
+
+	case "Mutation.LoadShipment":
+		if e.complexity.Mutation.LoadShipment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_LoadShipment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.LoadShipment(childComplexity, args["shipment_id"].(string), args["location_id"].(string)), true
 
 	case "Mutation.Login":
 		if e.complexity.Mutation.Login == nil {
@@ -1310,16 +1323,20 @@ type Itinerary {
 }
 
 type Carrier {
-    id: ID!
-    user_id: ID!
-    name: String!
-    email: String!
-    status: String
-    location: Location
+  id: ID!
+  user_id: ID!
+  name: String!
+  email: String!
+  status: String
+  location: Location
 }
 
 extend type Query {
-    GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+  GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+}
+
+extend type Mutation {
+  LoadShipment(shipment_id: ID! location_id: ID!): String!
 }`, BuiltIn: false},
 	{Name: "../schemas/courier.graphqls", Input: `type Courier {
     id: ID!

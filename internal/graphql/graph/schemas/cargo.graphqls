@@ -22,14 +22,18 @@ type Itinerary {
 }
 
 type Carrier {
-    id: ID!
-    user_id: ID!
-    name: String!
-    email: String!
-    status: String
-    location: Location
+  id: ID!
+  user_id: ID!
+  name: String!
+  email: String!
+  status: String
+  location: Location
 }
 
 extend type Query {
-    GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+  GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+}
+
+extend type Mutation {
+  LoadShipment(shipment_id: ID! location_id: ID!): String!
 }

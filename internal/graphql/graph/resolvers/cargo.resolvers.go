@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mproyyan/goparcel/internal/common/auth"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
+	"github.com/mproyyan/goparcel/internal/graphql/graph/middlewares"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
 )
 
@@ -93,6 +95,26 @@ func (r *itineraryResolver) Location(ctx context.Context, obj *model.Itinerary) 
 	}
 
 	return r.locationLoader.Load(ctx, obj.Location.ID)
+}
+
+// LoadShipment is the resolver for the LoadShipment field.
+func (r *mutationResolver) LoadShipment(ctx context.Context, shipmentID string, locationID string) (string, error) {
+	authUser, err := middlewares.GetAuthUser(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	ctx = auth.SendAuthUser(ctx, authUser.UserID, authUser.ModelID)
+	_, err = r.cargoService.LoadShipment(ctx, &genproto.LoadShipmentRequest{
+		LocationId: locationID,
+		ShipmentId: shipmentID,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "shipment loaded successfully", nil
 }
 
 // GetMatchingCargos is the resolver for the GetMatchingCargos field.
