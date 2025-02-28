@@ -313,9 +313,11 @@ func (s ShipmentService) RecordItinerary(ctx context.Context, shipmentIds []stri
 
 	s.transaction.Execute(ctx, func(ctx context.Context) error {
 		// if activity is load then update transport status
-		err = s.shipmentRepository.UpdateTransportStatus(ctx, objIds, domain.OnBoardCargo)
-		if err != nil {
-			return cuserr.Decorate(err, "failed to update transport status")
+		if activity == domain.Load {
+			err = s.shipmentRepository.UpdateTransportStatus(ctx, objIds, domain.OnBoardCargo)
+			if err != nil {
+				return cuserr.Decorate(err, "failed to update transport status")
+			}
 		}
 
 		err = s.shipmentRepository.LogItinerary(ctx, objIds, locationObjId, activity)
