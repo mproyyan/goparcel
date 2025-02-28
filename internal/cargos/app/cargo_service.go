@@ -109,3 +109,37 @@ func (c CargoService) LoadShipment(ctx context.Context, carrierId, locationId, s
 
 	return nil
 }
+
+func (c CargoService) MarkArrival(ctx context.Context, cargoId, locationId string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
+	}
+
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
+	// Get cargo
+	cargo, err := c.cargoRepository.GetCargo(ctx, cargoObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to get cargo from repository")
+	}
+
+	// If cargo has shipment, add itineries for that shipments with current location
+	if cargo.HasShipments() {
+		err = c.shipmentService.AddItineraryHistory(ctx, cargo.Shipments, locationObjId.Hex(), "arrive")
+		if err != nil {
+			return cuserr.Decorate(err, "failed to add itinerary history")
+		}
+	}
+
+	// Update last known location of cargo with current location
+	err = c.cargoRepository.MarkArrival(ctx, cargoObjId, locationObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to mark arrival with current location")
+	}
+
+	return nil
+}

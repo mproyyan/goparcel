@@ -55,6 +55,15 @@ func (g GrpcServer) LoadShipment(ctx context.Context, request *genproto.LoadShip
 	return &emptypb.Empty{}, nil
 }
 
+func (g GrpcServer) MarkArrival(ctx context.Context, request *genproto.MarkArrivalRequest) (*emptypb.Empty, error) {
+	err := g.service.MarkArrival(ctx, request.CargoId, request.LocationId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to mark arrival")
+	}
+
+	return &emptypb.Empty{}, err
+}
+
 func cargoToProtoResponse(cargo *domain.Cargo) *genproto.Cargo {
 	if cargo == nil {
 		return nil

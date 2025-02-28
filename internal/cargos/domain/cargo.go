@@ -24,3 +24,7 @@ type Itinerary struct {
 	EstimatedTimeArrival time.Time
 	ActualTimeArrival    time.Time
 }
+
+func (c Cargo) HasShipments() bool {
+	return len(c.Shipments) > 0
+}

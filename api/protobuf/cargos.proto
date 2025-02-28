@@ -11,6 +11,7 @@ service CargoService {
     rpc GetCargos(GetCargosRequest) returns (CargoResponse) {}
     rpc GetMatchingCargos(GetMatchingCargosRequest) returns (CargoResponse) {}
     rpc LoadShipment(LoadShipmentRequest) returns (google.protobuf.Empty) {} 
+    rpc MarkArrival(MarkArrivalRequest) returns (google.protobuf.Empty) {}
 }
 
 message GetMatchingCargosRequest {
@@ -52,4 +53,9 @@ message GetCargosRequest {
 message LoadShipmentRequest {
     string location_id = 1;
     string shipment_id = 2;
+}
+
+message MarkArrivalRequest {
+    string cargo_id = 1;
+    string location_id = 2;
 }

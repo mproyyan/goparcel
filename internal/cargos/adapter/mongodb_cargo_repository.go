@@ -127,6 +127,39 @@ func (c *CargoRepository) LoadShipment(ctx context.Context, cargoId, shipmentId 
 	return nil
 }
 
+func (c *CargoRepository) GetCargo(ctx context.Context, id primitive.ObjectID) (*domain.Cargo, error) {
+	var cargo *CargoModel
+	filter := bson.M{"_id": id}
+	err := c.collection.FindOne(ctx, filter).Decode(&cargo)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	return cargoModelToDomain(cargo), nil
+}
+
+func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId primitive.ObjectID, locationId primitive.ObjectID) error {
+	filter := bson.M{
+		"_id":                             cargoId,
+		"itineraries.location":            locationId,
+		"itineraries.actual_time_arrival": bson.M{"$exists": false}, // Prevents overwriting
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"last_known_location":               locationId,
+			"itineraries.$.actual_time_arrival": time.Now(), // Only update the first matching itinerary
+		},
+	}
+
+	_, err := c.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
 // Helper function
 
 func cargoModelToDomain(model *CargoModel) *domain.Cargo {

@@ -23,6 +23,7 @@ const (
 	CargoService_GetCargos_FullMethodName         = "/protobuf.CargoService/GetCargos"
 	CargoService_GetMatchingCargos_FullMethodName = "/protobuf.CargoService/GetMatchingCargos"
 	CargoService_LoadShipment_FullMethodName      = "/protobuf.CargoService/LoadShipment"
+	CargoService_MarkArrival_FullMethodName       = "/protobuf.CargoService/MarkArrival"
 )
 
 // CargoServiceClient is the client API for CargoService service.
@@ -32,6 +33,7 @@ type CargoServiceClient interface {
 	GetCargos(ctx context.Context, in *GetCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error)
 	GetMatchingCargos(ctx context.Context, in *GetMatchingCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error)
 	LoadShipment(ctx context.Context, in *LoadShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	MarkArrival(ctx context.Context, in *MarkArrivalRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type cargoServiceClient struct {
@@ -72,6 +74,16 @@ func (c *cargoServiceClient) LoadShipment(ctx context.Context, in *LoadShipmentR
 	return out, nil
 }
 
+func (c *cargoServiceClient) MarkArrival(ctx context.Context, in *MarkArrivalRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, CargoService_MarkArrival_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CargoServiceServer is the server API for CargoService service.
 // All implementations must embed UnimplementedCargoServiceServer
 // for forward compatibility.
@@ -79,6 +91,7 @@ type CargoServiceServer interface {
 	GetCargos(context.Context, *GetCargosRequest) (*CargoResponse, error)
 	GetMatchingCargos(context.Context, *GetMatchingCargosRequest) (*CargoResponse, error)
 	LoadShipment(context.Context, *LoadShipmentRequest) (*emptypb.Empty, error)
+	MarkArrival(context.Context, *MarkArrivalRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCargoServiceServer()
 }
 
@@ -97,6 +110,9 @@ func (UnimplementedCargoServiceServer) GetMatchingCargos(context.Context, *GetMa
 }
 func (UnimplementedCargoServiceServer) LoadShipment(context.Context, *LoadShipmentRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoadShipment not implemented")
+}
+func (UnimplementedCargoServiceServer) MarkArrival(context.Context, *MarkArrivalRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkArrival not implemented")
 }
 func (UnimplementedCargoServiceServer) mustEmbedUnimplementedCargoServiceServer() {}
 func (UnimplementedCargoServiceServer) testEmbeddedByValue()                      {}
@@ -173,6 +189,24 @@ func _CargoService_LoadShipment_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CargoService_MarkArrival_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkArrivalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).MarkArrival(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_MarkArrival_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).MarkArrival(ctx, req.(*MarkArrivalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CargoService_ServiceDesc is the grpc.ServiceDesc for CargoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,6 +225,10 @@ var CargoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoadShipment",
 			Handler:    _CargoService_LoadShipment_Handler,
+		},
+		{
+			MethodName: "MarkArrival",
+			Handler:    _CargoService_MarkArrival_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
