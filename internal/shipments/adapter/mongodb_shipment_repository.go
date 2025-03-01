@@ -162,9 +162,9 @@ func (s *ShipmentRepository) GetShipment(ctx context.Context, id primitive.Objec
 	return shipmentModelToDomain(&shipment), nil
 }
 
-func (s *ShipmentRepository) UpdateRoutingStatus(ctx context.Context, shipmentId primitive.ObjectID, status domain.RoutingStatus) error {
-	filter := bson.M{"_id": shipmentId}
-	update := bson.M{"$set": bson.M{"routing_status": status.String()}}
+func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipmentIds []primitive.ObjectID, status domain.TransportStatus) error {
+	filter := bson.M{"_id": bson.M{"$in": shipmentIds}}
+	update := bson.M{"$set": bson.M{"transport_status": status.String()}}
 	_, err := s.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
@@ -173,9 +173,9 @@ func (s *ShipmentRepository) UpdateRoutingStatus(ctx context.Context, shipmentId
 	return nil
 }
 
-func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipmentIds []primitive.ObjectID, status domain.TransportStatus) error {
-	filter := bson.M{"_id": bson.M{"$in": shipmentIds}}
-	update := bson.M{"$set": bson.M{"transport_status": status.String()}}
+func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmentId, locationId primitive.ObjectID) error {
+	filter := bson.M{"_id": shipmentId}
+	update := bson.M{"$set": bson.M{"destination": locationId, "routing_status": domain.Routed}}
 	_, err := s.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)

@@ -296,8 +296,8 @@ func (s ShipmentService) ShipPackage(ctx context.Context, shipmentId, cargoId, o
 			return cuserr.Decorate(err, "failed to create new transfer request with shipment type")
 		}
 
-		// Update shipment routing status to routed
-		err = s.shipmentRepository.UpdateRoutingStatus(ctx, shipmentObjId, domain.Routed)
+		// Add shipment destination and update routing status
+		err = s.shipmentRepository.AddShipmentDestination(ctx, shipmentObjId, destinationObjId)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to update routing status to 'routed'")
 		}

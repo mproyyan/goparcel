@@ -14,8 +14,8 @@ type ShipmentRepository interface {
 	CreateShipment(ctx context.Context, origin string, sender, recipient Entity, items []Item) (string, error)
 	LogItinerary(ctx context.Context, shipmentID []primitive.ObjectID, locationIds primitive.ObjectID, activityType ActivityType) error
 	RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus RoutingStatus) ([]*Shipment, error)
-	UpdateRoutingStatus(ctx context.Context, shipmentId primitive.ObjectID, status RoutingStatus) error
 	UpdateTransportStatus(ctx context.Context, shipmentId []primitive.ObjectID, status TransportStatus) error
+	AddShipmentDestination(ctx context.Context, shipmentId, locationId primitive.ObjectID) error
 }
 
 type TransferRequestRepository interface {
