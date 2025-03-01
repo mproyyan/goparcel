@@ -157,5 +157,4 @@ message DeliverPackageRequest {
     string origin = 1;
     string shipment_id = 2;
     string courier_id = 3;
-    EntityDetail recipient = 4;
 }

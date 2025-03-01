@@ -371,7 +371,7 @@ func (s ShipmentService) RecordItinerary(ctx context.Context, shipmentIds []stri
 	return nil
 }
 
-func (s ShipmentService) DeliverPackage(ctx context.Context, origin, shipmentId, courierId, userId string, recipient domain.Entity) error {
+func (s ShipmentService) DeliverPackage(ctx context.Context, origin, shipmentId, courierId, userId string) error {
 	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
@@ -392,8 +392,13 @@ func (s ShipmentService) DeliverPackage(ctx context.Context, origin, shipmentId,
 		return status.Error(codes.InvalidArgument, "courier id is not valid object id")
 	}
 
+	shipment, err := s.shipmentRepository.GetShipment(ctx, shipmentObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to find shipment")
+	}
+
 	err = s.transaction.Execute(ctx, func(ctx context.Context) error {
-		err = s.transferRequestRepository.RequestPackageDelivery(ctx, originObjId, shipmentObjId, courierObjId, userObjId, recipient)
+		err = s.transferRequestRepository.RequestPackageDelivery(ctx, originObjId, shipmentObjId, courierObjId, userObjId, shipment.Recipient)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to request package delivery")
 		}

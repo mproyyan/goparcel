@@ -155,19 +155,7 @@ func (g GrpcServer) DeliverPackage(ctx context.Context, request *genproto.Delive
 		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
 	}
 
-	err = g.service.DeliverPackage(ctx, request.Origin, request.ShipmentId, request.CourierId, authUser.UserID, domain.Entity{
-		Name:    request.Recipient.Name,
-		Contact: request.Recipient.Contact,
-		Address: domain.Address{
-			Province:      request.Recipient.Address.Province,
-			City:          request.Recipient.Address.City,
-			District:      request.Recipient.Address.District,
-			Subdistrict:   request.Recipient.Address.Subdistrict,
-			StreetAddress: request.Recipient.Address.StreetAddress,
-			ZipCode:       request.Recipient.Address.ZipCode,
-		},
-	})
-
+	err = g.service.DeliverPackage(ctx, request.Origin, request.ShipmentId, request.CourierId, authUser.UserID)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to deliver package")
 	}
