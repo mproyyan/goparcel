@@ -43,17 +43,26 @@ func main() {
 	}
 	defer close()
 
+	// Connect to cargo service
+	cargoServiceClient, close, err := client.NewCargoServiceClient()
+	if err != nil {
+		log.Fatal("cannot connect to cargo service", err)
+	}
+	defer close()
+
 	// Dependency
 	database := databaseClient.Database(os.Getenv("MONGO_DATABASE"))
 	transactionManager := db.NewMongoTransactionManager(databaseClient)
 	shipmentRepository := adapter.NewShipementRepository(database)
 	transferRequestRepository := adapter.NewTransferRequestRepository(database)
 	locationService := adapter.NewLocationService(grpcLocationServiceClient)
+	cargoService := adapter.NewCargoService(cargoServiceClient)
 	shipmentService := app.NewShipmentService(
 		transactionManager,
 		shipmentRepository,
 		transferRequestRepository,
 		locationService,
+		cargoService,
 	)
 
 	server.RunGrpcServer(func(server *grpc.Server) {

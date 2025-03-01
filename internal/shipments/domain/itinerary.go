@@ -48,6 +48,17 @@ func StringToActivityType(s string) ActivityType {
 	}
 }
 
+func NextActivityTypeBasedOnRequestType(req RequestType) ActivityType {
+	switch req {
+	case RequestTypeTransit:
+		return Transit
+	case RequestTypeShipment:
+		return Unload
+	default:
+		return Unknown
+	}
+}
+
 type ItineraryLog struct {
 	ActivityType ActivityType
 	Timestamp    time.Time

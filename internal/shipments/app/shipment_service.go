@@ -18,6 +18,7 @@ type ShipmentService struct {
 	shipmentRepository        domain.ShipmentRepository
 	transferRequestRepository domain.TransferRequestRepository
 	locationService           LocationService
+	cargoService              CargoService
 }
 
 func NewShipmentService(
@@ -25,17 +26,23 @@ func NewShipmentService(
 	shipmentRepository domain.ShipmentRepository,
 	transferRequestRepository domain.TransferRequestRepository,
 	locationService LocationService,
+	cargoService CargoService,
 ) ShipmentService {
 	return ShipmentService{
 		transaction:               transaction,
 		shipmentRepository:        shipmentRepository,
 		locationService:           locationService,
 		transferRequestRepository: transferRequestRepository,
+		cargoService:              cargoService,
 	}
 }
 
 type LocationService interface {
 	ResolveAddress(ctx context.Context, zipcode string) (*domain.Address, error)
+}
+
+type CargoService interface {
+	UnloadShipment(ctx context.Context, cargoId, shipmentId string) error
 }
 
 func (s ShipmentService) CreateShipment(ctx context.Context, origin string, sender, recipient domain.Entity, items []domain.Item) error {
@@ -210,18 +217,27 @@ func (s ShipmentService) ScanArrivingShipment(ctx context.Context, locationId, s
 		return status.Error(codes.InvalidArgument, "the destination of the shipment does not match the current scanned shipment location")
 	}
 
-	// TODO: Check transfer request type, if 'shipping' then called UnloadShipment rpc
-
 	err = s.transaction.Execute(ctx, func(ctx context.Context) error {
+		// Check transfer request type, if 'shipment' then call UnloadShipment rpc
+		if request.RequestType == domain.RequestTypeShipment {
+			err = s.cargoService.UnloadShipment(ctx, request.CargoID, shipmentObjId.Hex())
+			if err != nil {
+				return cuserr.Decorate(err, "failed to unload shipment")
+			}
+
+			// Update transport status to 'in_port'
+			s.shipmentRepository.UpdateTransportStatus(ctx, []primitive.ObjectID{shipmentObjId}, domain.InPort)
+		}
+
 		reqObjId, _ := primitive.ObjectIDFromHex(request.ID)
 		err := s.transferRequestRepository.CompleteTransferRequest(ctx, reqObjId, userObjId)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to complete pending transfer request")
 		}
 
-		// Currently activity type of itinerary log is always set to transit
-		// TODO: activity type based on request type
-		err = s.shipmentRepository.LogItinerary(ctx, []primitive.ObjectID{shipmentObjId}, locationObjId, domain.Transit)
+		// Check next activity type
+		activityType := domain.NextActivityTypeBasedOnRequestType(request.RequestType)
+		err = s.shipmentRepository.LogItinerary(ctx, []primitive.ObjectID{shipmentObjId}, locationObjId, activityType)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to log itinerary")
 		}
