@@ -110,9 +110,23 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 		"routing_status": routingStatus.String(),
 	}
 
-	// Add condition to match by destination if routing status is routed
 	if routingStatus == domain.Routed {
-		query["destination"] = locationId
+		query["$expr"] = bson.M{
+			"$and": bson.A{
+				bson.M{
+					"$eq": bson.A{
+						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}},
+						locationId,
+					},
+				},
+				bson.M{
+					"$in": bson.A{
+						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.activity_type", -1}},
+						bson.A{"transit", "unload"},
+					},
+				},
+			},
+		}
 	}
 
 	cursor, err := s.collection.Find(ctx, query)
