@@ -370,3 +370,45 @@ func (s ShipmentService) RecordItinerary(ctx context.Context, shipmentIds []stri
 
 	return nil
 }
+
+func (s ShipmentService) DeliverPackage(ctx context.Context, origin, shipmentId, courierId, userId string, recipient domain.Entity) error {
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "origin is not valid object id")
+	}
+
+	userObjId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "user_id is not valid object id")
+	}
+
+	courierObjId, err := primitive.ObjectIDFromHex(courierId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "courier id is not valid object id")
+	}
+
+	err = s.transaction.Execute(ctx, func(ctx context.Context) error {
+		err = s.transferRequestRepository.RequestPackageDelivery(ctx, originObjId, shipmentObjId, courierObjId, userObjId, recipient)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to request package delivery")
+		}
+
+		err = s.shipmentRepository.UpdateTransportStatus(ctx, []primitive.ObjectID{shipmentObjId}, domain.OnBoardCourier)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to update transport status")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}

@@ -24,4 +24,5 @@ type TransferRequestRepository interface {
 	IncomingShipments(ctx context.Context, locationId primitive.ObjectID) ([]*TransferRequest, error)
 	CompleteTransferRequest(ctx context.Context, requestId, acceptedBy primitive.ObjectID) error
 	RequestShipPackage(ctx context.Context, shipmentId, cargoId, origin, destination, requestedBy primitive.ObjectID) error
+	RequestPackageDelivery(ctx context.Context, origin, shipmentId, courierId, requestedBy primitive.ObjectID, recipient Entity) error
 }

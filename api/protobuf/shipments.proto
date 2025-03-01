@@ -18,6 +18,7 @@ service ShipmentService {
     rpc ScanArrivingShipment(ScanArrivingShipmentRequest) returns (google.protobuf.Empty) {}
     rpc ShipPackage(ShipPackageRequest) returns (google.protobuf.Empty) {}
     rpc AddItineraryHistory(AddItineraryHistoryRequest) returns (google.protobuf.Empty) {}
+    rpc DeliverPackage(DeliverPackageRequest) returns (google.protobuf.Empty) {}
 }
 
 message CreateShipmentRequest {
@@ -150,4 +151,11 @@ message AddItineraryHistoryRequest {
     repeated string shipment_ids = 1;
     string location_id = 2;
     string activity = 3;
+}
+
+message DeliverPackageRequest {
+    string origin = 1;
+    string shipment_id = 2;
+    string courier_id = 3;
+    EntityDetail recipient = 4;
 }
