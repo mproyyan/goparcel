@@ -183,6 +183,7 @@ type ComplexityRoot struct {
 		GetLocation          func(childComplexity int, id string) int
 		GetMatchingCargos    func(childComplexity int, origin string, destination string) int
 		GetRegion            func(childComplexity int, zipCode string) int
+		GetRoutedShipments   func(childComplexity int, locationID string) int
 		GetTransitPlaces     func(childComplexity int, id string) int
 		GetUnroutedShipments func(childComplexity int, locationID string) int
 		GetUser              func(childComplexity int, id string) int
@@ -913,6 +914,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetRegion(childComplexity, args["zip_code"].(string)), true
 
+	case "Query.GetRoutedShipments":
+		if e.complexity.Query.GetRoutedShipments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetRoutedShipments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetRoutedShipments(childComplexity, args["location_id"].(string)), true
+
 	case "Query.GetTransitPlaces":
 		if e.complexity.Query.GetTransitPlaces == nil {
 			break
@@ -1544,6 +1557,7 @@ input ShipPackageInput {
 
 type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
+    GetRoutedShipments(location_id: String!): [Shipment]!
     IncomingShipments(location_id: ID!): [TransferRequest!]!
 }
 

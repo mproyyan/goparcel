@@ -121,6 +121,7 @@ input ShipPackageInput {
 
 type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
+    GetRoutedShipments(location_id: String!): [Shipment]!
     IncomingShipments(location_id: ID!): [TransferRequest!]!
 }
 

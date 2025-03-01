@@ -159,6 +159,16 @@ func (r *queryResolver) GetUnroutedShipments(ctx context.Context, locationID str
 	return shipmentsToGraphResponse(shipment.Shipment), nil
 }
 
+// GetRoutedShipments is the resolver for the GetRoutedShipments field.
+func (r *queryResolver) GetRoutedShipments(ctx context.Context, locationID string) ([]*model.Shipment, error) {
+	result, err := r.shipmentService.GetRoutedShipments(ctx, &genproto.GetRoutedShipmentsRequest{LocationId: locationID})
+	if err != nil {
+		return nil, err
+	}
+
+	return shipmentsToGraphResponse(result.Shipment), nil
+}
+
 // IncomingShipments is the resolver for the IncomingShipments field.
 func (r *queryResolver) IncomingShipments(ctx context.Context, locationID string) ([]*model.TransferRequest, error) {
 	result, err := r.shipmentService.IncomingShipments(ctx, &genproto.IncomingShipmentRequest{LocationId: locationID})
