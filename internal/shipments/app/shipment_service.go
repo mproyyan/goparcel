@@ -291,7 +291,7 @@ func (s ShipmentService) ShipPackage(ctx context.Context, shipmentId, cargoId, o
 	// Start transaction
 	s.transaction.Execute(ctx, func(ctx context.Context) error {
 		// Create new transfer request with shipment type
-		err := s.transferRequestRepository.ShipPackage(ctx, shipmentObjId, cargoObjId, originObjId, destinationObjId, userObjId)
+		err := s.transferRequestRepository.RequestShipPackage(ctx, shipmentObjId, cargoObjId, originObjId, destinationObjId, userObjId)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to create new transfer request with shipment type")
 		}

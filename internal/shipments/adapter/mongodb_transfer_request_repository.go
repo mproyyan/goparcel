@@ -137,7 +137,7 @@ func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context,
 	return nil
 }
 
-func (t *TransferRequestRepository) ShipPackage(ctx context.Context, shipmentId, cargoId, origin, destination, requestedBy primitive.ObjectID) error {
+func (t *TransferRequestRepository) RequestShipPackage(ctx context.Context, shipmentId, cargoId, origin, destination, requestedBy primitive.ObjectID) error {
 	transitRequest := TransferRequestModel{
 		RequestType: domain.RequestTypeShipment.String(),
 		ShipmentID:  shipmentId,
