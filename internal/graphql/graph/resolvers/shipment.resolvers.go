@@ -131,6 +131,27 @@ func (r *mutationResolver) ShipPackage(ctx context.Context, input model.ShipPack
 	return "successfully created a shipment request", nil
 }
 
+// DeliverPackage is the resolver for the DeliverPackage field.
+func (r *mutationResolver) DeliverPackage(ctx context.Context, input model.DeliverPackageInput) (string, error) {
+	authUser, err := middlewares.GetAuthUser(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	ctx = auth.SendAuthUser(ctx, authUser.UserID, authUser.ModelID)
+	_, err = r.shipmentService.DeliverPackage(ctx, &genproto.DeliverPackageRequest{
+		Origin:     input.Origin,
+		ShipmentId: input.ShipmentID,
+		CourierId:  input.CourierID,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return "successfully created a package delivery request", nil
+}
+
 // Location is the resolver for the location field.
 func (r *originResolver) Location(ctx context.Context, obj *model.Origin) (*model.Location, error) {
 	if obj.Location != nil && obj.Location.ID == "" {

@@ -151,6 +151,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateLocation       func(childComplexity int, input *model.CreateLocationInput) int
 		CreateShipment       func(childComplexity int, input *model.CreateShipmentInput) int
+		DeliverPackage       func(childComplexity int, input model.DeliverPackageInput) int
 		LoadShipment         func(childComplexity int, shipmentID string, locationID string) int
 		Login                func(childComplexity int, email string, password string) int
 		MarkArrival          func(childComplexity int, cargoID string, locationID string) int
@@ -688,6 +689,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateShipment(childComplexity, args["input"].(*model.CreateShipmentInput)), true
 
+	case "Mutation.DeliverPackage":
+		if e.complexity.Mutation.DeliverPackage == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeliverPackage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeliverPackage(childComplexity, args["input"].(model.DeliverPackageInput)), true
+
 	case "Mutation.LoadShipment":
 		if e.complexity.Mutation.LoadShipment == nil {
 			break
@@ -1220,6 +1233,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateLocationInput,
 		ec.unmarshalInputCreateShipmentInput,
+		ec.unmarshalInputDeliverPackageInput,
 		ec.unmarshalInputEntityInput,
 		ec.unmarshalInputItemInput,
 		ec.unmarshalInputRegisterAsCarrierInput,
@@ -1548,6 +1562,12 @@ input RequestTransitInput {
     courier_id: ID!
 }
 
+input DeliverPackageInput {
+    origin: ID!
+    shipment_id: ID!
+    courier_id: ID!
+}
+
 input ShipPackageInput {
     shipment_id: ID!
     origin: ID!
@@ -1566,6 +1586,7 @@ type Mutation {
     RequestTransit(input: RequestTransitInput): String!
     ScanArrivingShipment(location_id: ID! shipment_id: ID!): String!
     ShipPackage(input: ShipPackageInput!): String!
+    DeliverPackage(input: DeliverPackageInput!): String!
 }
 `, BuiltIn: false},
 	{Name: "../schemas/user.graphqls", Input: `directive @skipAuth on FIELD_DEFINITION

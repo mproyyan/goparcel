@@ -112,6 +112,12 @@ input RequestTransitInput {
     courier_id: ID!
 }
 
+input DeliverPackageInput {
+    origin: ID!
+    shipment_id: ID!
+    courier_id: ID!
+}
+
 input ShipPackageInput {
     shipment_id: ID!
     origin: ID!
@@ -130,4 +136,5 @@ type Mutation {
     RequestTransit(input: RequestTransitInput): String!
     ScanArrivingShipment(location_id: ID! shipment_id: ID!): String!
     ShipPackage(input: ShipPackageInput!): String!
+    DeliverPackage(input: DeliverPackageInput!): String!
 }

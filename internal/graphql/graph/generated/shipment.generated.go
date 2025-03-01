@@ -31,6 +31,7 @@ type MutationResolver interface {
 	RequestTransit(ctx context.Context, input *model.RequestTransitInput) (string, error)
 	ScanArrivingShipment(ctx context.Context, locationID string, shipmentID string) (string, error)
 	ShipPackage(ctx context.Context, input model.ShipPackageInput) (string, error)
+	DeliverPackage(ctx context.Context, input model.DeliverPackageInput) (string, error)
 	LoadShipment(ctx context.Context, shipmentID string, locationID string) (string, error)
 	MarkArrival(ctx context.Context, cargoID string, locationID string) (string, error)
 	CreateLocation(ctx context.Context, input *model.CreateLocationInput) (string, error)
@@ -113,6 +114,29 @@ func (ec *executionContext) field_Mutation_CreateShipment_argsInput(
 	}
 
 	var zeroVal *model.CreateShipmentInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_DeliverPackage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_DeliverPackage_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_DeliverPackage_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (model.DeliverPackageInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNDeliverPackageInput2githubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐDeliverPackageInput(ctx, tmp)
+	}
+
+	var zeroVal model.DeliverPackageInput
 	return zeroVal, nil
 }
 
@@ -1738,6 +1762,61 @@ func (ec *executionContext) fieldContext_Mutation_ShipPackage(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_ShipPackage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_DeliverPackage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeliverPackage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeliverPackage(rctx, fc.Args["input"].(model.DeliverPackageInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_DeliverPackage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_DeliverPackage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4463,6 +4542,47 @@ func (ec *executionContext) unmarshalInputCreateShipmentInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeliverPackageInput(ctx context.Context, obj any) (model.DeliverPackageInput, error) {
+	var it model.DeliverPackageInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"origin", "shipment_id", "courier_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "origin":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("origin"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Origin = data
+		case "shipment_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shipment_id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShipmentID = data
+		case "courier_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("courier_id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CourierID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEntityInput(ctx context.Context, obj any) (model.EntityInput, error) {
 	var it model.EntityInput
 	asMap := map[string]any{}
@@ -5063,6 +5183,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "ShipPackage":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_ShipPackage(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "DeliverPackage":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_DeliverPackage(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -5864,6 +5991,11 @@ func (ec *executionContext) _TransferRequest(ctx context.Context, sel ast.Select
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNDeliverPackageInput2githubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐDeliverPackageInput(ctx context.Context, v any) (model.DeliverPackageInput, error) {
+	res, err := ec.unmarshalInputDeliverPackageInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
 
 func (ec *executionContext) marshalNDestination2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐDestination(ctx context.Context, sel ast.SelectionSet, v *model.Destination) graphql.Marshaler {
 	if v == nil {

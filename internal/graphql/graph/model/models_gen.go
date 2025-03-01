@@ -70,6 +70,12 @@ type CreateShipmentInput struct {
 	Items     []*ItemInput `json:"items"`
 }
 
+type DeliverPackageInput struct {
+	Origin     string `json:"origin"`
+	ShipmentID string `json:"shipment_id"`
+	CourierID  string `json:"courier_id"`
+}
+
 type Destination struct {
 	Location        *Location `json:"location,omitempty"`
 	AcceptedBy      *User     `json:"accepted_by,omitempty"`
