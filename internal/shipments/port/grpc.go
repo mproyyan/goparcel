@@ -65,6 +65,15 @@ func (g GrpcServer) GetUnroutedShipment(ctx context.Context, request *genproto.G
 	return shipmentsToProtoResponse(shipments), nil
 }
 
+func (g GrpcServer) GetRoutedShipments(ctx context.Context, request *genproto.GetRoutedShipmentsRequest) (*genproto.ShipmentResponse, error) {
+	shipments, err := g.service.RoutedShipments(ctx, request.LocationId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get routed shipments")
+	}
+
+	return shipmentsToProtoResponse(shipments), nil
+}
+
 func (g GrpcServer) RequestTransit(ctx context.Context, request *genproto.RequestTransitRequest) (*emptypb.Empty, error) {
 	authUser, err := auth.RetrieveAuthUser(ctx)
 	if err != nil {

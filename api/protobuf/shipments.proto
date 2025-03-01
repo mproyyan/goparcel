@@ -11,6 +11,7 @@ option go_package = "github.com/mproyyan/goparcel/internal/common/genproto";
 service ShipmentService {
     rpc CreateShipment(CreateShipmentRequest) returns (google.protobuf.Empty) {}
     rpc GetUnroutedShipment(GetUnroutedShipmentRequest) returns (ShipmentResponse) {}
+    rpc GetRoutedShipments(GetRoutedShipmentsRequest) returns (ShipmentResponse) {}
     rpc RequestTransit(RequestTransitRequest) returns (google.protobuf.Empty) {}
     rpc IncomingShipments(IncomingShipmentRequest) returns (TransferRequestResponse) {}
     rpc GetShipments(GetShipmentsRequest) returns (ShipmentResponse) {}
@@ -47,6 +48,10 @@ message Volume {
 }
 
 message GetUnroutedShipmentRequest {
+    string location_id = 1;
+}
+
+message GetRoutedShipmentsRequest {
     string location_id = 1;
 }
 

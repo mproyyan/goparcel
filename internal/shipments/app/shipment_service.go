@@ -102,8 +102,28 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 }
 
 func (s ShipmentService) UnroutedShipments(ctx context.Context, locationID string) ([]*domain.Shipment, error) {
+	locationObjID, err := primitive.ObjectIDFromHex(locationID)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
 	// Get unrouted shipments
-	shipments, err := s.shipmentRepository.RetrieveShipmentsFromLocations(ctx, locationID, domain.NotRouted)
+	shipments, err := s.shipmentRepository.RetrieveShipmentsFromLocations(ctx, locationObjID, domain.NotRouted)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to retrieve shipments from location")
+	}
+
+	return shipments, nil
+}
+
+func (s ShipmentService) RoutedShipments(ctx context.Context, locationId string) ([]*domain.Shipment, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
+	// Get routed shipments
+	shipments, err := s.shipmentRepository.RetrieveShipmentsFromLocations(ctx, locationObjId, domain.Routed)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to retrieve shipments from location")
 	}

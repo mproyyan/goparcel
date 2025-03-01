@@ -95,13 +95,7 @@ func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentIds []pri
 	return nil
 }
 
-func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus domain.RoutingStatus) ([]*domain.Shipment, error) {
-	// Conver location id to object id
-	locationObjID, err := primitive.ObjectIDFromHex(locationsID)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
-	}
-
+func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationId primitive.ObjectID, routingStatus domain.RoutingStatus) ([]*domain.Shipment, error) {
 	// Build query
 	query := bson.M{
 		"$expr": bson.M{
@@ -109,7 +103,7 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 				// Retrieve the location of the last itinerary log entry
 				bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}},
 				// Compare it with the provided location ID
-				locationObjID,
+				locationId,
 			},
 		},
 		// Filter by routing_status to ensure it matches the given parameter
@@ -118,7 +112,7 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 
 	// Add condition to match by destination if routing status is routed
 	if routingStatus == domain.Routed {
-		query["destination"] = locationObjID
+		query["destination"] = locationId
 	}
 
 	cursor, err := s.collection.Find(ctx, query)

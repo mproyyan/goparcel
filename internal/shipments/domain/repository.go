@@ -13,7 +13,7 @@ type ShipmentRepository interface {
 	GetShipments(ctx context.Context, ids []primitive.ObjectID) ([]*Shipment, error)
 	CreateShipment(ctx context.Context, origin string, sender, recipient Entity, items []Item) (string, error)
 	LogItinerary(ctx context.Context, shipmentID []primitive.ObjectID, locationIds primitive.ObjectID, activityType ActivityType) error
-	RetrieveShipmentsFromLocations(ctx context.Context, locationsID string, routingStatus RoutingStatus) ([]*Shipment, error)
+	RetrieveShipmentsFromLocations(ctx context.Context, locationsID primitive.ObjectID, routingStatus RoutingStatus) ([]*Shipment, error)
 	UpdateTransportStatus(ctx context.Context, shipmentId []primitive.ObjectID, status TransportStatus) error
 	AddShipmentDestination(ctx context.Context, shipmentId, locationId primitive.ObjectID) error
 }
