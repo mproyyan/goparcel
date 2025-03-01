@@ -116,6 +116,11 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 		"routing_status": routingStatus.String(),
 	}
 
+	// Add condition to match by destination if routing status is routed
+	if routingStatus == domain.Routed {
+		query["destination"] = locationObjID
+	}
+
 	cursor, err := s.collection.Find(ctx, query)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
