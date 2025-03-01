@@ -163,6 +163,20 @@ func (g GrpcServer) DeliverPackage(ctx context.Context, request *genproto.Delive
 	return &emptypb.Empty{}, nil
 }
 
+func (g GrpcServer) CompleteShipment(ctx context.Context, request *genproto.CompleteShipmentRequest) (*emptypb.Empty, error) {
+	authUser, err := auth.RetrieveAuthUser(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "unauthenticated")
+	}
+
+	err = g.service.CompleteShipment(ctx, request.ShipmentId, authUser.UserID)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to complete shipment")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func protoRequestToItems(packages []*genproto.Package) []domain.Item {
 	var items []domain.Item
 	for _, pkg := range packages {

@@ -19,6 +19,7 @@ service ShipmentService {
     rpc ShipPackage(ShipPackageRequest) returns (google.protobuf.Empty) {}
     rpc AddItineraryHistory(AddItineraryHistoryRequest) returns (google.protobuf.Empty) {}
     rpc DeliverPackage(DeliverPackageRequest) returns (google.protobuf.Empty) {}
+    rpc CompleteShipment(CompleteShipmentRequest) returns (google.protobuf.Empty) {}
 }
 
 message CreateShipmentRequest {
@@ -157,4 +158,8 @@ message DeliverPackageRequest {
     string origin = 1;
     string shipment_id = 2;
     string courier_id = 3;
+}
+
+message CompleteShipmentRequest {
+    string shipment_id = 1;
 }

@@ -30,6 +30,7 @@ const (
 	ShipmentService_ShipPackage_FullMethodName          = "/protobuf.ShipmentService/ShipPackage"
 	ShipmentService_AddItineraryHistory_FullMethodName  = "/protobuf.ShipmentService/AddItineraryHistory"
 	ShipmentService_DeliverPackage_FullMethodName       = "/protobuf.ShipmentService/DeliverPackage"
+	ShipmentService_CompleteShipment_FullMethodName     = "/protobuf.ShipmentService/CompleteShipment"
 )
 
 // ShipmentServiceClient is the client API for ShipmentService service.
@@ -46,6 +47,7 @@ type ShipmentServiceClient interface {
 	ShipPackage(ctx context.Context, in *ShipPackageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AddItineraryHistory(ctx context.Context, in *AddItineraryHistoryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeliverPackage(ctx context.Context, in *DeliverPackageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CompleteShipment(ctx context.Context, in *CompleteShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type shipmentServiceClient struct {
@@ -156,6 +158,16 @@ func (c *shipmentServiceClient) DeliverPackage(ctx context.Context, in *DeliverP
 	return out, nil
 }
 
+func (c *shipmentServiceClient) CompleteShipment(ctx context.Context, in *CompleteShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ShipmentService_CompleteShipment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShipmentServiceServer is the server API for ShipmentService service.
 // All implementations must embed UnimplementedShipmentServiceServer
 // for forward compatibility.
@@ -170,6 +182,7 @@ type ShipmentServiceServer interface {
 	ShipPackage(context.Context, *ShipPackageRequest) (*emptypb.Empty, error)
 	AddItineraryHistory(context.Context, *AddItineraryHistoryRequest) (*emptypb.Empty, error)
 	DeliverPackage(context.Context, *DeliverPackageRequest) (*emptypb.Empty, error)
+	CompleteShipment(context.Context, *CompleteShipmentRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedShipmentServiceServer()
 }
 
@@ -209,6 +222,9 @@ func (UnimplementedShipmentServiceServer) AddItineraryHistory(context.Context, *
 }
 func (UnimplementedShipmentServiceServer) DeliverPackage(context.Context, *DeliverPackageRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeliverPackage not implemented")
+}
+func (UnimplementedShipmentServiceServer) CompleteShipment(context.Context, *CompleteShipmentRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteShipment not implemented")
 }
 func (UnimplementedShipmentServiceServer) mustEmbedUnimplementedShipmentServiceServer() {}
 func (UnimplementedShipmentServiceServer) testEmbeddedByValue()                         {}
@@ -411,6 +427,24 @@ func _ShipmentService_DeliverPackage_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShipmentService_CompleteShipment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteShipmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShipmentServiceServer).CompleteShipment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShipmentService_CompleteShipment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShipmentServiceServer).CompleteShipment(ctx, req.(*CompleteShipmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShipmentService_ServiceDesc is the grpc.ServiceDesc for ShipmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -457,6 +491,10 @@ var ShipmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeliverPackage",
 			Handler:    _ShipmentService_DeliverPackage_Handler,
+		},
+		{
+			MethodName: "CompleteShipment",
+			Handler:    _ShipmentService_CompleteShipment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -417,3 +417,45 @@ func (s ShipmentService) DeliverPackage(ctx context.Context, origin, shipmentId,
 
 	return nil
 }
+
+func (s ShipmentService) CompleteShipment(ctx context.Context, shipmentId string, userId string) error {
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+	}
+
+	userObjId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+	}
+
+	request, found, err := s.transferRequestRepository.LatestPendingTransferRequest(ctx, shipmentObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to find latest pending transfer request")
+	}
+
+	if !found {
+		return status.Error(codes.NotFound, "shipment doesnt have pending transfer request")
+	}
+
+	err = s.transaction.Execute(ctx, func(ctx context.Context) error {
+		requestObjId, _ := primitive.ObjectIDFromHex(request.ID)
+		err = s.transferRequestRepository.CompleteTransferRequest(ctx, requestObjId, userObjId)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to complete transfer request")
+		}
+
+		err = s.shipmentRepository.UpdateTransportStatus(ctx, []primitive.ObjectID{shipmentObjId}, domain.Claimed)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to update transport status")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
