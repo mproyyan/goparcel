@@ -149,6 +149,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CompleteShipment     func(childComplexity int, shipmentID string) int
 		CreateLocation       func(childComplexity int, input *model.CreateLocationInput) int
 		CreateShipment       func(childComplexity int, input *model.CreateShipmentInput) int
 		DeliverPackage       func(childComplexity int, input model.DeliverPackageInput) int
@@ -664,6 +665,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LocationAddress.ZipCode(childComplexity), true
+
+	case "Mutation.CompleteShipment":
+		if e.complexity.Mutation.CompleteShipment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CompleteShipment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CompleteShipment(childComplexity, args["shipment_id"].(string)), true
 
 	case "Mutation.CreateLocation":
 		if e.complexity.Mutation.CreateLocation == nil {
@@ -1587,6 +1600,7 @@ type Mutation {
     ScanArrivingShipment(location_id: ID! shipment_id: ID!): String!
     ShipPackage(input: ShipPackageInput!): String!
     DeliverPackage(input: DeliverPackageInput!): String!
+    CompleteShipment(shipment_id: ID!): String!
 }
 `, BuiltIn: false},
 	{Name: "../schemas/user.graphqls", Input: `directive @skipAuth on FIELD_DEFINITION

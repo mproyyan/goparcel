@@ -152,6 +152,22 @@ func (r *mutationResolver) DeliverPackage(ctx context.Context, input model.Deliv
 	return "successfully created a package delivery request", nil
 }
 
+// CompleteShipment is the resolver for the CompleteShipment field.
+func (r *mutationResolver) CompleteShipment(ctx context.Context, shipmentID string) (string, error) {
+	authUser, err := middlewares.GetAuthUser(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	ctx = auth.SendAuthUser(ctx, authUser.UserID, authUser.ModelID)
+	_, err = r.shipmentService.CompleteShipment(ctx, &genproto.CompleteShipmentRequest{ShipmentId: shipmentID})
+	if err != nil {
+		return "", err
+	}
+
+	return "successfully completed the shipment", nil
+}
+
 // Location is the resolver for the location field.
 func (r *originResolver) Location(ctx context.Context, obj *model.Origin) (*model.Location, error) {
 	if obj.Location != nil && obj.Location.ID == "" {
