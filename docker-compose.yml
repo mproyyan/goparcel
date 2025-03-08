@@ -1,4 +1,19 @@
 services:
+  cargo-service:
+    container_name: cargo-service
+    build:
+      context: .
+      dockerfile: internal/cargos/Dockerfile
+    environment:
+      - GRPC_PORT=5555
+    env_file:
+      - .env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app_network
+
   user-service:
     container_name: user-service
     build:
@@ -56,6 +71,7 @@ services:
     env_file:
       - .env
     depends_on:
+      - cargo-service
       - user-service
       - location-service
       - shipment-service
