@@ -28,6 +28,21 @@ services:
         condition: service_healthy
     networks:
       - app_network
+
+  shipment-service:
+    container_name: shipment-service
+    build:
+      context: .
+      dockerfile: internal/shipments/Dockerfile
+    environment:
+      - GRPC_PORT=9999
+    env_file:
+      - .env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app_network
   
   api-gateway:
     container_name: api-gateway
@@ -43,6 +58,7 @@ services:
     depends_on:
       - user-service
       - location-service
+      - shipment-service
     networks:
       - app_network
 
