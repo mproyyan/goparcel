@@ -14,6 +14,21 @@ services:
     networks:
       - app_network
 
+  courier-service:
+    container_name: courier-service
+    build:
+      context: .
+      dockerfile: internal/couriers/Dockerfile
+    environment:
+      - GRPC_PORT=6666
+    env_file:
+      - .env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app_network
+
   user-service:
     container_name: user-service
     build:
@@ -71,7 +86,9 @@ services:
     env_file:
       - .env
     depends_on:
+      - redis
       - cargo-service
+      - courier-service
       - user-service
       - location-service
       - shipment-service
