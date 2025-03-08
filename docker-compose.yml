@@ -1,4 +1,19 @@
 services:
+  user-service:
+    container_name: user-service
+    build:
+      context: .
+      dockerfile: internal/users/Dockerfile
+    environment:
+      - GRPC_PORT=7777
+    env_file:
+      - .env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app_network
+
   location-service:
     container_name: location-service
     build:
@@ -26,6 +41,7 @@ services:
     env_file:
       - .env
     depends_on:
+      - user-service
       - location-service
     networks:
       - app_network
