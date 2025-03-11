@@ -2,10 +2,11 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -21,8 +22,9 @@ func RunGrpcServer(registerServer func(server *grpc.Server)) {
 
 	listen, err := net.Listen("tcp", grpcEndpoint)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
-	log.Fatal(grpcServer.Serve(listen))
+	logrus.WithField("address", grpcEndpoint).Info("Service running")
+	logrus.Fatal(grpcServer.Serve(listen))
 }

@@ -2,23 +2,26 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/mproyyan/goparcel/internal/common/server"
 	"github.com/mproyyan/goparcel/internal/users/adapter"
 	"github.com/mproyyan/goparcel/internal/users/app"
 	"github.com/mproyyan/goparcel/internal/users/port"
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	logrus.Info("Starting user service...")
+
 	// Define database options
 	clientOptions := options.Client().ApplyURI(os.Getenv("MONGO_SERVER"))
 	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -27,20 +30,20 @@ func main() {
 	// Connect to database
 	databaseClient, err := mongo.Connect(ctxWithTimeout, clientOptions)
 	if err != nil {
-		log.Fatalf("cannot connect to database: %v", err)
+		logrus.Fatalf("cannot connect to database: %v", err)
 	}
 
 	// Wait for connection
 	err = databaseClient.Ping(ctxWithTimeout, nil)
 	if err != nil {
-		log.Fatalf("MongoDB not responding: %v", err)
+		logrus.Fatalf("MongoDB not responding: %v", err)
 	}
 
 	// Connect to redis
 	redisClient := redis.NewClient(&redis.Options{Addr: os.Getenv("REDIS_SERVER")})
 	_, err = redisClient.Ping(context.Background()).Result()
 	if err != nil {
-		log.Fatalf("Cant connect to redis: %v", err)
+		logrus.Fatalf("Cant connect to redis: %v", err)
 	}
 
 	// Dependency

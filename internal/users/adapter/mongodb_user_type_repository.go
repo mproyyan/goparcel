@@ -5,7 +5,9 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/mproyyan/goparcel/internal/users/domain/user"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,8 +28,10 @@ func NewUserTypeRepository(db *mongo.Database) *UserTypeRepository {
 func (u *UserTypeRepository) FindUserType(ctx context.Context, userType string) (*user.UserType, error) {
 	// Find user type by name
 	var userTypeResult UserType
+	logrus.WithField("user_type", userType).Info("Finding user type")
 	err := u.collection.FindOne(ctx, bson.M{"name": userType}).Decode(&userTypeResult)
 	if err != nil {
+		logrus.WithError(err).Error("Failed to find user type")
 		return nil, cuserr.MongoError(err)
 	}
 
