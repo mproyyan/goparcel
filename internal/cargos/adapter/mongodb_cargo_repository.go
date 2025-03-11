@@ -7,6 +7,8 @@ import (
 	"github.com/mproyyan/goparcel/internal/cargos/domain"
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -124,6 +126,11 @@ func (c *CargoRepository) LoadShipment(ctx context.Context, cargoId, shipmentId 
 		return cuserr.MongoError(err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"cargo_id":    cargoId,
+		"shipment_id": shipmentId,
+	}).Info("Shipment loaded to cargo")
+
 	return nil
 }
 
@@ -161,6 +168,11 @@ func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId primitive.Obj
 		return cuserr.MongoError(err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"cargo_id":    cargoId,
+		"location_id": locationId,
+	}).Info("Cargo last location updated")
+
 	return nil
 }
 
@@ -174,6 +186,11 @@ func (c *CargoRepository) UnloadShipment(ctx context.Context, cargoId, shipmentI
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"cargo_id":    cargoId,
+		"shipment_id": shipmentId,
+	}).Info("Shipment unloaded from cargo")
 
 	return nil
 }

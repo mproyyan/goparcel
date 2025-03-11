@@ -5,6 +5,8 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/cargos/domain"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -133,6 +135,12 @@ func (c CargoService) MarkArrival(ctx context.Context, cargoId, locationId strin
 		if err != nil {
 			return cuserr.Decorate(err, "failed to add itinerary history")
 		}
+
+		logrus.WithFields(logrus.Fields{
+			"shipments_ids":   cargo.Shipments,
+			"total_shipments": len(cargo.Shipments),
+			"location_id":     locationId,
+		}).Info("Shipments arrive at location")
 	}
 
 	// Update last known location of cargo with current location
