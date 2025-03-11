@@ -5,7 +5,9 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/mproyyan/goparcel/internal/locations/domain"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -89,6 +91,8 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 			},
 		}
 
+		logrus.WithField("filter", filter).Debug("Transit place query filter when current location is depot")
+
 		cursor, err := l.collection.Find(ctx, filter)
 		if err != nil {
 			return nil, cuserr.MongoError(err)
@@ -106,6 +110,8 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 			"type":         domain.Depot.String(),
 			"warehouse_id": locationID, // Depots belonging to this warehouse
 		}
+
+		logrus.WithField("filter", filter).Debug("Transit place query filter when current location is warehouse")
 
 		cursor, err := l.collection.Find(ctx, filter)
 		if err != nil {
