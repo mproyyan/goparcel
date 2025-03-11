@@ -7,7 +7,9 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -52,6 +54,7 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 	}
 
 	// Retrieve the sender's detailed address
+	logrus.WithField("zip_code", sender.Address.ZipCode).Info("Call location service to resolve address")
 	senderDetailAddress, err := s.locationService.ResolveAddress(ctx, sender.Address.ZipCode)
 	if err != nil {
 		return cuserr.Decorate(err, "Failed to resolve sender's address")
@@ -64,6 +67,7 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 	sender.Address.Subdistrict = senderDetailAddress.Subdistrict
 
 	// Retrieve the recipient's detailed address
+	logrus.WithField("zip_code", sender.Address.ZipCode).Info("Call location service to resolve address")
 	recipientDetailAddress, err := s.locationService.ResolveAddress(ctx, recipient.Address.ZipCode)
 	if err != nil {
 		return cuserr.Decorate(err, "Failed to resolve recipient's address")

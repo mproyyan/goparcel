@@ -7,7 +7,9 @@ import (
 
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -65,6 +67,8 @@ func (t *TransferRequestRepository) LatestPendingTransferRequest(ctx context.Con
 		"status":      domain.StatusPending.String(),
 	}
 
+	logrus.WithField("filter", filter).Debug("Querying latest pending transfer request of shipment")
+
 	var transferRequest TransferRequestModel
 	opts := options.FindOne().SetSort(bson.M{"created_at": -1})
 	err := t.collection.FindOne(ctx, filter, opts).Decode(&transferRequest)
@@ -111,6 +115,8 @@ func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locat
 		"destination.location": locationId,
 	}
 
+	logrus.WithField("filter", filter).Debug("Querying incoming shipments in a location")
+
 	var shipments []*TransferRequestModel
 	cursor, err := t.collection.Find(ctx, filter)
 	if err != nil {
@@ -129,10 +135,21 @@ func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context,
 	filter := bson.M{"_id": requestId, "status": domain.StatusPending.String()}
 	update := bson.M{"$set": bson.M{"status": domain.StatusCompleted.String(), "destination.accepted_by": acceptedBy}}
 
+	logrus.WithFields(logrus.Fields{
+		"filter": filter,
+		"update": update,
+	}).Debug("Completing transfer request")
+
 	_, err := t.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id":    acceptedBy,
+		"status":     domain.StatusCompleted.String(),
+		"request_id": requestId,
+	}).Info("Transfer request status updated")
 
 	return nil
 }

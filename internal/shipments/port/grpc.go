@@ -6,8 +6,10 @@ import (
 	"github.com/mproyyan/goparcel/internal/common/auth"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/mproyyan/goparcel/internal/shipments/app"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -53,6 +55,12 @@ func (g GrpcServer) CreateShipment(ctx context.Context, request *genproto.Create
 		return nil, cuserr.Decorate(err, "failed to call CreateShipment service")
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"origin":    request.Origin,
+		"sender":    request.Sender.Name,
+		"recipient": request.Recipient.Name,
+	}).Info("Shipment created")
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -84,6 +92,15 @@ func (g GrpcServer) RequestTransit(ctx context.Context, request *genproto.Reques
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to request transit")
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id":     authUser.UserID,
+		"type":        "transit",
+		"shipment_id": request.ShipmentId,
+		"origin":      request.Origin,
+		"destination": request.Destination,
+		"courier_id":  request.CourierId,
+	}).Info("Requesting transfer")
 
 	return &emptypb.Empty{}, nil
 }
@@ -118,6 +135,12 @@ func (g GrpcServer) ScanArrivingShipment(ctx context.Context, request *genproto.
 		return nil, err
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"user_id":     authUser.UserID,
+		"shipment_id": request.ShipmentId,
+		"location_id": request.LocationId,
+	}).Info("Shipment scanned at location")
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -131,6 +154,15 @@ func (g GrpcServer) ShipPackage(ctx context.Context, request *genproto.ShipPacka
 	if err != nil {
 		return nil, cuserr.Decorate(err, "ship package failed")
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id":     authUser.UserID,
+		"type":        "shipment",
+		"shipment_id": request.ShipmentId,
+		"cargo_id":    request.CargoId,
+		"origin":      request.Origin,
+		"destination": request.Destination,
+	}).Info("Requesting transer")
 
 	return &emptypb.Empty{}, nil
 }
@@ -159,6 +191,14 @@ func (g GrpcServer) DeliverPackage(ctx context.Context, request *genproto.Delive
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to deliver package")
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"user_id":     authUser.UserID,
+		"type":        "delivery",
+		"shipment_id": request.ShipmentId,
+		"origin":      request.Origin,
+		"courier_id":  request.CourierId,
+	}).Info("Requesting transfer")
 
 	return &emptypb.Empty{}, nil
 }

@@ -7,7 +7,9 @@ import (
 	"time"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
+	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/mproyyan/goparcel/internal/shipments/domain"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -92,6 +94,12 @@ func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentIds []pri
 		return cuserr.MongoError(err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"shipment_ids":    shipmentIds,
+		"total_shipments": len(shipmentIds),
+		"location_id":     locationID,
+	})
+
 	return nil
 }
 
@@ -110,6 +118,8 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 		"routing_status": routingStatus.String(),
 	}
 
+	logrus.WithField("query", query).Debug("Retrieving shipments from location")
+
 	if routingStatus == domain.Routed {
 		query["$expr"] = bson.M{
 			"$and": bson.A{
@@ -127,6 +137,8 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 				},
 			},
 		}
+
+		logrus.WithField("query", query).Debug("Retrieving routed shipments from location")
 	}
 
 	cursor, err := s.collection.Find(ctx, query)
@@ -178,21 +190,44 @@ func (s *ShipmentRepository) GetShipment(ctx context.Context, id primitive.Objec
 func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipmentIds []primitive.ObjectID, status domain.TransportStatus) error {
 	filter := bson.M{"_id": bson.M{"$in": shipmentIds}}
 	update := bson.M{"$set": bson.M{"transport_status": status.String()}}
+
+	logrus.WithFields(logrus.Fields{
+		"filter": filter,
+		"update": update,
+	}).Debug("Updating transport status")
+
 	_, err := s.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"shipment_ids":    shipmentIds,
+		"total_shipments": len(shipmentIds),
+		"status":          status.String(),
+	}).Info("Shipment transport status updated")
 
 	return nil
 }
 
 func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmentId, locationId primitive.ObjectID) error {
 	filter := bson.M{"_id": shipmentId}
-	update := bson.M{"$set": bson.M{"destination": locationId, "routing_status": domain.Routed}}
+	update := bson.M{"$set": bson.M{"destination": locationId, "routing_status": domain.Routed.String()}}
+
+	logrus.WithFields(logrus.Fields{
+		"filter": filter,
+		"update": update,
+	}).Debug("Routing shipment")
+
 	_, err := s.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"shipment_id": shipmentId,
+		"status":      domain.Routed.String(),
+	}).Info("Shipment routing status updated")
 
 	return nil
 }
