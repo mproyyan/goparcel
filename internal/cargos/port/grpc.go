@@ -2,6 +2,7 @@ package port
 
 import (
 	"context"
+	"time"
 
 	"github.com/mproyyan/goparcel/internal/cargos/app"
 	"github.com/mproyyan/goparcel/internal/cargos/domain"
@@ -91,6 +92,25 @@ func (g GrpcServer) UnloadShipment(ctx context.Context, request *genproto.Unload
 	return &emptypb.Empty{}, nil
 }
 
+func (g GrpcServer) AssignCarrier(ctx context.Context, request *genproto.AssignCarrierRequest) (*emptypb.Empty, error) {
+	err := g.service.AssignCarrier(ctx, request.CargoId, request.CarrierIds)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to assign carrier")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (g GrpcServer) AssignRoute(ctx context.Context, request *genproto.AssignRouteRequest) (*emptypb.Empty, error) {
+	itineraries := convertProtoToItineraries(request.Itineraries)
+	err := g.service.AssignRoute(ctx, request.CargoId, itineraries)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to assign route")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func cargoToProtoResponse(cargo *domain.Cargo) *genproto.Cargo {
 	if cargo == nil {
 		return nil
@@ -127,11 +147,35 @@ func convertCapacityToProto(capacity domain.Capacity) *genproto.Capacity {
 func convertItinerariesToProto(itineraries []domain.Itinerary) []*genproto.Itinerary {
 	var result []*genproto.Itinerary
 	for _, itinerary := range itineraries {
+		var actualTime *timestamppb.Timestamp
+		if itinerary.ActualTimeArrival != nil {
+			actualTime = timestamppb.New(*itinerary.ActualTimeArrival)
+		}
+
 		result = append(result, &genproto.Itinerary{
 			Location:             itinerary.Location,
 			EstimatedTimeArrival: timestamppb.New(itinerary.EstimatedTimeArrival),
-			ActualTimeArrival:    timestamppb.New(itinerary.ActualTimeArrival),
+			ActualTimeArrival:    actualTime,
 		})
 	}
+	return result
+}
+
+func convertProtoToItineraries(itineraries []*genproto.Itinerary) []domain.Itinerary {
+	var result []domain.Itinerary
+	for _, itinerary := range itineraries {
+		var actualTime *time.Time
+		if itinerary.ActualTimeArrival != nil {
+			t := itinerary.ActualTimeArrival.AsTime()
+			actualTime = &t
+		}
+
+		result = append(result, domain.Itinerary{
+			Location:             itinerary.Location,
+			EstimatedTimeArrival: itinerary.EstimatedTimeArrival.AsTime(),
+			ActualTimeArrival:    actualTime,
+		})
+	}
+
 	return result
 }

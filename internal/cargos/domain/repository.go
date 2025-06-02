@@ -14,6 +14,8 @@ type CargoRepository interface {
 	MarkArrival(ctx context.Context, cargoId, locationId primitive.ObjectID) error
 	UnloadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error
 	CreateCargo(ctx context.Context, cargo Cargo) (primitive.ObjectID, error)
+	AssignCarrier(ctx context.Context, cargoId primitive.ObjectID, carrierIds []primitive.ObjectID) error
+	AssignRoute(ctx context.Context, cargoId primitive.ObjectID, itinerary []Itinerary) error
 }
 
 type CarrierRepository interface {

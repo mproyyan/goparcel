@@ -14,6 +14,8 @@ service CargoService {
     rpc LoadShipment(LoadShipmentRequest) returns (google.protobuf.Empty) {} 
     rpc MarkArrival(MarkArrivalRequest) returns (google.protobuf.Empty) {}
     rpc UnloadShipment(UnloadShipmentRequest) returns (google.protobuf.Empty) {}
+    rpc AssignCarrier(AssignCarrierRequest) returns (google.protobuf.Empty) {}
+    rpc AssignRoute(AssignRouteRequest) returns (google.protobuf.Empty) {}
 }
 
 message GetMatchingCargosRequest {
@@ -71,4 +73,14 @@ message MarkArrivalRequest {
 message UnloadShipmentRequest {
     string cargo_id = 1;
     string shipment_id = 2;
+}
+
+message AssignCarrierRequest {
+    string cargo_id = 1;
+    repeated string carrier_ids = 2;
+}
+
+message AssignRouteRequest {
+    string cargo_id = 1;
+    repeated Itinerary itineraries = 2;
 }

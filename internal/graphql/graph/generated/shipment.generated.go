@@ -36,6 +36,8 @@ type MutationResolver interface {
 	LoadShipment(ctx context.Context, shipmentID string, locationID string) (string, error)
 	MarkArrival(ctx context.Context, cargoID string, locationID string) (string, error)
 	CreateCargo(ctx context.Context, name string, origin string, maxCapacity model.CapacityInput) (string, error)
+	AssignCarrier(ctx context.Context, cargoID string, carrierIds []string) (string, error)
+	AssignRoute(ctx context.Context, cargoID string, itineraries []*model.ItineraryInput) (string, error)
 	CreateLocation(ctx context.Context, input *model.CreateLocationInput) (string, error)
 	Login(ctx context.Context, email string, password string) (string, error)
 	RegisterAsOperator(ctx context.Context, input model.RegisterAsOperatorInput) (string, error)
@@ -72,6 +74,88 @@ type TransferRequestResolver interface {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_AssignCarrier_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_AssignCarrier_argsCargoID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["cargo_id"] = arg0
+	arg1, err := ec.field_Mutation_AssignCarrier_argsCarrierIds(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["carrier_ids"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_AssignCarrier_argsCargoID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("cargo_id"))
+	if tmp, ok := rawArgs["cargo_id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_AssignCarrier_argsCarrierIds(
+	ctx context.Context,
+	rawArgs map[string]any,
+) ([]string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("carrier_ids"))
+	if tmp, ok := rawArgs["carrier_ids"]; ok {
+		return ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
+	}
+
+	var zeroVal []string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_AssignRoute_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_AssignRoute_argsCargoID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["cargo_id"] = arg0
+	arg1, err := ec.field_Mutation_AssignRoute_argsItineraries(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["itineraries"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_AssignRoute_argsCargoID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("cargo_id"))
+	if tmp, ok := rawArgs["cargo_id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_AssignRoute_argsItineraries(
+	ctx context.Context,
+	rawArgs map[string]any,
+) ([]*model.ItineraryInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("itineraries"))
+	if tmp, ok := rawArgs["itineraries"]; ok {
+		return ec.unmarshalNItineraryInput2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐItineraryInputᚄ(ctx, tmp)
+	}
+
+	var zeroVal []*model.ItineraryInput
+	return zeroVal, nil
+}
 
 func (ec *executionContext) field_Mutation_CompleteShipment_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
@@ -2121,6 +2205,116 @@ func (ec *executionContext) fieldContext_Mutation_CreateCargo(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_CreateCargo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_AssignCarrier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_AssignCarrier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AssignCarrier(rctx, fc.Args["cargo_id"].(string), fc.Args["carrier_ids"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_AssignCarrier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_AssignCarrier_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_AssignRoute(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_AssignRoute(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AssignRoute(rctx, fc.Args["cargo_id"].(string), fc.Args["itineraries"].([]*model.ItineraryInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_AssignRoute(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_AssignRoute_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5412,6 +5606,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "CreateCargo":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_CreateCargo(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "AssignCarrier":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_AssignCarrier(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "AssignRoute":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_AssignRoute(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

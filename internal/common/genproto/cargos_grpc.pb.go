@@ -26,6 +26,8 @@ const (
 	CargoService_LoadShipment_FullMethodName      = "/protobuf.CargoService/LoadShipment"
 	CargoService_MarkArrival_FullMethodName       = "/protobuf.CargoService/MarkArrival"
 	CargoService_UnloadShipment_FullMethodName    = "/protobuf.CargoService/UnloadShipment"
+	CargoService_AssignCarrier_FullMethodName     = "/protobuf.CargoService/AssignCarrier"
+	CargoService_AssignRoute_FullMethodName       = "/protobuf.CargoService/AssignRoute"
 )
 
 // CargoServiceClient is the client API for CargoService service.
@@ -38,6 +40,8 @@ type CargoServiceClient interface {
 	LoadShipment(ctx context.Context, in *LoadShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	MarkArrival(ctx context.Context, in *MarkArrivalRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UnloadShipment(ctx context.Context, in *UnloadShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	AssignCarrier(ctx context.Context, in *AssignCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	AssignRoute(ctx context.Context, in *AssignRouteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type cargoServiceClient struct {
@@ -108,6 +112,26 @@ func (c *cargoServiceClient) UnloadShipment(ctx context.Context, in *UnloadShipm
 	return out, nil
 }
 
+func (c *cargoServiceClient) AssignCarrier(ctx context.Context, in *AssignCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, CargoService_AssignCarrier_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cargoServiceClient) AssignRoute(ctx context.Context, in *AssignRouteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, CargoService_AssignRoute_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CargoServiceServer is the server API for CargoService service.
 // All implementations must embed UnimplementedCargoServiceServer
 // for forward compatibility.
@@ -118,6 +142,8 @@ type CargoServiceServer interface {
 	LoadShipment(context.Context, *LoadShipmentRequest) (*emptypb.Empty, error)
 	MarkArrival(context.Context, *MarkArrivalRequest) (*emptypb.Empty, error)
 	UnloadShipment(context.Context, *UnloadShipmentRequest) (*emptypb.Empty, error)
+	AssignCarrier(context.Context, *AssignCarrierRequest) (*emptypb.Empty, error)
+	AssignRoute(context.Context, *AssignRouteRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedCargoServiceServer()
 }
 
@@ -145,6 +171,12 @@ func (UnimplementedCargoServiceServer) MarkArrival(context.Context, *MarkArrival
 }
 func (UnimplementedCargoServiceServer) UnloadShipment(context.Context, *UnloadShipmentRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnloadShipment not implemented")
+}
+func (UnimplementedCargoServiceServer) AssignCarrier(context.Context, *AssignCarrierRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssignCarrier not implemented")
+}
+func (UnimplementedCargoServiceServer) AssignRoute(context.Context, *AssignRouteRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssignRoute not implemented")
 }
 func (UnimplementedCargoServiceServer) mustEmbedUnimplementedCargoServiceServer() {}
 func (UnimplementedCargoServiceServer) testEmbeddedByValue()                      {}
@@ -275,6 +307,42 @@ func _CargoService_UnloadShipment_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CargoService_AssignCarrier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignCarrierRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).AssignCarrier(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_AssignCarrier_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).AssignCarrier(ctx, req.(*AssignCarrierRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CargoService_AssignRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignRouteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).AssignRoute(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_AssignRoute_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).AssignRoute(ctx, req.(*AssignRouteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CargoService_ServiceDesc is the grpc.ServiceDesc for CargoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -305,6 +373,14 @@ var CargoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnloadShipment",
 			Handler:    _CargoService_UnloadShipment_Handler,
+		},
+		{
+			MethodName: "AssignCarrier",
+			Handler:    _CargoService_AssignCarrier_Handler,
+		},
+		{
+			MethodName: "AssignRoute",
+			Handler:    _CargoService_AssignRoute_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

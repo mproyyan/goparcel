@@ -38,7 +38,7 @@ type Capacity struct {
 type Itinerary struct {
 	Location             primitive.ObjectID `bson:"location"`
 	EstimatedTimeArrival time.Time          `bson:"estimated_time_arrival"`
-	ActualTimeArrival    time.Time          `bson:"actual_time_arrival"`
+	ActualTimeArrival    *time.Time         `bson:"actual_time_arrival,omitempty"`
 }
 
 // Implementation
@@ -208,6 +208,48 @@ func (c *CargoRepository) UnloadShipment(ctx context.Context, cargoId, shipmentI
 		"cargo_id":    cargoId,
 		"shipment_id": shipmentId,
 	}).Info("Shipment unloaded from cargo")
+
+	return nil
+}
+
+func (c *CargoRepository) AssignCarrier(ctx context.Context, cargoId primitive.ObjectID, carrierIds []primitive.ObjectID) error {
+	filter := bson.M{"_id": cargoId}
+	update := bson.M{
+		"$set": bson.M{
+			"carriers": carrierIds,
+			"status":   "active",
+		},
+	}
+
+	_, err := c.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"cargo_id":    cargoId,
+		"carrier_ids": carrierIds,
+	}).Info("Carriers replaced for cargo")
+
+	return nil
+}
+
+func (c *CargoRepository) AssignRoute(ctx context.Context, cargoId primitive.ObjectID, itinerary []domain.Itinerary) error {
+	filter := bson.M{"_id": cargoId}
+	update := bson.M{
+		"$set": bson.M{
+			"itineraries": domainToItinerariesModel(itinerary),
+		},
+	}
+
+	_, err := c.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"cargo_id": cargoId,
+	}).Info("Route assigned to cargo")
 
 	return nil
 }

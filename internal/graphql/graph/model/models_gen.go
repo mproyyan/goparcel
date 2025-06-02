@@ -120,6 +120,11 @@ type Itinerary struct {
 	ActualTimeArrival    *time.Time `json:"actual_time_arrival,omitempty"`
 }
 
+type ItineraryInput struct {
+	LocationID           string    `json:"location_id"`
+	EstimatedTimeArrival time.Time `json:"estimated_time_arrival"`
+}
+
 type ItineraryLog struct {
 	ActivityType string    `json:"activity_type"`
 	Timestamp    time.Time `json:"timestamp"`

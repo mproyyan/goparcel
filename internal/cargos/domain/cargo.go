@@ -22,7 +22,7 @@ type Capacity struct {
 type Itinerary struct {
 	Location             string
 	EstimatedTimeArrival time.Time
-	ActualTimeArrival    time.Time
+	ActualTimeArrival    *time.Time
 }
 
 func (c Cargo) HasShipments() bool {

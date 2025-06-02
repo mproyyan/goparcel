@@ -14,6 +14,7 @@ import (
 	"github.com/mproyyan/goparcel/internal/graphql/graph/generated"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/middlewares"
 	"github.com/mproyyan/goparcel/internal/graphql/graph/model"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Carriers is the resolver for the carriers field.
@@ -147,6 +148,42 @@ func (r *mutationResolver) CreateCargo(ctx context.Context, name string, origin 
 	}
 
 	return "successfully created cargo", nil
+}
+
+// AssignCarrier is the resolver for the AssignCarrier field.
+func (r *mutationResolver) AssignCarrier(ctx context.Context, cargoID string, carrierIds []string) (string, error) {
+	_, err := r.cargoService.AssignCarrier(ctx, &genproto.AssignCarrierRequest{
+		CargoId:    cargoID,
+		CarrierIds: carrierIds,
+	})
+
+	if err != nil {
+		return "failed to assign carrier", err
+	}
+
+	return "successfully assigned carrier to cargo", nil
+}
+
+// AssignRoute is the resolver for the AssignRoute field.
+func (r *mutationResolver) AssignRoute(ctx context.Context, cargoID string, itineraries []*model.ItineraryInput) (string, error) {
+	itineraryProto := make([]*genproto.Itinerary, len(itineraries))
+	for i, it := range itineraries {
+		itineraryProto[i] = &genproto.Itinerary{
+			Location:             it.LocationID,
+			EstimatedTimeArrival: timestamppb.New(it.EstimatedTimeArrival),
+		}
+	}
+
+	_, err := r.cargoService.AssignRoute(ctx, &genproto.AssignRouteRequest{
+		CargoId:     cargoID,
+		Itineraries: itineraryProto,
+	})
+
+	if err != nil {
+		return "failed to assign route", err
+	}
+
+	return "successfully assigned route to cargo", nil
 }
 
 // GetMatchingCargos is the resolver for the GetMatchingCargos field.

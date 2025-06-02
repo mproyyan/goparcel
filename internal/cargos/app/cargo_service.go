@@ -184,3 +184,40 @@ func (c CargoService) UnloadShipment(ctx context.Context, cargoId, shipmentId st
 
 	return nil
 }
+
+func (c CargoService) AssignCarrier(ctx context.Context, cargoId string, carrierIds []string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
+	}
+
+	var carrierObjIds []primitive.ObjectID
+	for _, carrierId := range carrierIds {
+		objId, err := primitive.ObjectIDFromHex(carrierId)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+		}
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
+	err = c.cargoRepository.AssignCarrier(ctx, cargoObjId, carrierObjIds)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to assign carriers to cargo")
+	}
+
+	return nil
+}
+
+func (c CargoService) AssignRoute(ctx context.Context, cargoId string, itinerary []domain.Itinerary) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
+	}
+
+	err = c.cargoRepository.AssignRoute(ctx, cargoObjId, itinerary)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to assign route to cargo")
+	}
+
+	return nil
+}

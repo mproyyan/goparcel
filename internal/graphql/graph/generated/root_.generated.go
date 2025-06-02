@@ -149,6 +149,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AssignCarrier        func(childComplexity int, cargoID string, carrierIds []string) int
+		AssignRoute          func(childComplexity int, cargoID string, itineraries []*model.ItineraryInput) int
 		CompleteShipment     func(childComplexity int, shipmentID string) int
 		CreateCargo          func(childComplexity int, name string, origin string, maxCapacity model.CapacityInput) int
 		CreateLocation       func(childComplexity int, input *model.CreateLocationInput) int
@@ -666,6 +668,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LocationAddress.ZipCode(childComplexity), true
+
+	case "Mutation.AssignCarrier":
+		if e.complexity.Mutation.AssignCarrier == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_AssignCarrier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AssignCarrier(childComplexity, args["cargo_id"].(string), args["carrier_ids"].([]string)), true
+
+	case "Mutation.AssignRoute":
+		if e.complexity.Mutation.AssignRoute == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_AssignRoute_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AssignRoute(childComplexity, args["cargo_id"].(string), args["itineraries"].([]*model.ItineraryInput)), true
 
 	case "Mutation.CompleteShipment":
 		if e.complexity.Mutation.CompleteShipment == nil {
@@ -1263,6 +1289,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDeliverPackageInput,
 		ec.unmarshalInputEntityInput,
 		ec.unmarshalInputItemInput,
+		ec.unmarshalInputItineraryInput,
 		ec.unmarshalInputRegisterAsCarrierInput,
 		ec.unmarshalInputRegisterAsCourierInput,
 		ec.unmarshalInputRegisterAsOperatorInput,
@@ -1403,6 +1430,11 @@ input CapacityInput {
   volume: Float!
 }
 
+input ItineraryInput {
+  location_id: ID!
+  estimated_time_arrival: Time!
+}
+
 extend type Query {
   GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
 }
@@ -1411,6 +1443,8 @@ extend type Mutation {
   LoadShipment(shipment_id: ID! location_id: ID!): String!
   MarkArrival(cargo_id: ID! location_id: ID!): String!
   CreateCargo(name: String! origin: ID! maxCapacity: CapacityInput!): String!
+  AssignCarrier(cargo_id: ID! carrier_ids: [ID!]!): String!
+  AssignRoute(cargo_id: ID! itineraries: [ItineraryInput!]!): String!
 }`, BuiltIn: false},
 	{Name: "../schemas/courier.graphqls", Input: `type Courier {
     id: ID!

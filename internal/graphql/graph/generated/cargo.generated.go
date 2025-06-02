@@ -1040,6 +1040,40 @@ func (ec *executionContext) unmarshalInputCapacityInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputItineraryInput(ctx context.Context, obj any) (model.ItineraryInput, error) {
+	var it model.ItineraryInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"location_id", "estimated_time_arrival"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "location_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location_id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LocationID = data
+		case "estimated_time_arrival":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("estimated_time_arrival"))
+			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EstimatedTimeArrival = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -1603,6 +1637,28 @@ func (ec *executionContext) marshalNItinerary2ᚖgithubᚗcomᚋmproyyanᚋgopar
 		return graphql.Null
 	}
 	return ec._Itinerary(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNItineraryInput2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐItineraryInputᚄ(ctx context.Context, v any) ([]*model.ItineraryInput, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ItineraryInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNItineraryInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐItineraryInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNItineraryInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐItineraryInput(ctx context.Context, v any) (*model.ItineraryInput, error) {
+	res, err := ec.unmarshalInputItineraryInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOCargo2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCargo(ctx context.Context, sel ast.SelectionSet, v *model.Cargo) graphql.Marshaler {

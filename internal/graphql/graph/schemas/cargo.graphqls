@@ -35,6 +35,11 @@ input CapacityInput {
   volume: Float!
 }
 
+input ItineraryInput {
+  location_id: ID!
+  estimated_time_arrival: Time!
+}
+
 extend type Query {
   GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
 }
@@ -43,4 +48,6 @@ extend type Mutation {
   LoadShipment(shipment_id: ID! location_id: ID!): String!
   MarkArrival(cargo_id: ID! location_id: ID!): String!
   CreateCargo(name: String! origin: ID! maxCapacity: CapacityInput!): String!
+  AssignCarrier(cargo_id: ID! carrier_ids: [ID!]!): String!
+  AssignRoute(cargo_id: ID! itineraries: [ItineraryInput!]!): String!
 }
