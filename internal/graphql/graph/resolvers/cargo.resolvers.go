@@ -131,6 +131,24 @@ func (r *mutationResolver) MarkArrival(ctx context.Context, cargoID string, loca
 	return "successfully marked the location as arrived", nil
 }
 
+// CreateCargo is the resolver for the CreateCargo field.
+func (r *mutationResolver) CreateCargo(ctx context.Context, name string, origin string, maxCapacity model.CapacityInput) (string, error) {
+	_, err := r.cargoService.CreateCargo(ctx, &genproto.CreateCargoRequest{
+		Name:   name,
+		Origin: origin,
+		MaxCapacity: &genproto.Capacity{
+			Weight: maxCapacity.Weight,
+			Volume: maxCapacity.Volume,
+		},
+	})
+
+	if err != nil {
+		return "failed to create cargo", err
+	}
+
+	return "successfully created cargo", nil
+}
+
 // GetMatchingCargos is the resolver for the GetMatchingCargos field.
 func (r *queryResolver) GetMatchingCargos(ctx context.Context, origin string, destination string) ([]*model.Cargo, error) {
 	result, err := r.cargoService.GetMatchingCargos(ctx, &genproto.GetMatchingCargosRequest{

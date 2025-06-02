@@ -23,6 +23,11 @@ type Capacity struct {
 	Volume float64 `json:"volume"`
 }
 
+type CapacityInput struct {
+	Weight float64 `json:"weight"`
+	Volume float64 `json:"volume"`
+}
+
 type Cargo struct {
 	ID                string       `json:"id"`
 	Name              string       `json:"name"`

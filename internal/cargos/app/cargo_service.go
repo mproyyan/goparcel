@@ -34,6 +34,20 @@ func NewCargoService(
 	}
 }
 
+func (s CargoService) CreateCargo(ctx context.Context, cargo domain.Cargo) error {
+	// Create cargo in repository
+	cargoId, err := s.cargoRepository.CreateCargo(ctx, cargo)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to create cargo in repository")
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"cargo_id": cargoId.Hex(),
+	}).Info("Cargo created successfully")
+
+	return nil
+}
+
 func (s CargoService) GetCargos(ctx context.Context, ids []string) ([]*domain.Cargo, error) {
 	var objIds []primitive.ObjectID
 	for _, id := range ids {

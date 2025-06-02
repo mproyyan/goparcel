@@ -30,6 +30,11 @@ type Carrier {
   location: Location
 }
 
+input CapacityInput {
+  weight: Float!
+  volume: Float!
+}
+
 extend type Query {
   GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
 }
@@ -37,4 +42,5 @@ extend type Query {
 extend type Mutation {
   LoadShipment(shipment_id: ID! location_id: ID!): String!
   MarkArrival(cargo_id: ID! location_id: ID!): String!
+  CreateCargo(name: String! origin: ID! maxCapacity: CapacityInput!): String!
 }

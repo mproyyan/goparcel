@@ -1006,6 +1006,40 @@ func (ec *executionContext) fieldContext_Itinerary_actual_time_arrival(_ context
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCapacityInput(ctx context.Context, obj any) (model.CapacityInput, error) {
+	var it model.CapacityInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"weight", "volume"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "weight":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("weight"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Weight = data
+		case "volume":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("volume"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Volume = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -1402,6 +1436,11 @@ func (ec *executionContext) marshalNCapacity2ᚖgithubᚗcomᚋmproyyanᚋgoparc
 		return graphql.Null
 	}
 	return ec._Capacity(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCapacityInput2githubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCapacityInput(ctx context.Context, v any) (model.CapacityInput, error) {
+	res, err := ec.unmarshalInputCapacityInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNCargo2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCargoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Cargo) graphql.Marshaler {

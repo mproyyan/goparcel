@@ -41,6 +41,24 @@ func (g GrpcServer) GetCargos(ctx context.Context, request *genproto.GetCargosRe
 	return &genproto.CargoResponse{Cargos: cargosToProtoResponse(cargos)}, nil
 }
 
+func (g GrpcServer) CreateCargo(ctx context.Context, request *genproto.CreateCargoRequest) (*emptypb.Empty, error) {
+	err := g.service.CreateCargo(ctx, domain.Cargo{
+		Name:   request.Name,
+		Status: "idle",
+		MaxCapacity: domain.Capacity{
+			Weight: request.MaxCapacity.Weight,
+			Volume: request.MaxCapacity.Volume,
+		},
+		LastKnownLocation: request.Origin,
+	})
+
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to create cargo")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func (g GrpcServer) LoadShipment(ctx context.Context, request *genproto.LoadShipmentRequest) (*emptypb.Empty, error) {
 	authUser, err := auth.RetrieveAuthUser(ctx)
 	if err != nil {

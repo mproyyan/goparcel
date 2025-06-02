@@ -12,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Models
@@ -47,6 +49,21 @@ type CargoRepository struct {
 
 func NewCargoRepository(db *mongo.Database) *CargoRepository {
 	return &CargoRepository{collection: db.Collection("cargos")}
+}
+
+func (c *CargoRepository) CreateCargo(ctx context.Context, cargo domain.Cargo) (primitive.ObjectID, error) {
+	cargoModel, err := domainToCargoModel(&cargo)
+	if err != nil {
+		return primitive.NilObjectID, cuserr.Decorate(err, "failed to convert domain to cargo model")
+	}
+
+	result, err := c.collection.InsertOne(ctx, cargoModel)
+	if err != nil {
+		return primitive.NilObjectID, cuserr.MongoError(err)
+	}
+
+	logrus.WithField("cargo_id", result.InsertedID).Info("Cargo created successfully")
+	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 func (c *CargoRepository) GetCargos(ctx context.Context, ids []primitive.ObjectID) ([]*domain.Cargo, error) {
@@ -197,6 +214,34 @@ func (c *CargoRepository) UnloadShipment(ctx context.Context, cargoId, shipmentI
 
 // Helper function
 
+func domainToCargoModel(cargo *domain.Cargo) (*CargoModel, error) {
+	if cargo == nil {
+		return nil, status.Error(codes.InvalidArgument, "cargo cannot be nil")
+	}
+
+	id, err := db.ConvertToObjectId(cargo.ID)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "invalid cargo ID format")
+	}
+
+	lastKnownLocation, err := db.ConvertToObjectId(cargo.LastKnownLocation)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "invalid last known location format")
+	}
+
+	return &CargoModel{
+		ID:                id,
+		Name:              cargo.Name,
+		Status:            cargo.Status,
+		MaxCapacity:       Capacity{Weight: cargo.MaxCapacity.Weight, Volume: cargo.MaxCapacity.Volume},
+		CurrentLoad:       Capacity{Weight: cargo.CurrentLoad.Weight, Volume: cargo.CurrentLoad.Volume},
+		Carriers:          convertStringSliceToObjectIDSlice(cargo.Carriers),
+		Itineraries:       domainToItinerariesModel(cargo.Itineraries),
+		Shipments:         convertStringSliceToObjectIDSlice(cargo.Shipments),
+		LastKnownLocation: &lastKnownLocation,
+	}, nil
+}
+
 func cargoModelToDomain(model *CargoModel) *domain.Cargo {
 	if model == nil {
 		return nil
@@ -231,6 +276,21 @@ func convertObjectIDSliceToStringSlice(ids []primitive.ObjectID) []string {
 	return result
 }
 
+func convertStringSliceToObjectIDSlice(ids []string) []primitive.ObjectID {
+	var result []primitive.ObjectID
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			logrus.WithError(err).Errorf("Invalid ObjectID: %s", id)
+			continue
+		}
+
+		result = append(result, objId)
+	}
+
+	return result
+}
+
 func convertItineraries(itineraries []Itinerary) []domain.Itinerary {
 	var result []domain.Itinerary
 	for _, itinerary := range itineraries {
@@ -240,5 +300,24 @@ func convertItineraries(itineraries []Itinerary) []domain.Itinerary {
 			ActualTimeArrival:    itinerary.ActualTimeArrival,
 		})
 	}
+	return result
+}
+
+func domainToItineraryModel(itinerary domain.Itinerary) Itinerary {
+	location, _ := db.ConvertToObjectId(itinerary.Location)
+
+	return Itinerary{
+		Location:             location,
+		EstimatedTimeArrival: itinerary.EstimatedTimeArrival,
+		ActualTimeArrival:    itinerary.ActualTimeArrival,
+	}
+}
+
+func domainToItinerariesModel(itineraries []domain.Itinerary) []Itinerary {
+	var result []Itinerary
+	for _, itinerary := range itineraries {
+		result = append(result, domainToItineraryModel(itinerary))
+	}
+
 	return result
 }
