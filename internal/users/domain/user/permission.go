@@ -35,6 +35,7 @@ type LocationPermission struct {
 	GetTransitPlaces                  bool `bson:"get_transit_places"`
 	GetRecommendedShippingDestination bool `bson:"get_recommended_shipping_destination"`
 	GetLocation                       bool `bson:"get_location"`
+	CreateLocation                    bool `bson:"create_location"`
 }
 
 type CourierPermission struct {
@@ -47,6 +48,9 @@ type CargoPermission struct {
 	LoadShipment        bool `bson:"load_shipment"`
 	UnloadShipment      bool `bson:"unload_shipment"`
 	MarkArrival         bool `bson:"mark_arrival"`
+	CreateCargo         bool `bson:"create_cargo"`
+	AssignRoute         bool `bson:"assign_route"`
+	AssignCarrier       bool `bson:"assign_carrier"`
 }
 
 type Permission struct {

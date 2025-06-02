@@ -13,6 +13,8 @@ use goparcel;
 db.createCollection("permissions");
 db.createCollection("user_types");
 db.createCollection("locations");
+db.createCollection("users");
+db.createCollection("admin");
 
 db.permissions.insertMany([
     {
@@ -35,7 +37,8 @@ db.permissions.insertMany([
         "location" : {
             "get_transit_places" : true,
             "get_recommended_shipping_destination" : true,
-            "get_location" : true
+            "get_location" : true,
+            "crate_location" : false,
         },
         "courier" : {
             "get_available_couriers" : true
@@ -45,7 +48,10 @@ db.permissions.insertMany([
             "request_load_shipment" : true,
             "load_shipment" : false,
             "unload_shipment" : true,
-            "mark_arrival" : false
+            "mark_arrival" : false,
+            "create_cargo" : false,
+            "assign_route": true,
+            "assign_carrier": true,
         }
     },
     {
@@ -68,7 +74,8 @@ db.permissions.insertMany([
         "location" : {
             "get_transit_places" : true,
             "get_recommended_shipping_destination" : false,
-            "get_location" : true
+            "get_location" : true,
+            "create_location" : false,
         },
         "courier" : {
             "get_available_couriers" : true
@@ -78,7 +85,10 @@ db.permissions.insertMany([
             "request_load_shipment" : false,
             "load_shipment" : false,
             "unload_shipment" : false,
-            "mark_arrival" : false
+            "mark_arrival" : false,
+            "create_cargo" : false,
+            "assign_route": false,
+            "assign_carrier": false,
         }
     },
     {
@@ -101,7 +111,8 @@ db.permissions.insertMany([
         "location" : {
             "get_transit_places" : false,
             "get_recommended_shipping_destination" : false,
-            "get_location" : true
+            "get_location" : true,
+            "create_location" : false
         },
         "courier" : {
             "get_available_couriers" : false
@@ -111,7 +122,10 @@ db.permissions.insertMany([
             "request_load_shipment" : false,
             "load_shipment" : true,
             "unload_shipment" : false,
-            "mark_arrival" : true
+            "mark_arrival" : true,
+            "create_cargo" : false,
+            "assign_route": false,
+            "assign_carrier": false,
         }
     },
     {
@@ -134,7 +148,8 @@ db.permissions.insertMany([
         "location" : {
             "get_transit_places" : false,
             "get_recommended_shipping_destination" : false,
-            "get_location" : true
+            "get_location" : true,
+            "create_location" : false,
         },
         "courier" : {
             "get_available_couriers" : false
@@ -144,37 +159,99 @@ db.permissions.insertMany([
             "request_load_shipment" : false,
             "load_shipment" : false,
             "unload_shipment" : false,
-            "mark_arrival" : true
+            "mark_arrival" : true,
+            "create_cargo" : false,
+            "assign_route": false,
+            "assign_carrier": false,
+        }
+    },
+    {
+        "_id": ObjectId("67c000000000000000000001"),
+        "user_management": {
+            "get_user_location": true,
+            "get_user": true
+        },
+        "shipment": {
+            "create_shipment": true,
+            "get_unrouted_shipments": true,
+            "get_routed_shipments": true,
+            "get_incoming_shipments": true,
+            "scan_arriving_shipments": true,
+            "ship_package": true,
+            "add_itinerary_history": true,
+            "send_package": true,
+            "complete_shipment": true
+        },
+        "location": {
+            "get_transit_places": true,
+            "get_recommended_shipping_destination": true,
+            "get_location": true,
+            "crate_location": true
+        },
+        "courier": {
+            "get_available_couriers": true
+        },
+        "cargo": {
+            "get_matching_cargos": true,
+            "request_load_shipment": true,
+            "load_shipment": true,
+            "unload_shipment": true,
+            "mark_arrival": true,
+            "create_cargo": true,
+            "assign_route": true,
+            "assign_carrier": true
         }
     }
 ]);
 
 db.user_types.insertMany([
     {
-        "_id" : ObjectId("67b54b11ba1542ee89a0f144"),
-        "name" : "warehouse_operator",
-        "description" : "Operator gudang yang menangani pengiriman dan penerimaan barang",
-        "permission_id" : ObjectId("67b54b11ba1542ee89a0f140")
+        _id: ObjectId("67b54b11ba1542ee89a0f144"),
+        name: "warehouse_operator",
+        description: "Operator gudang yang menangani pengiriman dan penerimaan barang",
+        permission_id: ObjectId("67b54b11ba1542ee89a0f140")
     },
     {
-        "_id" : ObjectId("67b54b11ba1542ee89a0f145"),
-        "name" : "depot_operator",
-        "description" : "Operator depot yang bertugas mengelola distribusi barang",
-        "permission_id" : ObjectId("67b54b11ba1542ee89a0f141")
+        _id: ObjectId("67b54b11ba1542ee89a0f145"),
+        name: "depot_operator",
+        description: "Operator depot yang bertugas mengelola distribusi barang",
+        permission_id: ObjectId("67b54b11ba1542ee89a0f141")
     },
     {
-        "_id" : ObjectId("67b54b11ba1542ee89a0f146"),
-        "name" : "carrier",
-        "description" : "Operator transportasi yang mengangkut barang ke tujuan",
-        "permission_id" : ObjectId("67b54b11ba1542ee89a0f142")
+        _id: ObjectId("67b54b11ba1542ee89a0f146"),
+        name: "carrier",
+        description: "Operator transportasi yang mengangkut barang ke tujuan",
+        permission_id: ObjectId("67b54b11ba1542ee89a0f142")
     },
     {
-        "_id" : ObjectId("67b54b11ba1542ee89a0f147"),
-        "name" : "courier",
-        "description" : "Kurir yang bertanggung jawab mengantarkan paket ke pelanggan",
-        "permission_id" : ObjectId("67b54b11ba1542ee89a0f143")
+        _id: ObjectId("67b54b11ba1542ee89a0f147"),
+        name: "courier",
+        description: "Kurir yang bertanggung jawab mengantarkan paket ke pelanggan",
+        permission_id: ObjectId("67b54b11ba1542ee89a0f143")
+    },
+    {
+        _id: ObjectId("67c000000000000000000002"),
+        name: "admin",
+        description: "Administrator dengan akses penuh ke seluruh sistem",
+        permission_id: ObjectId("67c000000000000000000001")
     }
 ]);
+
+db.admin.insertOne({
+    "_id": ObjectId("67b54b11ba1542ee89a0f148"),
+    "user_id": ObjectId("67b54b11ba1542ee89a0f149"),
+    "name": "Super Admin",
+    "email": "super@admin.com",
+});
+
+db.users.insertOne({
+    "_id": ObjectId("67b54b11ba1542ee89a0f149"),
+    "model_id": ObjectId("67b54b11ba1542ee89a0f148"),
+    "email": "super@admin.com",
+    "entity": "admin",
+    password: "\$2a\$12\$zesDtHwCbtHyPlAZ24cPjOjKaCHkeh7q3WlwofXYV8TEFM7b2Hapi", // hashed password
+    user_type_id: ObjectId("67c000000000000000000002"),
+});
 
 db.locations.insertMany([
     {

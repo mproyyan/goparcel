@@ -16,6 +16,7 @@ const (
 	Operator
 	Carrier
 	Courier
+	Admin
 )
 
 func (u UserEntityName) String() string {
@@ -26,6 +27,8 @@ func (u UserEntityName) String() string {
 		return "carrier"
 	case Courier:
 		return "courier"
+	case Admin:
+		return "admin"
 	}
 
 	return ""
@@ -39,6 +42,8 @@ func StringToUserEntityName(entity string) UserEntityName {
 		return Carrier
 	case "courier":
 		return Courier
+	case "admin":
+		return Admin
 	}
 
 	return Unknown
