@@ -32,13 +32,16 @@ db.permissions.insertMany([
             "ship_package" : true,
             "add_itinerary_history" : false,
             "send_package" : true,
-            "complete_shipment" : false
+            "complete_shipment" : false,
+            "request_transit": true,
         },
         "location" : {
             "get_transit_places" : true,
             "get_recommended_shipping_destination" : true,
             "get_location" : true,
-            "crate_location" : false,
+            "create_location" : false,
+            "get_region": true,
+            "search_locations": true,
         },
         "courier" : {
             "get_available_couriers" : true
@@ -69,13 +72,16 @@ db.permissions.insertMany([
             "ship_package" : false,
             "add_itinerary_history" : false,
             "send_package" : true,
-            "complete_shipment" : false
+            "complete_shipment" : false,
+            "request_transit": true,
         },
         "location" : {
             "get_transit_places" : true,
             "get_recommended_shipping_destination" : false,
             "get_location" : true,
             "create_location" : false,
+            "get_region": true,
+            "search_locations": true,
         },
         "courier" : {
             "get_available_couriers" : true
@@ -180,13 +186,16 @@ db.permissions.insertMany([
             "ship_package": true,
             "add_itinerary_history": true,
             "send_package": true,
-            "complete_shipment": true
+            "complete_shipment": true,
+            "request_transit": true
         },
         "location": {
             "get_transit_places": true,
             "get_recommended_shipping_destination": true,
             "get_location": true,
-            "crate_location": true
+            "create_location": true,
+            "get_region": true,
+            "search_locations": true
         },
         "courier": {
             "get_available_couriers": true

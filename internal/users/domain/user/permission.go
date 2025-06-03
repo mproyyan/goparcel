@@ -29,6 +29,7 @@ type ShipmentPermission struct {
 	AddItineraryHistory   bool `bson:"add_itinerary_history"`
 	SendPackage           bool `bson:"send_package"`
 	CompleteShipment      bool `bson:"complete_shipment"`
+	RequestTransit        bool `bson:"request_transit"`
 }
 
 type LocationPermission struct {
@@ -36,6 +37,8 @@ type LocationPermission struct {
 	GetRecommendedShippingDestination bool `bson:"get_recommended_shipping_destination"`
 	GetLocation                       bool `bson:"get_location"`
 	CreateLocation                    bool `bson:"create_location"`
+	GetRegion                         bool `bson:"get_region"`
+	SearchLocations                   bool `bson:"search_locations"`
 }
 
 type CourierPermission struct {
