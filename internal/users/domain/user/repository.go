@@ -15,7 +15,3 @@ type UserRepository interface {
 	GetUser(ctx context.Context, id primitive.ObjectID) (*User, error)
 	GetUsers(ctx context.Context, ids []primitive.ObjectID) ([]*User, error)
 }
-
-type CacheRepository interface {
-	CacheUserPermissions(ctx context.Context, userID string, permissions Permissions) error
-}

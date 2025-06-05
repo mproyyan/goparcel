@@ -12,7 +12,6 @@ import (
 	"github.com/mproyyan/goparcel/internal/users/adapter"
 	"github.com/mproyyan/goparcel/internal/users/app"
 	"github.com/mproyyan/goparcel/internal/users/port"
-	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,32 +38,21 @@ func main() {
 		logrus.Fatalf("MongoDB not responding: %v", err)
 	}
 
-	// Connect to redis
-	redisClient := redis.NewClient(&redis.Options{Addr: os.Getenv("REDIS_SERVER")})
-	_, err = redisClient.Ping(context.Background()).Result()
-	if err != nil {
-		logrus.Fatalf("Cant connect to redis: %v", err)
-	}
-
 	// Dependency
 	database := databaseClient.Database(os.Getenv("MONGO_DATABASE"))
 	userRepository := adapter.NewUserRepository(database)
 	userTypeRepository := adapter.NewUserTypeRepository(database)
-	permissionRepository := adapter.NewPermissionRepository(database)
 	operatorRepository := adapter.NewOperatorRepository(database)
 	carrierRepository := adapter.NewCarrierRepository(database)
 	courierRepository := adapter.NewCourierRepository(database)
-	cacheRepository := adapter.NewCacheRepository(redisClient)
 	transaction := db.NewMongoTransactionManager(databaseClient)
 	userService := app.NewUserService(
 		transaction,
 		userRepository,
 		userTypeRepository,
-		permissionRepository,
 		operatorRepository,
 		carrierRepository,
 		courierRepository,
-		cacheRepository,
 	)
 
 	server.RunGrpcServer(func(server *grpc.Server) {

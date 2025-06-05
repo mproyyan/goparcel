@@ -4,7 +4,6 @@ package app
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/mproyyan/goparcel/internal/common/auth"
@@ -20,35 +19,29 @@ import (
 )
 
 type UserService struct {
-	transaction          db.TransactionManager
-	userRepository       user.UserRepository
-	userTypeRepository   user.UserTypeRepository
-	permissionRepository user.PermissionRepository
-	operatorRepository   operator.OperatorRepository
-	carrierRepository    carrier.CarrierRepository
-	courierRepository    courier.CourierRepository
-	cacheRepository      user.CacheRepository
+	transaction        db.TransactionManager
+	userRepository     user.UserRepository
+	userTypeRepository user.UserTypeRepository
+	operatorRepository operator.OperatorRepository
+	carrierRepository  carrier.CarrierRepository
+	courierRepository  courier.CourierRepository
 }
 
 func NewUserService(
 	transaction db.TransactionManager,
 	userRepository user.UserRepository,
 	userTypeRepository user.UserTypeRepository,
-	permissionRepository user.PermissionRepository,
 	operatorRepository operator.OperatorRepository,
 	carrierRepository carrier.CarrierRepository,
 	courierRepository courier.CourierRepository,
-	cacheRepository user.CacheRepository,
 ) UserService {
 	return UserService{
-		transaction:          transaction,
-		userRepository:       userRepository,
-		userTypeRepository:   userTypeRepository,
-		permissionRepository: permissionRepository,
-		operatorRepository:   operatorRepository,
-		carrierRepository:    carrierRepository,
-		courierRepository:    courierRepository,
-		cacheRepository:      cacheRepository,
+		transaction:        transaction,
+		userRepository:     userRepository,
+		userTypeRepository: userTypeRepository,
+		operatorRepository: operatorRepository,
+		carrierRepository:  carrierRepository,
+		courierRepository:  courierRepository,
 	}
 }
 
@@ -94,26 +87,6 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 	// Compare given password with password stored in db
 	if authenticated := auth.CheckPassword(user.Password, password); !authenticated {
 		return "", status.Error(codes.Unauthenticated, "invalid credentials")
-	}
-
-	// Find user type
-	objId, _ := primitive.ObjectIDFromHex(user.UserTypeID)
-	userType, err := u.userTypeRepository.FindUserTypeById(ctx, objId)
-	if err != nil {
-		return "", cuserr.Decorate(err, "failed to find user type by id")
-	}
-
-	// Find permission
-	objId, _ = primitive.ObjectIDFromHex(userType.PermissionID)
-	permission, err := u.permissionRepository.FindPermission(ctx, objId)
-	if err != nil {
-		return "", cuserr.Decorate(err, "failed to get permission")
-	}
-
-	// Cache user permission
-	err = u.cacheRepository.CacheUserPermissions(ctx, user.ID, permission.GrantedPermissions())
-	if err != nil {
-		log.Printf("failed to cache user permission: %v", err)
 	}
 
 	// Generate JWT token
