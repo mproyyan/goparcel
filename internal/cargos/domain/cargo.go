@@ -58,3 +58,14 @@ func StringToCargoStatus(s string) CargoStatus {
 func (c Cargo) HasShipments() bool {
 	return len(c.Shipments) > 0
 }
+
+// Function to check if all itineraries are completed
+func (c Cargo) AllItinerariesCompleted() bool {
+	for _, itinerary := range c.Itineraries {
+		if itinerary.ActualTimeArrival == nil {
+			return false // If any itinerary is not completed, return false
+		}
+	}
+
+	return true // All itineraries are completed
+}

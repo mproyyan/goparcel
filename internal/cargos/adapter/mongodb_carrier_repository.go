@@ -72,6 +72,22 @@ func (c *CarrierRepository) GetIdleCarriers(ctx context.Context, locationId prim
 	return carriersModelsTodomain(carriers), nil
 }
 
+func (c *CarrierRepository) ClearAssignedCargo(ctx context.Context, carrierIds []primitive.ObjectID) error {
+	if len(carrierIds) == 0 {
+		return nil // No carriers to clear
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
+	update := bson.M{"$set": bson.M{"cargo_id": nil}}
+
+	_, err := c.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
 // Helper functions
 func carrierModelToDomain(model *CarrierModel) *domain.Carrier {
 	return &domain.Carrier{

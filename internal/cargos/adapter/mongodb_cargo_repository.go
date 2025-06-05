@@ -296,6 +296,27 @@ func (c *CargoRepository) FindCargosWithoutCarrier(ctx context.Context, location
 	return cargoModelsToDomain(cargos), nil
 }
 
+func (c *CargoRepository) ResetCompletedCargo(ctx context.Context, cargoId primitive.ObjectID) error {
+	filter := bson.M{"_id": cargoId}
+	update := bson.M{
+		"$set": bson.M{
+			"status":       domain.CargoIdle.String(),
+			"carriers":     []primitive.ObjectID{},
+			"itineraries":  []Itinerary{},
+			"shipments":    []primitive.ObjectID{},
+			"current_load": Capacity{Weight: 0, Volume: 0},
+		},
+	}
+
+	_, err := c.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	logrus.WithField("cargo_id", cargoId).Info("Cargo reset to new state")
+	return nil
+}
+
 // Helper function
 
 func domainToCargoModel(cargo *domain.Cargo) (*CargoModel, error) {
