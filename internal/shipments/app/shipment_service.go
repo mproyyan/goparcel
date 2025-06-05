@@ -4,6 +4,9 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/mproyyan/goparcel/internal/common/db"
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
@@ -47,17 +50,17 @@ type CargoService interface {
 	UnloadShipment(ctx context.Context, cargoId, shipmentId string) error
 }
 
-func (s ShipmentService) CreateShipment(ctx context.Context, origin string, sender, recipient domain.Entity, items []domain.Item) error {
+func (s ShipmentService) CreateShipment(ctx context.Context, origin string, sender, recipient domain.Entity, items []domain.Item) (string, error) {
 	originObjId, err := primitive.ObjectIDFromHex(origin)
 	if err != nil {
-		return status.Error(codes.InvalidArgument, "origin is not valid object id")
+		return "", status.Error(codes.InvalidArgument, "origin is not valid object id")
 	}
 
 	// Retrieve the sender's detailed address
 	logrus.WithField("zip_code", sender.Address.ZipCode).Info("Call location service to resolve address")
 	senderDetailAddress, err := s.locationService.ResolveAddress(ctx, sender.Address.ZipCode)
 	if err != nil {
-		return cuserr.Decorate(err, "Failed to resolve sender's address")
+		return "", cuserr.Decorate(err, "Failed to resolve sender's address")
 	}
 
 	// Fill sender address
@@ -70,7 +73,7 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 	logrus.WithField("zip_code", sender.Address.ZipCode).Info("Call location service to resolve address")
 	recipientDetailAddress, err := s.locationService.ResolveAddress(ctx, recipient.Address.ZipCode)
 	if err != nil {
-		return cuserr.Decorate(err, "Failed to resolve recipient's address")
+		return "", cuserr.Decorate(err, "Failed to resolve recipient's address")
 	}
 
 	// Fill recipient address
@@ -79,11 +82,13 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 	recipient.Address.District = recipientDetailAddress.District
 	recipient.Address.Subdistrict = recipientDetailAddress.Subdistrict
 
+	awb := generateAWB(12) // Generate a unique Airway Bill number
+
 	// Start transaction
 	err = s.transaction.Execute(ctx, func(ctx context.Context) error {
 		// Create shipment
 		// TODO: should i validate the items?
-		shipmentID, err := s.shipmentRepository.CreateShipment(ctx, origin, sender, recipient, items)
+		shipmentID, err := s.shipmentRepository.CreateShipment(ctx, origin, sender, recipient, items, awb)
 		if err != nil {
 			return cuserr.Decorate(err, "Failed to create shipment")
 		}
@@ -99,10 +104,10 @@ func (s ShipmentService) CreateShipment(ctx context.Context, origin string, send
 	})
 
 	if err != nil {
-		return cuserr.MongoError(err)
+		return "", cuserr.MongoError(err)
 	}
 
-	return nil
+	return awb, nil
 }
 
 func (s ShipmentService) UnroutedShipments(ctx context.Context, locationID string) ([]*domain.Shipment, error) {
@@ -462,4 +467,15 @@ func (s ShipmentService) CompleteShipment(ctx context.Context, shipmentId string
 	}
 
 	return nil
+}
+
+// generateAWB generates a unique Airway Bill (AWB) number
+func generateAWB(length int) string {
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+
+	randomNumber := r.Int63n(10_000_000_000)
+
+	awbNumber := fmt.Sprintf("%s%0*d", "GP", length-2, randomNumber)
+	return awbNumber
 }

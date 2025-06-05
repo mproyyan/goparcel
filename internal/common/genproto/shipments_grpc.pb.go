@@ -37,7 +37,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShipmentServiceClient interface {
-	CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*CreateShipmentResponse, error)
 	GetUnroutedShipment(ctx context.Context, in *GetUnroutedShipmentRequest, opts ...grpc.CallOption) (*ShipmentResponse, error)
 	GetRoutedShipments(ctx context.Context, in *GetRoutedShipmentsRequest, opts ...grpc.CallOption) (*ShipmentResponse, error)
 	RequestTransit(ctx context.Context, in *RequestTransitRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -58,9 +58,9 @@ func NewShipmentServiceClient(cc grpc.ClientConnInterface) ShipmentServiceClient
 	return &shipmentServiceClient{cc}
 }
 
-func (c *shipmentServiceClient) CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *shipmentServiceClient) CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*CreateShipmentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
+	out := new(CreateShipmentResponse)
 	err := c.cc.Invoke(ctx, ShipmentService_CreateShipment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -172,7 +172,7 @@ func (c *shipmentServiceClient) CompleteShipment(ctx context.Context, in *Comple
 // All implementations must embed UnimplementedShipmentServiceServer
 // for forward compatibility.
 type ShipmentServiceServer interface {
-	CreateShipment(context.Context, *CreateShipmentRequest) (*emptypb.Empty, error)
+	CreateShipment(context.Context, *CreateShipmentRequest) (*CreateShipmentResponse, error)
 	GetUnroutedShipment(context.Context, *GetUnroutedShipmentRequest) (*ShipmentResponse, error)
 	GetRoutedShipments(context.Context, *GetRoutedShipmentsRequest) (*ShipmentResponse, error)
 	RequestTransit(context.Context, *RequestTransitRequest) (*emptypb.Empty, error)
@@ -193,7 +193,7 @@ type ShipmentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedShipmentServiceServer struct{}
 
-func (UnimplementedShipmentServiceServer) CreateShipment(context.Context, *CreateShipmentRequest) (*emptypb.Empty, error) {
+func (UnimplementedShipmentServiceServer) CreateShipment(context.Context, *CreateShipmentRequest) (*CreateShipmentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateShipment not implemented")
 }
 func (UnimplementedShipmentServiceServer) GetUnroutedShipment(context.Context, *GetUnroutedShipmentRequest) (*ShipmentResponse, error) {

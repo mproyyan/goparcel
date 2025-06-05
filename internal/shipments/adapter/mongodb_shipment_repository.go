@@ -2,8 +2,6 @@ package adapter
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
 	"time"
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
@@ -27,7 +25,7 @@ func NewShipementRepository(db *mongo.Database) *ShipmentRepository {
 	}
 }
 
-func (s *ShipmentRepository) CreateShipment(ctx context.Context, origin string, sender domain.Entity, recipient domain.Entity, items []domain.Item) (string, error) {
+func (s *ShipmentRepository) CreateShipment(ctx context.Context, origin string, sender domain.Entity, recipient domain.Entity, items []domain.Item, awb string) (string, error) {
 	// Convert origin to object id
 	locationID, err := primitive.ObjectIDFromHex(origin)
 	if err != nil {
@@ -35,7 +33,7 @@ func (s *ShipmentRepository) CreateShipment(ctx context.Context, origin string, 
 	}
 
 	shipment := ShipmentModel{
-		AirwayBill:      generateAWB(12),
+		AirwayBill:      awb,
 		TransportStatus: domain.InPort.String(),
 		RoutingStatus:   domain.NotRouted.String(),
 		Items:           domainToItemModel(items),
@@ -230,17 +228,6 @@ func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmen
 	}).Info("Shipment routing status updated")
 
 	return nil
-}
-
-// generateAWB generates a unique Airway Bill (AWB) number
-func generateAWB(length int) string {
-	src := rand.NewSource(time.Now().UnixNano())
-	r := rand.New(src)
-
-	randomNumber := r.Int63n(10_000_000_000)
-
-	awbNumber := fmt.Sprintf("%s%0*d", "GP", length-2, randomNumber)
-	return awbNumber
 }
 
 func shipmentModelToDomain(model *ShipmentModel) *domain.Shipment {

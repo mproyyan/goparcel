@@ -25,7 +25,7 @@ func NewGrpcServer(service app.ShipmentService) GrpcServer {
 	return GrpcServer{service: service}
 }
 
-func (g GrpcServer) CreateShipment(ctx context.Context, request *genproto.CreateShipmentRequest) (*emptypb.Empty, error) {
+func (g GrpcServer) CreateShipment(ctx context.Context, request *genproto.CreateShipmentRequest) (*genproto.CreateShipmentResponse, error) {
 	// Build sender detail
 	sender := domain.Entity{
 		Name:    request.Sender.Name,
@@ -50,7 +50,7 @@ func (g GrpcServer) CreateShipment(ctx context.Context, request *genproto.Create
 	items := protoRequestToItems(request.Package)
 
 	// Call CreateShipment rpc
-	err := g.service.CreateShipment(ctx, request.Origin, sender, recipient, items)
+	awb, err := g.service.CreateShipment(ctx, request.Origin, sender, recipient, items)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to call CreateShipment service")
 	}
@@ -61,7 +61,7 @@ func (g GrpcServer) CreateShipment(ctx context.Context, request *genproto.Create
 		"recipient": request.Recipient.Name,
 	}).Info("Shipment created")
 
-	return &emptypb.Empty{}, nil
+	return &genproto.CreateShipmentResponse{AirwayBillNumber: awb}, nil
 }
 
 func (g GrpcServer) GetUnroutedShipment(ctx context.Context, request *genproto.GetUnroutedShipmentRequest) (*genproto.ShipmentResponse, error) {

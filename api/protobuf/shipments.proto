@@ -9,7 +9,7 @@ package protobuf;
 option go_package = "github.com/mproyyan/goparcel/internal/common/genproto";
 
 service ShipmentService {
-    rpc CreateShipment(CreateShipmentRequest) returns (google.protobuf.Empty) {}
+    rpc CreateShipment(CreateShipmentRequest) returns (CreateShipmentResponse) {}
     rpc GetUnroutedShipment(GetUnroutedShipmentRequest) returns (ShipmentResponse) {}
     rpc GetRoutedShipments(GetRoutedShipmentsRequest) returns (ShipmentResponse) {}
     rpc RequestTransit(RequestTransitRequest) returns (google.protobuf.Empty) {}
@@ -162,4 +162,8 @@ message DeliverPackageRequest {
 
 message CompleteShipmentRequest {
     string shipment_id = 1;
+}
+
+message CreateShipmentResponse {
+    string airway_bill_number = 1;
 }

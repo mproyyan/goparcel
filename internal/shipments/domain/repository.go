@@ -11,7 +11,7 @@ import (
 type ShipmentRepository interface {
 	GetShipment(ctx context.Context, id primitive.ObjectID) (*Shipment, error)
 	GetShipments(ctx context.Context, ids []primitive.ObjectID) ([]*Shipment, error)
-	CreateShipment(ctx context.Context, origin string, sender, recipient Entity, items []Item) (string, error)
+	CreateShipment(ctx context.Context, origin string, sender, recipient Entity, items []Item, awb string) (string, error)
 	LogItinerary(ctx context.Context, shipmentID []primitive.ObjectID, locationIds primitive.ObjectID, activityType ActivityType) error
 	RetrieveShipmentsFromLocations(ctx context.Context, locationsID primitive.ObjectID, routingStatus RoutingStatus) ([]*Shipment, error)
 	UpdateTransportStatus(ctx context.Context, shipmentId []primitive.ObjectID, status TransportStatus) error

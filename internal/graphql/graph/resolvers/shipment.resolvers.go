@@ -43,7 +43,7 @@ func (r *itineraryLogResolver) Location(ctx context.Context, obj *model.Itinerar
 
 // CreateShipment is the resolver for the CreateShipment field.
 func (r *mutationResolver) CreateShipment(ctx context.Context, input *model.CreateShipmentInput) (string, error) {
-	_, err := r.shipmentService.CreateShipment(ctx, &genproto.CreateShipmentRequest{
+	response, err := r.shipmentService.CreateShipment(ctx, &genproto.CreateShipmentRequest{
 		Origin: input.Origin,
 		Sender: &genproto.Entity{
 			Name:          input.Sender.Name,
@@ -64,7 +64,7 @@ func (r *mutationResolver) CreateShipment(ctx context.Context, input *model.Crea
 		return "", err
 	}
 
-	return "successfully made the shipment", nil
+	return response.AirwayBillNumber, nil
 }
 
 // RequestTransit is the resolver for the RequestTransit field.
