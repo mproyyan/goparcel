@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "users.proto";
 
 package protobuf;
 
@@ -16,6 +17,9 @@ service CargoService {
     rpc UnloadShipment(UnloadShipmentRequest) returns (google.protobuf.Empty) {}
     rpc AssignCarrier(AssignCarrierRequest) returns (google.protobuf.Empty) {}
     rpc AssignRoute(AssignRouteRequest) returns (google.protobuf.Empty) {}
+    rpc GetUnroutedCargos(GetUnroutedCargosRequest) returns (CargoResponse) {}
+    rpc FindCargosWithoutCarrier(FindCargosWithoutCarrierRequest) returns (CargoResponse) {}
+    rpc GetIdleCarriers(GetIdleCarriersRequest) returns (CarrierResponse) {}
 }
 
 message GetMatchingCargosRequest {
@@ -83,4 +87,16 @@ message AssignCarrierRequest {
 message AssignRouteRequest {
     string cargo_id = 1;
     repeated Itinerary itineraries = 2;
+}
+
+message GetUnroutedCargosRequest {
+    string location_id = 1;
+}
+
+message FindCargosWithoutCarrierRequest {
+    string location_id = 1;
+}
+
+message GetIdleCarriersRequest {
+    string location_id = 1;
 }

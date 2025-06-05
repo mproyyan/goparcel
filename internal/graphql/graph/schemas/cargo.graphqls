@@ -42,6 +42,9 @@ input ItineraryInput {
 
 extend type Query {
   GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+  GetUnroutedCargos(location_id: ID!): [Cargo!]!
+  FindCargosWithoutCarrier(location_id: ID!): [Cargo!]!
+  GetIdleCarriers(location_id: ID!): [Carrier!]!
 }
 
 extend type Mutation {

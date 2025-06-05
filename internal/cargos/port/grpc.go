@@ -111,6 +111,46 @@ func (g GrpcServer) AssignRoute(ctx context.Context, request *genproto.AssignRou
 	return &emptypb.Empty{}, nil
 }
 
+func (g GrpcServer) GetUnroutedCargos(ctx context.Context, request *genproto.GetUnroutedCargosRequest) (*genproto.CargoResponse, error) {
+	cargos, err := g.service.GetUnroutedCargos(ctx, request.LocationId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get unrouted cargos")
+	}
+
+	return &genproto.CargoResponse{Cargos: cargosToProtoResponse(cargos)}, nil
+}
+
+func (g GrpcServer) FindCargosWithoutCarrier(ctx context.Context, request *genproto.FindCargosWithoutCarrierRequest) (*genproto.CargoResponse, error) {
+	cargos, err := g.service.FindCargosWithoutCarrier(ctx, request.LocationId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to find cargos without carrier")
+	}
+
+	return &genproto.CargoResponse{Cargos: cargosToProtoResponse(cargos)}, nil
+}
+
+func (g GrpcServer) GetIdleCarriers(ctx context.Context, request *genproto.GetIdleCarriersRequest) (*genproto.CarrierResponse, error) {
+	carriers, err := g.service.GetIdleCarriers(ctx, request.LocationId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get idle carriers")
+	}
+
+	var protoCarriers []*genproto.Carrier
+	for _, carrier := range carriers {
+		protoCarriers = append(protoCarriers, &genproto.Carrier{
+			Id:         carrier.ID,
+			UserId:     carrier.UserID,
+			Name:       carrier.Name,
+			Email:      carrier.Email,
+			CargoId:    carrier.CargoID,
+			Status:     carrier.Status.String(),
+			LocationId: carrier.LocationID,
+		})
+	}
+
+	return &genproto.CarrierResponse{Carriers: protoCarriers}, nil
+}
+
 func cargoToProtoResponse(cargo *domain.Cargo) *genproto.Cargo {
 	if cargo == nil {
 		return nil

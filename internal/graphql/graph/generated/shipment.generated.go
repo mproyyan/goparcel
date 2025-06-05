@@ -53,6 +53,9 @@ type QueryResolver interface {
 	GetRoutedShipments(ctx context.Context, locationID string) ([]*model.Shipment, error)
 	IncomingShipments(ctx context.Context, locationID string) ([]*model.TransferRequest, error)
 	GetMatchingCargos(ctx context.Context, origin string, destination string) ([]*model.Cargo, error)
+	GetUnroutedCargos(ctx context.Context, locationID string) ([]*model.Cargo, error)
+	FindCargosWithoutCarrier(ctx context.Context, locationID string) ([]*model.Cargo, error)
+	GetIdleCarriers(ctx context.Context, locationID string) ([]*model.Carrier, error)
 	GetAvailableCouriers(ctx context.Context, locationID string) ([]*model.Courier, error)
 	GetLocation(ctx context.Context, id string) (*model.Location, error)
 	GetRegion(ctx context.Context, zipCode string) (*model.Region, error)
@@ -587,6 +590,29 @@ func (ec *executionContext) field_Mutation_ShipPackage_argsInput(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Query_FindCargosWithoutCarrier_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_FindCargosWithoutCarrier_argsLocationID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["location_id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_FindCargosWithoutCarrier_argsLocationID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("location_id"))
+	if tmp, ok := rawArgs["location_id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Query_GetAvailableCouriers_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -598,6 +624,29 @@ func (ec *executionContext) field_Query_GetAvailableCouriers_args(ctx context.Co
 	return args, nil
 }
 func (ec *executionContext) field_Query_GetAvailableCouriers_argsLocationID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("location_id"))
+	if tmp, ok := rawArgs["location_id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_GetIdleCarriers_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetIdleCarriers_argsLocationID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["location_id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetIdleCarriers_argsLocationID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
@@ -736,6 +785,29 @@ func (ec *executionContext) field_Query_GetTransitPlaces_argsID(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_GetUnroutedCargos_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetUnroutedCargos_argsLocationID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["location_id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetUnroutedCargos_argsLocationID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("location_id"))
+	if tmp, ok := rawArgs["location_id"]; ok {
 		return ec.unmarshalNID2string(ctx, tmp)
 	}
 
@@ -3336,6 +3408,225 @@ func (ec *executionContext) fieldContext_Query_GetMatchingCargos(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_GetUnroutedCargos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetUnroutedCargos(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUnroutedCargos(rctx, fc.Args["location_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Cargo)
+	fc.Result = res
+	return ec.marshalNCargo2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCargoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetUnroutedCargos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cargo_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cargo_name(ctx, field)
+			case "status":
+				return ec.fieldContext_Cargo_status(ctx, field)
+			case "maxCapacity":
+				return ec.fieldContext_Cargo_maxCapacity(ctx, field)
+			case "currentLoad":
+				return ec.fieldContext_Cargo_currentLoad(ctx, field)
+			case "carriers":
+				return ec.fieldContext_Cargo_carriers(ctx, field)
+			case "itineraries":
+				return ec.fieldContext_Cargo_itineraries(ctx, field)
+			case "shipments":
+				return ec.fieldContext_Cargo_shipments(ctx, field)
+			case "last_known_location":
+				return ec.fieldContext_Cargo_last_known_location(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cargo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetUnroutedCargos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_FindCargosWithoutCarrier(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_FindCargosWithoutCarrier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindCargosWithoutCarrier(rctx, fc.Args["location_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Cargo)
+	fc.Result = res
+	return ec.marshalNCargo2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCargoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_FindCargosWithoutCarrier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cargo_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cargo_name(ctx, field)
+			case "status":
+				return ec.fieldContext_Cargo_status(ctx, field)
+			case "maxCapacity":
+				return ec.fieldContext_Cargo_maxCapacity(ctx, field)
+			case "currentLoad":
+				return ec.fieldContext_Cargo_currentLoad(ctx, field)
+			case "carriers":
+				return ec.fieldContext_Cargo_carriers(ctx, field)
+			case "itineraries":
+				return ec.fieldContext_Cargo_itineraries(ctx, field)
+			case "shipments":
+				return ec.fieldContext_Cargo_shipments(ctx, field)
+			case "last_known_location":
+				return ec.fieldContext_Cargo_last_known_location(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cargo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_FindCargosWithoutCarrier_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetIdleCarriers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetIdleCarriers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetIdleCarriers(rctx, fc.Args["location_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Carrier)
+	fc.Result = res
+	return ec.marshalNCarrier2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCarrierᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetIdleCarriers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Carrier_id(ctx, field)
+			case "user_id":
+				return ec.fieldContext_Carrier_user_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Carrier_name(ctx, field)
+			case "email":
+				return ec.fieldContext_Carrier_email(ctx, field)
+			case "status":
+				return ec.fieldContext_Carrier_status(ctx, field)
+			case "location":
+				return ec.fieldContext_Carrier_location(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Carrier", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetIdleCarriers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_GetAvailableCouriers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_GetAvailableCouriers(ctx, field)
 	if err != nil {
@@ -5927,6 +6218,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetMatchingCargos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetUnroutedCargos":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetUnroutedCargos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "FindCargosWithoutCarrier":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_FindCargosWithoutCarrier(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetIdleCarriers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetIdleCarriers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

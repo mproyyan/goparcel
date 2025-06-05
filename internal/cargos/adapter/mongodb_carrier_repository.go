@@ -43,6 +43,35 @@ func (c *CarrierRepository) GetCarrier(ctx context.Context, id primitive.ObjectI
 	return carrierModelToDomain(carrier), nil
 }
 
+func (c *CarrierRepository) GetIdleCarriers(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Carrier, error) {
+	var carriers []*CarrierModel
+	filter := bson.M{
+		"location_id": locationId,
+		"status":      domain.Idle.String(),
+	}
+
+	cursor, err := c.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var carrier CarrierModel
+		if err := cursor.Decode(&carrier); err != nil {
+			return nil, cuserr.MongoError(err)
+		}
+		carriers = append(carriers, &carrier)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	return carriersModelsTodomain(carriers), nil
+}
+
 // Helper functions
 func carrierModelToDomain(model *CarrierModel) *domain.Carrier {
 	return &domain.Carrier{
@@ -51,7 +80,7 @@ func carrierModelToDomain(model *CarrierModel) *domain.Carrier {
 		Name:       model.Name,
 		Email:      model.Email,
 		CargoID:    db.ObjectIdToString(model.CargoID),
-		Status:     model.Status,
+		Status:     domain.StringToCarrierStatus(model.Status),
 		LocationID: db.ObjectIdToString(model.LocationID),
 	}
 }

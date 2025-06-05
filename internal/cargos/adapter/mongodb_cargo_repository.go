@@ -254,6 +254,48 @@ func (c *CargoRepository) AssignRoute(ctx context.Context, cargoId primitive.Obj
 	return nil
 }
 
+func (c *CargoRepository) GetUnroutedCargos(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Cargo, error) {
+	filter := bson.M{
+		"last_known_location": locationId,
+		"itineraries":         bson.M{"$size": 0}, // Cargos with no itineraries
+	}
+
+	cursor, err := c.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	defer cursor.Close(ctx)
+
+	var cargos []*CargoModel
+	if err := cursor.All(ctx, &cargos); err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	return cargoModelsToDomain(cargos), nil
+}
+
+func (c *CargoRepository) FindCargosWithoutCarrier(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Cargo, error) {
+	filter := bson.M{
+		"last_known_location": locationId,
+		"carriers":            bson.M{"$size": 0}, // Cargos with no carriers assigned
+	}
+
+	cursor, err := c.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	defer cursor.Close(ctx)
+
+	var cargos []*CargoModel
+	if err := cursor.All(ctx, &cargos); err != nil {
+		return nil, cuserr.MongoError(err)
+	}
+
+	return cargoModelsToDomain(cargos), nil
+}
+
 // Helper function
 
 func domainToCargoModel(cargo *domain.Cargo) (*CargoModel, error) {

@@ -184,16 +184,19 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetAvailableCouriers func(childComplexity int, locationID string) int
-		GetLocation          func(childComplexity int, id string) int
-		GetMatchingCargos    func(childComplexity int, origin string, destination string) int
-		GetRegion            func(childComplexity int, zipCode string) int
-		GetRoutedShipments   func(childComplexity int, locationID string) int
-		GetTransitPlaces     func(childComplexity int, id string) int
-		GetUnroutedShipments func(childComplexity int, locationID string) int
-		GetUser              func(childComplexity int, id string) int
-		IncomingShipments    func(childComplexity int, locationID string) int
-		SearchLocations      func(childComplexity int, keyword string) int
+		FindCargosWithoutCarrier func(childComplexity int, locationID string) int
+		GetAvailableCouriers     func(childComplexity int, locationID string) int
+		GetIdleCarriers          func(childComplexity int, locationID string) int
+		GetLocation              func(childComplexity int, id string) int
+		GetMatchingCargos        func(childComplexity int, origin string, destination string) int
+		GetRegion                func(childComplexity int, zipCode string) int
+		GetRoutedShipments       func(childComplexity int, locationID string) int
+		GetTransitPlaces         func(childComplexity int, id string) int
+		GetUnroutedCargos        func(childComplexity int, locationID string) int
+		GetUnroutedShipments     func(childComplexity int, locationID string) int
+		GetUser                  func(childComplexity int, id string) int
+		IncomingShipments        func(childComplexity int, locationID string) int
+		SearchLocations          func(childComplexity int, keyword string) int
 	}
 
 	Region struct {
@@ -931,6 +934,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PartyDetail.ZipCode(childComplexity), true
 
+	case "Query.FindCargosWithoutCarrier":
+		if e.complexity.Query.FindCargosWithoutCarrier == nil {
+			break
+		}
+
+		args, err := ec.field_Query_FindCargosWithoutCarrier_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindCargosWithoutCarrier(childComplexity, args["location_id"].(string)), true
+
 	case "Query.GetAvailableCouriers":
 		if e.complexity.Query.GetAvailableCouriers == nil {
 			break
@@ -942,6 +957,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAvailableCouriers(childComplexity, args["location_id"].(string)), true
+
+	case "Query.GetIdleCarriers":
+		if e.complexity.Query.GetIdleCarriers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetIdleCarriers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetIdleCarriers(childComplexity, args["location_id"].(string)), true
 
 	case "Query.GetLocation":
 		if e.complexity.Query.GetLocation == nil {
@@ -1002,6 +1029,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetTransitPlaces(childComplexity, args["id"].(string)), true
+
+	case "Query.GetUnroutedCargos":
+		if e.complexity.Query.GetUnroutedCargos == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetUnroutedCargos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUnroutedCargos(childComplexity, args["location_id"].(string)), true
 
 	case "Query.GetUnroutedShipments":
 		if e.complexity.Query.GetUnroutedShipments == nil {
@@ -1437,6 +1476,9 @@ input ItineraryInput {
 
 extend type Query {
   GetMatchingCargos(origin: ID! destination: ID!): [Cargo!]!
+  GetUnroutedCargos(location_id: ID!): [Cargo!]!
+  FindCargosWithoutCarrier(location_id: ID!): [Cargo!]!
+  GetIdleCarriers(location_id: ID!): [Carrier!]!
 }
 
 extend type Mutation {

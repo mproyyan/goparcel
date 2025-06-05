@@ -6,7 +6,7 @@ type Carrier struct {
 	Name       string
 	Email      string
 	CargoID    string
-	Status     string
+	Status     CarrierStatus
 	LocationID string
 }
 

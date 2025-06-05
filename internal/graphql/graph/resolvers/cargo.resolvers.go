@@ -201,6 +201,45 @@ func (r *queryResolver) GetMatchingCargos(ctx context.Context, origin string, de
 	return cargosToGraphResponse(result.Cargos), nil
 }
 
+// GetUnroutedCargos is the resolver for the GetUnroutedCargos field.
+func (r *queryResolver) GetUnroutedCargos(ctx context.Context, locationID string) ([]*model.Cargo, error) {
+	result, err := r.cargoService.GetUnroutedCargos(ctx, &genproto.GetUnroutedCargosRequest{
+		LocationId: locationID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cargosToGraphResponse(result.Cargos), nil
+}
+
+// FindCargosWithoutCarrier is the resolver for the FindCargosWithoutCarrier field.
+func (r *queryResolver) FindCargosWithoutCarrier(ctx context.Context, locationID string) ([]*model.Cargo, error) {
+	result, err := r.cargoService.FindCargosWithoutCarrier(ctx, &genproto.FindCargosWithoutCarrierRequest{
+		LocationId: locationID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cargosToGraphResponse(result.Cargos), nil
+}
+
+// GetIdleCarriers is the resolver for the GetIdleCarriers field.
+func (r *queryResolver) GetIdleCarriers(ctx context.Context, locationID string) ([]*model.Carrier, error) {
+	result, err := r.cargoService.GetIdleCarriers(ctx, &genproto.GetIdleCarriersRequest{
+		LocationId: locationID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return carriersToGraphResponse(result.Carriers), nil
+}
+
 // Cargo returns generated.CargoResolver implementation.
 func (r *Resolver) Cargo() generated.CargoResolver { return &cargoResolver{r} }
 

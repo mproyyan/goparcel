@@ -16,8 +16,11 @@ type CargoRepository interface {
 	CreateCargo(ctx context.Context, cargo Cargo) (primitive.ObjectID, error)
 	AssignCarrier(ctx context.Context, cargoId primitive.ObjectID, carrierIds []primitive.ObjectID) error
 	AssignRoute(ctx context.Context, cargoId primitive.ObjectID, itinerary []Itinerary) error
+	GetUnroutedCargos(ctx context.Context, locationId primitive.ObjectID) ([]*Cargo, error)
+	FindCargosWithoutCarrier(ctx context.Context, locationId primitive.ObjectID) ([]*Cargo, error)
 }
 
 type CarrierRepository interface {
 	GetCarrier(ctx context.Context, id primitive.ObjectID) (*Carrier, error)
+	GetIdleCarriers(ctx context.Context, locationId primitive.ObjectID) ([]*Carrier, error)
 }

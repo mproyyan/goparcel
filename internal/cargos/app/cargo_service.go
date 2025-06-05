@@ -221,3 +221,45 @@ func (c CargoService) AssignRoute(ctx context.Context, cargoId string, itinerary
 
 	return nil
 }
+
+func (c CargoService) GetUnroutedCargos(ctx context.Context, locationId string) ([]*domain.Cargo, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
+	cargos, err := c.cargoRepository.GetUnroutedCargos(ctx, locationObjId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get unrouted cargos from repository")
+	}
+
+	return cargos, nil
+}
+
+func (c CargoService) FindCargosWithoutCarrier(ctx context.Context, locationId string) ([]*domain.Cargo, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
+	cargos, err := c.cargoRepository.FindCargosWithoutCarrier(ctx, locationObjId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to find cargos without carrier from repository")
+	}
+
+	return cargos, nil
+}
+
+func (c CargoService) GetIdleCarriers(ctx context.Context, locationId string) ([]*domain.Carrier, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
+	carriers, err := c.carrierRepository.GetIdleCarriers(ctx, locationObjId)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to get idle carriers from repository")
+	}
+
+	return carriers, nil
+}

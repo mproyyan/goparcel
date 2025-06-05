@@ -20,14 +20,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CargoService_CreateCargo_FullMethodName       = "/protobuf.CargoService/CreateCargo"
-	CargoService_GetCargos_FullMethodName         = "/protobuf.CargoService/GetCargos"
-	CargoService_GetMatchingCargos_FullMethodName = "/protobuf.CargoService/GetMatchingCargos"
-	CargoService_LoadShipment_FullMethodName      = "/protobuf.CargoService/LoadShipment"
-	CargoService_MarkArrival_FullMethodName       = "/protobuf.CargoService/MarkArrival"
-	CargoService_UnloadShipment_FullMethodName    = "/protobuf.CargoService/UnloadShipment"
-	CargoService_AssignCarrier_FullMethodName     = "/protobuf.CargoService/AssignCarrier"
-	CargoService_AssignRoute_FullMethodName       = "/protobuf.CargoService/AssignRoute"
+	CargoService_CreateCargo_FullMethodName              = "/protobuf.CargoService/CreateCargo"
+	CargoService_GetCargos_FullMethodName                = "/protobuf.CargoService/GetCargos"
+	CargoService_GetMatchingCargos_FullMethodName        = "/protobuf.CargoService/GetMatchingCargos"
+	CargoService_LoadShipment_FullMethodName             = "/protobuf.CargoService/LoadShipment"
+	CargoService_MarkArrival_FullMethodName              = "/protobuf.CargoService/MarkArrival"
+	CargoService_UnloadShipment_FullMethodName           = "/protobuf.CargoService/UnloadShipment"
+	CargoService_AssignCarrier_FullMethodName            = "/protobuf.CargoService/AssignCarrier"
+	CargoService_AssignRoute_FullMethodName              = "/protobuf.CargoService/AssignRoute"
+	CargoService_GetUnroutedCargos_FullMethodName        = "/protobuf.CargoService/GetUnroutedCargos"
+	CargoService_FindCargosWithoutCarrier_FullMethodName = "/protobuf.CargoService/FindCargosWithoutCarrier"
+	CargoService_GetIdleCarriers_FullMethodName          = "/protobuf.CargoService/GetIdleCarriers"
 )
 
 // CargoServiceClient is the client API for CargoService service.
@@ -42,6 +45,9 @@ type CargoServiceClient interface {
 	UnloadShipment(ctx context.Context, in *UnloadShipmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AssignCarrier(ctx context.Context, in *AssignCarrierRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AssignRoute(ctx context.Context, in *AssignRouteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetUnroutedCargos(ctx context.Context, in *GetUnroutedCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error)
+	FindCargosWithoutCarrier(ctx context.Context, in *FindCargosWithoutCarrierRequest, opts ...grpc.CallOption) (*CargoResponse, error)
+	GetIdleCarriers(ctx context.Context, in *GetIdleCarriersRequest, opts ...grpc.CallOption) (*CarrierResponse, error)
 }
 
 type cargoServiceClient struct {
@@ -132,6 +138,36 @@ func (c *cargoServiceClient) AssignRoute(ctx context.Context, in *AssignRouteReq
 	return out, nil
 }
 
+func (c *cargoServiceClient) GetUnroutedCargos(ctx context.Context, in *GetUnroutedCargosRequest, opts ...grpc.CallOption) (*CargoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CargoResponse)
+	err := c.cc.Invoke(ctx, CargoService_GetUnroutedCargos_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cargoServiceClient) FindCargosWithoutCarrier(ctx context.Context, in *FindCargosWithoutCarrierRequest, opts ...grpc.CallOption) (*CargoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CargoResponse)
+	err := c.cc.Invoke(ctx, CargoService_FindCargosWithoutCarrier_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cargoServiceClient) GetIdleCarriers(ctx context.Context, in *GetIdleCarriersRequest, opts ...grpc.CallOption) (*CarrierResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CarrierResponse)
+	err := c.cc.Invoke(ctx, CargoService_GetIdleCarriers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CargoServiceServer is the server API for CargoService service.
 // All implementations must embed UnimplementedCargoServiceServer
 // for forward compatibility.
@@ -144,6 +180,9 @@ type CargoServiceServer interface {
 	UnloadShipment(context.Context, *UnloadShipmentRequest) (*emptypb.Empty, error)
 	AssignCarrier(context.Context, *AssignCarrierRequest) (*emptypb.Empty, error)
 	AssignRoute(context.Context, *AssignRouteRequest) (*emptypb.Empty, error)
+	GetUnroutedCargos(context.Context, *GetUnroutedCargosRequest) (*CargoResponse, error)
+	FindCargosWithoutCarrier(context.Context, *FindCargosWithoutCarrierRequest) (*CargoResponse, error)
+	GetIdleCarriers(context.Context, *GetIdleCarriersRequest) (*CarrierResponse, error)
 	mustEmbedUnimplementedCargoServiceServer()
 }
 
@@ -177,6 +216,15 @@ func (UnimplementedCargoServiceServer) AssignCarrier(context.Context, *AssignCar
 }
 func (UnimplementedCargoServiceServer) AssignRoute(context.Context, *AssignRouteRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AssignRoute not implemented")
+}
+func (UnimplementedCargoServiceServer) GetUnroutedCargos(context.Context, *GetUnroutedCargosRequest) (*CargoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUnroutedCargos not implemented")
+}
+func (UnimplementedCargoServiceServer) FindCargosWithoutCarrier(context.Context, *FindCargosWithoutCarrierRequest) (*CargoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindCargosWithoutCarrier not implemented")
+}
+func (UnimplementedCargoServiceServer) GetIdleCarriers(context.Context, *GetIdleCarriersRequest) (*CarrierResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIdleCarriers not implemented")
 }
 func (UnimplementedCargoServiceServer) mustEmbedUnimplementedCargoServiceServer() {}
 func (UnimplementedCargoServiceServer) testEmbeddedByValue()                      {}
@@ -343,6 +391,60 @@ func _CargoService_AssignRoute_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CargoService_GetUnroutedCargos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUnroutedCargosRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).GetUnroutedCargos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_GetUnroutedCargos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).GetUnroutedCargos(ctx, req.(*GetUnroutedCargosRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CargoService_FindCargosWithoutCarrier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindCargosWithoutCarrierRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).FindCargosWithoutCarrier(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_FindCargosWithoutCarrier_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).FindCargosWithoutCarrier(ctx, req.(*FindCargosWithoutCarrierRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CargoService_GetIdleCarriers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIdleCarriersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CargoServiceServer).GetIdleCarriers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CargoService_GetIdleCarriers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CargoServiceServer).GetIdleCarriers(ctx, req.(*GetIdleCarriersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CargoService_ServiceDesc is the grpc.ServiceDesc for CargoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -381,6 +483,18 @@ var CargoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssignRoute",
 			Handler:    _CargoService_AssignRoute_Handler,
+		},
+		{
+			MethodName: "GetUnroutedCargos",
+			Handler:    _CargoService_GetUnroutedCargos_Handler,
+		},
+		{
+			MethodName: "FindCargosWithoutCarrier",
+			Handler:    _CargoService_FindCargosWithoutCarrier_Handler,
+		},
+		{
+			MethodName: "GetIdleCarriers",
+			Handler:    _CargoService_GetIdleCarriers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
