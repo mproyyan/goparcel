@@ -45,7 +45,7 @@ func (g GrpcServer) GetCargos(ctx context.Context, request *genproto.GetCargosRe
 func (g GrpcServer) CreateCargo(ctx context.Context, request *genproto.CreateCargoRequest) (*emptypb.Empty, error) {
 	err := g.service.CreateCargo(ctx, domain.Cargo{
 		Name:   request.Name,
-		Status: "idle",
+		Status: domain.CargoIdle,
 		MaxCapacity: domain.Capacity{
 			Weight: request.MaxCapacity.Weight,
 			Volume: request.MaxCapacity.Volume,
@@ -119,7 +119,7 @@ func cargoToProtoResponse(cargo *domain.Cargo) *genproto.Cargo {
 	return &genproto.Cargo{
 		Id:                cargo.ID,
 		Name:              cargo.Name,
-		Status:            cargo.Status,
+		Status:            cargo.Status.String(),
 		MaxCapacity:       convertCapacityToProto(cargo.MaxCapacity),
 		CurrentLoad:       convertCapacityToProto(cargo.CurrentLoad),
 		Carriers:          cargo.Carriers,

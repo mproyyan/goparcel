@@ -274,7 +274,7 @@ func domainToCargoModel(cargo *domain.Cargo) (*CargoModel, error) {
 	return &CargoModel{
 		ID:                id,
 		Name:              cargo.Name,
-		Status:            cargo.Status,
+		Status:            cargo.Status.String(),
 		MaxCapacity:       Capacity{Weight: cargo.MaxCapacity.Weight, Volume: cargo.MaxCapacity.Volume},
 		CurrentLoad:       Capacity{Weight: cargo.CurrentLoad.Weight, Volume: cargo.CurrentLoad.Volume},
 		Carriers:          convertStringSliceToObjectIDSlice(cargo.Carriers),
@@ -292,7 +292,7 @@ func cargoModelToDomain(model *CargoModel) *domain.Cargo {
 	return &domain.Cargo{
 		ID:                model.ID.Hex(),
 		Name:              model.Name,
-		Status:            model.Status,
+		Status:            domain.StringToCargoStatus(model.Status),
 		MaxCapacity:       domain.Capacity{Weight: model.MaxCapacity.Weight, Volume: model.MaxCapacity.Volume},
 		CurrentLoad:       domain.Capacity{Weight: model.CurrentLoad.Weight, Volume: model.CurrentLoad.Volume},
 		Carriers:          convertObjectIDSliceToStringSlice(model.Carriers),
