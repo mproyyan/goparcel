@@ -230,6 +230,35 @@ func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmen
 	return nil
 }
 
+func (s *ShipmentRepository) TrackPackage(ctx context.Context, awb string) ([]*domain.ItineraryLog, error) {
+	var shipment ShipmentModel
+	err := s.collection.FindOne(ctx, bson.M{"airway_bill": awb}).Decode(&shipment)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, status.Error(codes.NotFound, "shipment not found")
+		}
+
+		return nil, cuserr.MongoError(err)
+	}
+
+	if len(shipment.ItineraryLogs) == 0 {
+		return nil, status.Error(codes.NotFound, "no itinerary logs found for this shipment")
+	}
+
+	logrus.WithField("airway_bill", awb).Info("Tracking package")
+
+	var itineraries []*domain.ItineraryLog
+	for _, log := range shipment.ItineraryLogs {
+		itineraries = append(itineraries, &domain.ItineraryLog{
+			ActivityType: domain.StringToActivityType(log.ActivityType),
+			Timestamp:    log.Timestamp,
+			Location:     convertObjIdToHex(log.Location),
+		})
+	}
+
+	return itineraries, nil
+}
+
 func shipmentModelToDomain(model *ShipmentModel) *domain.Shipment {
 	return &domain.Shipment{
 		ID:              model.ID.Hex(),

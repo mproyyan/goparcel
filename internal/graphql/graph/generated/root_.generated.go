@@ -197,6 +197,7 @@ type ComplexityRoot struct {
 		GetUser                  func(childComplexity int, id string) int
 		IncomingShipments        func(childComplexity int, locationID string) int
 		SearchLocations          func(childComplexity int, keyword string) int
+		TrackPackage             func(childComplexity int, airwayBill string) int
 	}
 
 	Region struct {
@@ -1090,6 +1091,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SearchLocations(childComplexity, args["keyword"].(string)), true
 
+	case "Query.TrackPackage":
+		if e.complexity.Query.TrackPackage == nil {
+			break
+		}
+
+		args, err := ec.field_Query_TrackPackage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.TrackPackage(childComplexity, args["airway_bill"].(string)), true
+
 	case "Region.city":
 		if e.complexity.Region.City == nil {
 			break
@@ -1688,6 +1701,7 @@ type Query {
     GetUnroutedShipments(location_id: String!): [Shipment]!
     GetRoutedShipments(location_id: String!): [Shipment]!
     IncomingShipments(location_id: ID!): [TransferRequest!]!
+    TrackPackage(airway_bill: String!): [ItineraryLog]!
 }
 
 type Mutation {

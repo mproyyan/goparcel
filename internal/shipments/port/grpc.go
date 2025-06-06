@@ -217,6 +217,26 @@ func (g GrpcServer) CompleteShipment(ctx context.Context, request *genproto.Comp
 	return &emptypb.Empty{}, nil
 }
 
+func (g GrpcServer) TrackPackage(ctx context.Context, request *genproto.TrackPackageRequest) (*genproto.TrackPackageResponse, error) {
+	logrus.WithField("awb", request.Awb).Info("Tracking package")
+
+	itineraryLogs, err := g.service.TrackPackage(ctx, request.Awb)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to track package")
+	}
+
+	var protoLogs []*genproto.ItineraryLog
+	for _, log := range itineraryLogs {
+		protoLogs = append(protoLogs, &genproto.ItineraryLog{
+			ActivityType: log.ActivityType.String(),
+			Timestamp:    timestamppb.New(log.Timestamp),
+			LocationId:   log.Location,
+		})
+	}
+
+	return &genproto.TrackPackageResponse{Itineraries: protoLogs}, nil
+}
+
 func protoRequestToItems(packages []*genproto.Package) []domain.Item {
 	var items []domain.Item
 	for _, pkg := range packages {

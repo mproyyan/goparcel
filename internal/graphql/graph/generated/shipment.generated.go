@@ -52,6 +52,7 @@ type QueryResolver interface {
 	GetUnroutedShipments(ctx context.Context, locationID string) ([]*model.Shipment, error)
 	GetRoutedShipments(ctx context.Context, locationID string) ([]*model.Shipment, error)
 	IncomingShipments(ctx context.Context, locationID string) ([]*model.TransferRequest, error)
+	TrackPackage(ctx context.Context, airwayBill string) ([]*model.ItineraryLog, error)
 	GetMatchingCargos(ctx context.Context, origin string, destination string) ([]*model.Cargo, error)
 	GetUnroutedCargos(ctx context.Context, locationID string) ([]*model.Cargo, error)
 	FindCargosWithoutCarrier(ctx context.Context, locationID string) ([]*model.Cargo, error)
@@ -900,6 +901,29 @@ func (ec *executionContext) field_Query_SearchLocations_argsKeyword(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("keyword"))
 	if tmp, ok := rawArgs["keyword"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_TrackPackage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_TrackPackage_argsAirwayBill(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["airway_bill"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_TrackPackage_argsAirwayBill(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("airway_bill"))
+	if tmp, ok := rawArgs["airway_bill"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -3327,6 +3351,69 @@ func (ec *executionContext) fieldContext_Query_IncomingShipments(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_IncomingShipments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_TrackPackage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_TrackPackage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().TrackPackage(rctx, fc.Args["airway_bill"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ItineraryLog)
+	fc.Result = res
+	return ec.marshalNItineraryLog2ᚕᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐItineraryLog(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_TrackPackage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "activity_type":
+				return ec.fieldContext_ItineraryLog_activity_type(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ItineraryLog_timestamp(ctx, field)
+			case "location":
+				return ec.fieldContext_ItineraryLog_location(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ItineraryLog", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_TrackPackage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6196,6 +6283,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_IncomingShipments(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "TrackPackage":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_TrackPackage(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

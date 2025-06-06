@@ -469,6 +469,21 @@ func (s ShipmentService) CompleteShipment(ctx context.Context, shipmentId string
 	return nil
 }
 
+func (s ShipmentService) TrackPackage(ctx context.Context, awb string) ([]*domain.ItineraryLog, error) {
+	if awb == "" {
+		return nil, status.Error(codes.InvalidArgument, "awb cannot be empty")
+	}
+
+	logrus.WithField("awb", awb).Info("Tracking package with AWB")
+
+	itineraryLogs, err := s.shipmentRepository.TrackPackage(ctx, awb)
+	if err != nil {
+		return nil, cuserr.Decorate(err, "failed to track package")
+	}
+
+	return itineraryLogs, nil
+}
+
 // generateAWB generates a unique Airway Bill (AWB) number
 func generateAWB(length int) string {
 	src := rand.NewSource(time.Now().UnixNano())

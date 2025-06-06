@@ -323,3 +323,16 @@ func carriersToGraphResponse(carriers []*genproto.Carrier) []*model.Carrier {
 
 	return response
 }
+
+func itineraryLogsToGraphResponse(logs []*genproto.ItineraryLog) []*model.ItineraryLog {
+	var response []*model.ItineraryLog
+	for _, log := range logs {
+		response = append(response, &model.ItineraryLog{
+			ActivityType: log.ActivityType,
+			Timestamp:    log.Timestamp.AsTime(),
+			Location:     &model.Location{ID: log.LocationId},
+		})
+	}
+
+	return response
+}

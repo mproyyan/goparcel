@@ -16,6 +16,7 @@ type ShipmentRepository interface {
 	RetrieveShipmentsFromLocations(ctx context.Context, locationsID primitive.ObjectID, routingStatus RoutingStatus) ([]*Shipment, error)
 	UpdateTransportStatus(ctx context.Context, shipmentId []primitive.ObjectID, status TransportStatus) error
 	AddShipmentDestination(ctx context.Context, shipmentId, locationId primitive.ObjectID) error
+	TrackPackage(ctx context.Context, awb string) ([]*ItineraryLog, error)
 }
 
 type TransferRequestRepository interface {

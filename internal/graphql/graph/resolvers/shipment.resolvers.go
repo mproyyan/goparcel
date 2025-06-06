@@ -6,6 +6,7 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mproyyan/goparcel/internal/common/auth"
 	"github.com/mproyyan/goparcel/internal/common/genproto"
@@ -214,6 +215,16 @@ func (r *queryResolver) IncomingShipments(ctx context.Context, locationID string
 	}
 
 	return transferRequestsToGraphResponse(result.TransferRequests), nil
+}
+
+// TrackPackage is the resolver for the TrackPackage field.
+func (r *queryResolver) TrackPackage(ctx context.Context, airwayBill string) ([]*model.ItineraryLog, error) {
+	response, err := r.shipmentService.TrackPackage(ctx, &genproto.TrackPackageRequest{Awb: airwayBill})
+	if err != nil {
+		return nil, fmt.Errorf("failed to track package: %w", err)
+	}
+
+	return itineraryLogsToGraphResponse(response.Itineraries), nil
 }
 
 // Origin is the resolver for the origin field.

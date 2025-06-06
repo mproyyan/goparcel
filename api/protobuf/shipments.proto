@@ -20,6 +20,7 @@ service ShipmentService {
     rpc AddItineraryHistory(AddItineraryHistoryRequest) returns (google.protobuf.Empty) {}
     rpc DeliverPackage(DeliverPackageRequest) returns (google.protobuf.Empty) {}
     rpc CompleteShipment(CompleteShipmentRequest) returns (google.protobuf.Empty) {}
+    rpc TrackPackage(TrackPackageRequest) returns (TrackPackageResponse) {}
 }
 
 message CreateShipmentRequest {
@@ -166,4 +167,12 @@ message CompleteShipmentRequest {
 
 message CreateShipmentResponse {
     string airway_bill_number = 1;
+}
+
+message TrackPackageRequest {
+    string awb = 1;
+}
+
+message TrackPackageResponse {
+    repeated ItineraryLog itineraries = 1;
 }
