@@ -14,15 +14,15 @@ type CarrierStatus int
 
 const (
 	UnknownCarrierStatus CarrierStatus = iota
-	Idle
-	Active
+	CarrierIdle
+	CarrierActive
 )
 
 func (c CarrierStatus) String() string {
 	switch c {
-	case Idle:
+	case CarrierIdle:
 		return "idle"
-	case Active:
+	case CarrierActive:
 		return "active"
 	default:
 		return "unknown"
@@ -32,9 +32,9 @@ func (c CarrierStatus) String() string {
 func StringToCarrierStatus(s string) CarrierStatus {
 	switch s {
 	case "idle":
-		return Idle
+		return CarrierIdle
 	case "active":
-		return Active
+		return CarrierActive
 	default:
 		return UnknownCarrierStatus
 	}

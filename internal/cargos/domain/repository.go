@@ -19,10 +19,12 @@ type CargoRepository interface {
 	GetUnroutedCargos(ctx context.Context, locationId primitive.ObjectID) ([]*Cargo, error)
 	FindCargosWithoutCarrier(ctx context.Context, locationId primitive.ObjectID) ([]*Cargo, error)
 	ResetCompletedCargo(ctx context.Context, cargoId primitive.ObjectID) error
+	UpdateCargoStatus(ctx context.Context, cargoId primitive.ObjectID, status CargoStatus) error
 }
 
 type CarrierRepository interface {
 	GetCarrier(ctx context.Context, id primitive.ObjectID) (*Carrier, error)
 	GetIdleCarriers(ctx context.Context, locationId primitive.ObjectID) ([]*Carrier, error)
 	ClearAssignedCargo(ctx context.Context, carrierIds []primitive.ObjectID) error
+	UpdateCarrierStatus(ctx context.Context, carrierIds []primitive.ObjectID, status CarrierStatus) error
 }

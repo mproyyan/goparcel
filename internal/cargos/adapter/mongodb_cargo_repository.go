@@ -217,7 +217,6 @@ func (c *CargoRepository) AssignCarrier(ctx context.Context, cargoId primitive.O
 	update := bson.M{
 		"$set": bson.M{
 			"carriers": carrierIds,
-			"status":   "active",
 		},
 	}
 
@@ -257,7 +256,11 @@ func (c *CargoRepository) AssignRoute(ctx context.Context, cargoId primitive.Obj
 func (c *CargoRepository) GetUnroutedCargos(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Cargo, error) {
 	filter := bson.M{
 		"last_known_location": locationId,
-		"itineraries":         bson.M{"$size": 0}, // Cargos with no itineraries
+		"$or": []bson.M{
+			{"itineraries": bson.M{"$size": 0}},
+			{"itineraries": bson.M{"$exists": false}},
+			{"itineraries": nil},
+		},
 	}
 
 	cursor, err := c.collection.Find(ctx, filter)
@@ -278,7 +281,11 @@ func (c *CargoRepository) GetUnroutedCargos(ctx context.Context, locationId prim
 func (c *CargoRepository) FindCargosWithoutCarrier(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Cargo, error) {
 	filter := bson.M{
 		"last_known_location": locationId,
-		"carriers":            bson.M{"$size": 0}, // Cargos with no carriers assigned
+		"$or": []bson.M{
+			{"carriers": bson.M{"$size": 0}},       // Cargos with empty carriers array
+			{"carriers": bson.M{"$exists": false}}, // Cargos with no carriers field
+			{"carriers": nil},                      // Cargos with carriers explicitly set to nil
+		},
 	}
 
 	cursor, err := c.collection.Find(ctx, filter)
@@ -314,6 +321,23 @@ func (c *CargoRepository) ResetCompletedCargo(ctx context.Context, cargoId primi
 	}
 
 	logrus.WithField("cargo_id", cargoId).Info("Cargo reset to new state")
+	return nil
+}
+
+func (c *CargoRepository) UpdateCargoStatus(ctx context.Context, cargoId primitive.ObjectID, status domain.CargoStatus) error {
+	filter := bson.M{"_id": cargoId}
+	update := bson.M{"$set": bson.M{"status": status.String()}}
+
+	_, err := c.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"cargo_id": cargoId,
+		"status":   status.String(),
+	}).Info("Cargo status updated")
+
 	return nil
 }
 

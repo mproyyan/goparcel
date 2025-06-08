@@ -217,6 +217,7 @@ func (u UserService) RegisterAsCarrier(ctx context.Context, name, email, passwor
 			Name:       name,
 			Email:      email,
 			LocationID: location,
+			Status:     "idle",
 		})
 
 		if err != nil {

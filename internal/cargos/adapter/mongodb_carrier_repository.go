@@ -47,7 +47,7 @@ func (c *CarrierRepository) GetIdleCarriers(ctx context.Context, locationId prim
 	var carriers []*CarrierModel
 	filter := bson.M{
 		"location_id": locationId,
-		"status":      domain.Idle.String(),
+		"status":      domain.CarrierIdle.String(),
 	}
 
 	cursor, err := c.collection.Find(ctx, filter)
@@ -78,7 +78,28 @@ func (c *CarrierRepository) ClearAssignedCargo(ctx context.Context, carrierIds [
 	}
 
 	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
-	update := bson.M{"$set": bson.M{"cargo_id": nil}}
+	update := bson.M{
+		"$set": bson.M{
+			"cargo_id": nil,
+			"status":   domain.CarrierIdle.String(),
+		},
+	}
+
+	_, err := c.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
+func (c *CarrierRepository) UpdateCarrierStatus(ctx context.Context, carrierIds []primitive.ObjectID, status domain.CarrierStatus) error {
+	if len(carrierIds) == 0 {
+		return nil // No carriers to update
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
+	update := bson.M{"$set": bson.M{"status": status.String()}}
 
 	_, err := c.collection.UpdateMany(ctx, filter, update)
 	if err != nil {

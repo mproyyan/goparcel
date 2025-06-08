@@ -216,18 +216,36 @@ func (c CargoService) AssignCarrier(ctx context.Context, cargoId string, carrier
 		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
 	}
 
+	cargo, err := c.cargoRepository.GetCargo(ctx, cargoObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to get cargo from repository")
+	}
+
 	var carrierObjIds []primitive.ObjectID
 	for _, carrierId := range carrierIds {
 		objId, err := primitive.ObjectIDFromHex(carrierId)
 		if err != nil {
 			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
 		}
+
 		carrierObjIds = append(carrierObjIds, objId)
 	}
 
 	err = c.cargoRepository.AssignCarrier(ctx, cargoObjId, carrierObjIds)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to assign carriers to cargo")
+	}
+
+	err = c.carrierRepository.UpdateCarrierStatus(ctx, carrierObjIds, domain.CarrierActive)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to update carrier status to active")
+	}
+
+	if cargo.HasItineraries() {
+		err = c.cargoRepository.UpdateCargoStatus(ctx, cargoObjId, domain.CargoActive)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to update cargo status to active")
+		}
 	}
 
 	return nil
@@ -239,9 +257,18 @@ func (c CargoService) AssignRoute(ctx context.Context, cargoId string, itinerary
 		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
 	}
 
+	cargo, err := c.cargoRepository.GetCargo(ctx, cargoObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to get cargo from repository")
+	}
+
 	err = c.cargoRepository.AssignRoute(ctx, cargoObjId, itinerary)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to assign route to cargo")
+	}
+
+	if cargo.HasCarriers() {
+		err = c.cargoRepository.UpdateCargoStatus(ctx, cargoObjId, domain.CargoActive)
 	}
 
 	return nil

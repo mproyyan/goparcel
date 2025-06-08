@@ -69,3 +69,11 @@ func (c Cargo) AllItinerariesCompleted() bool {
 
 	return true // All itineraries are completed
 }
+
+func (c Cargo) HasCarriers() bool {
+	return len(c.Carriers) > 0
+}
+
+func (c Cargo) HasItineraries() bool {
+	return len(c.Itineraries) > 0
+}
