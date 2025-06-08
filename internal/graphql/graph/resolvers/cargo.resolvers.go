@@ -72,6 +72,19 @@ func (r *cargoResolver) LastKnownLocation(ctx context.Context, obj *model.Cargo)
 	return r.locationLoader.Load(ctx, obj.LastKnownLocation.ID)
 }
 
+// Cargo is the resolver for the cargo field.
+func (r *carrierResolver) Cargo(ctx context.Context, obj *model.Carrier) (*model.Cargo, error) {
+	if obj.Cargo == nil {
+		return nil, nil
+	}
+
+	if obj.Cargo.ID == "" {
+		return nil, nil
+	}
+
+	return r.cargoLoader.Load(ctx, obj.Cargo.ID)
+}
+
 // Location is the resolver for the location field.
 func (r *carrierResolver) Location(ctx context.Context, obj *model.Carrier) (*model.Location, error) {
 	if obj.Location == nil {

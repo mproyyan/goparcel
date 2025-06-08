@@ -25,6 +25,7 @@ type CargoResolver interface {
 	LastKnownLocation(ctx context.Context, obj *model.Cargo) (*model.Location, error)
 }
 type CarrierResolver interface {
+	Cargo(ctx context.Context, obj *model.Carrier) (*model.Cargo, error)
 	Location(ctx context.Context, obj *model.Carrier) (*model.Location, error)
 }
 type ItineraryResolver interface {
@@ -409,6 +410,8 @@ func (ec *executionContext) fieldContext_Cargo_carriers(_ context.Context, field
 				return ec.fieldContext_Carrier_email(ctx, field)
 			case "status":
 				return ec.fieldContext_Carrier_status(ctx, field)
+			case "cargo":
+				return ec.fieldContext_Carrier_cargo(ctx, field)
 			case "location":
 				return ec.fieldContext_Carrier_location(ctx, field)
 			}
@@ -803,6 +806,67 @@ func (ec *executionContext) fieldContext_Carrier_status(_ context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Carrier_cargo(ctx context.Context, field graphql.CollectedField, obj *model.Carrier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Carrier_cargo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Carrier().Cargo(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cargo)
+	fc.Result = res
+	return ec.marshalOCargo2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐCargo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Carrier_cargo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Carrier",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cargo_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cargo_name(ctx, field)
+			case "status":
+				return ec.fieldContext_Cargo_status(ctx, field)
+			case "maxCapacity":
+				return ec.fieldContext_Cargo_maxCapacity(ctx, field)
+			case "currentLoad":
+				return ec.fieldContext_Cargo_currentLoad(ctx, field)
+			case "carriers":
+				return ec.fieldContext_Cargo_carriers(ctx, field)
+			case "itineraries":
+				return ec.fieldContext_Cargo_itineraries(ctx, field)
+			case "shipments":
+				return ec.fieldContext_Cargo_shipments(ctx, field)
+			case "last_known_location":
+				return ec.fieldContext_Cargo_last_known_location(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cargo", field.Name)
 		},
 	}
 	return fc, nil
@@ -1325,6 +1389,39 @@ func (ec *executionContext) _Carrier(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "status":
 			out.Values[i] = ec._Carrier_status(ctx, field, obj)
+		case "cargo":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Carrier_cargo(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "location":
 			field := field
 

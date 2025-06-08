@@ -81,6 +81,7 @@ type ComplexityRoot struct {
 	}
 
 	Carrier struct {
+		Cargo    func(childComplexity int) int
 		Email    func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Location func(childComplexity int) int
@@ -385,6 +386,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Cargo.Status(childComplexity), true
+
+	case "Carrier.cargo":
+		if e.complexity.Carrier.Cargo == nil {
+			break
+		}
+
+		return e.complexity.Carrier.Cargo(childComplexity), true
 
 	case "Carrier.email":
 		if e.complexity.Carrier.Email == nil {
@@ -1474,6 +1482,7 @@ type Carrier {
   name: String!
   email: String!
   status: String
+  cargo: Cargo
   location: Location
 }
 

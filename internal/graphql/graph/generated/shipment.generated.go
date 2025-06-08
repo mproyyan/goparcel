@@ -3694,6 +3694,8 @@ func (ec *executionContext) fieldContext_Query_GetIdleCarriers(ctx context.Conte
 				return ec.fieldContext_Carrier_email(ctx, field)
 			case "status":
 				return ec.fieldContext_Carrier_status(ctx, field)
+			case "cargo":
+				return ec.fieldContext_Carrier_cargo(ctx, field)
 			case "location":
 				return ec.fieldContext_Carrier_location(ctx, field)
 			}

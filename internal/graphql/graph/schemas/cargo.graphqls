@@ -27,6 +27,7 @@ type Carrier {
   name: String!
   email: String!
   status: String
+  cargo: Cargo
   location: Location
 }
 

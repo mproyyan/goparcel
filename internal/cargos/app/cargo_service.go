@@ -251,6 +251,11 @@ func (c CargoService) AssignCarrier(ctx context.Context, cargoId string, carrier
 		return cuserr.Decorate(err, "failed to assign carriers to cargo")
 	}
 
+	err = c.carrierRepository.AssignCargo(ctx, carrierObjIds, cargoObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to assign cargo to carriers")
+	}
+
 	err = c.carrierRepository.UpdateCarrierStatus(ctx, carrierObjIds, domain.CarrierActive)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to update carrier status to active")
