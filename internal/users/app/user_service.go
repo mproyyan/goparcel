@@ -90,7 +90,7 @@ func (u UserService) Login(ctx context.Context, email, password string) (string,
 	}
 
 	// Generate JWT token
-	token, err := auth.GenerateToken(user.ID, user.ModelID, time.Hour)
+	token, err := auth.GenerateToken(user.ID, user.ModelID, time.Hour*24*30*3)
 	if err != nil {
 		return "", status.Error(codes.Internal, "failed to generate jwt token")
 	}
