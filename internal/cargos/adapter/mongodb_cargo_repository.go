@@ -307,11 +307,9 @@ func (c *CargoRepository) ResetCompletedCargo(ctx context.Context, cargoId primi
 	filter := bson.M{"_id": cargoId}
 	update := bson.M{
 		"$set": bson.M{
-			"status":       domain.CargoIdle.String(),
-			"carriers":     []primitive.ObjectID{},
-			"itineraries":  []Itinerary{},
-			"shipments":    []primitive.ObjectID{},
-			"current_load": Capacity{Weight: 0, Volume: 0},
+			"status":      domain.CargoIdle.String(),
+			"carriers":    []primitive.ObjectID{},
+			"itineraries": []Itinerary{},
 		},
 	}
 
