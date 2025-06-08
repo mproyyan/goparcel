@@ -27,4 +27,5 @@ type CarrierRepository interface {
 	GetIdleCarriers(ctx context.Context, locationId primitive.ObjectID) ([]*Carrier, error)
 	ClearAssignedCargo(ctx context.Context, carrierIds []primitive.ObjectID) error
 	UpdateCarrierStatus(ctx context.Context, carrierIds []primitive.ObjectID, status CarrierStatus) error
+	UpdateLocation(ctx context.Context, carrierIds []primitive.ObjectID, locationId primitive.ObjectID) error
 }

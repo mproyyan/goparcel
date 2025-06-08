@@ -163,6 +163,21 @@ func (c CargoService) MarkArrival(ctx context.Context, cargoId, locationId strin
 		return cuserr.Decorate(err, "failed to mark arrival with current location")
 	}
 
+	carrierObjIds := make([]primitive.ObjectID, 0, len(cargo.Carriers))
+	for _, carrierId := range cargo.Carriers {
+		objId, err := primitive.ObjectIDFromHex(carrierId)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+		}
+
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
+	err = c.carrierRepository.UpdateLocation(ctx, carrierObjIds, locationObjId)
+	if err != nil {
+		return cuserr.Decorate(err, "failed to update carrier location")
+	}
+
 	cargo, _ = c.cargoRepository.GetCargo(ctx, cargoObjId)
 	if cargo.AllItinerariesCompleted() {
 		// Reset cargo if all itineraries are completed

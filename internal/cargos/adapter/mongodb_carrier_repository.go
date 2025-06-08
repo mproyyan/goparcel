@@ -109,6 +109,22 @@ func (c *CarrierRepository) UpdateCarrierStatus(ctx context.Context, carrierIds 
 	return nil
 }
 
+func (c *CarrierRepository) UpdateLocation(ctx context.Context, carrierIds []primitive.ObjectID, locationId primitive.ObjectID) error {
+	if len(carrierIds) == 0 {
+		return nil // No carriers to update
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
+	update := bson.M{"$set": bson.M{"location_id": locationId}}
+
+	_, err := c.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return cuserr.MongoError(err)
+	}
+
+	return nil
+}
+
 // Helper functions
 func carrierModelToDomain(model *CarrierModel) *domain.Carrier {
 	return &domain.Carrier{
