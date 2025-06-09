@@ -404,6 +404,10 @@ func convertObjectIDSliceToStringSlice(ids []primitive.ObjectID) []string {
 }
 
 func convertStringSliceToObjectIDSlice(ids []string) []primitive.ObjectID {
+	if len(ids) == 0 {
+		return []primitive.ObjectID{}
+	}
+
 	var result []primitive.ObjectID
 	for _, id := range ids {
 		objId, err := primitive.ObjectIDFromHex(id)
