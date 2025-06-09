@@ -284,6 +284,7 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 			UserID:     userId.Hex(),
 			Name:       name,
 			Email:      email,
+			Status:     courier.Available,
 			LocationID: location,
 		})
 
