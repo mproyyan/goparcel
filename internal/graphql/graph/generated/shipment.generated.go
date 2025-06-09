@@ -5436,7 +5436,7 @@ func (ec *executionContext) unmarshalInputItemInput(ctx context.Context, obj any
 			it.Weight = data
 		case "volume":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("volume"))
-			data, err := ec.unmarshalOVolumeInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐVolumeInput(ctx, v)
+			data, err := ec.unmarshalNVolumeInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐVolumeInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7200,6 +7200,11 @@ func (ec *executionContext) marshalNTransferRequest2ᚖgithubᚗcomᚋmproyyan�
 	return ec._TransferRequest(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNVolumeInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐVolumeInput(ctx context.Context, v any) (*model.VolumeInput, error) {
+	res, err := ec.unmarshalInputVolumeInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOAddress2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v *model.Address) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7258,14 +7263,6 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	}
 	res := graphql.MarshalTime(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOVolumeInput2ᚖgithubᚗcomᚋmproyyanᚋgoparcelᚋinternalᚋgraphqlᚋgraphᚋmodelᚐVolumeInput(ctx context.Context, v any) (*model.VolumeInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputVolumeInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 // endregion ***************************** type.gotpl *****************************

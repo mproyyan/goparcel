@@ -1677,7 +1677,7 @@ input ItemInput {
     name: String!
     amount: Int!
     weight: Int!
-    volume: VolumeInput
+    volume: VolumeInput!
 }
 
 input VolumeInput {

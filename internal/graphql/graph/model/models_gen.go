@@ -112,7 +112,7 @@ type ItemInput struct {
 	Name   string       `json:"name"`
 	Amount int32        `json:"amount"`
 	Weight int32        `json:"weight"`
-	Volume *VolumeInput `json:"volume,omitempty"`
+	Volume *VolumeInput `json:"volume"`
 }
 
 type Itinerary struct {
