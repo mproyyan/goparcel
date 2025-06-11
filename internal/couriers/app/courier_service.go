@@ -5,9 +5,6 @@ import (
 
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	"github.com/mproyyan/goparcel/internal/couriers/domain"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type CourierService struct {
@@ -19,12 +16,7 @@ func NewCourierService(courierRepository domain.CourierRepository) CourierServic
 }
 
 func (c CourierService) AvailableCouriers(ctx context.Context, locationID string) ([]domain.Courier, error) {
-	// Convert string to object id
-	locationObjId, err := primitive.ObjectIDFromHex(locationID)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
-	}
-	couriers, err := c.courierRepository.AvailableCouriers(ctx, locationObjId)
+	couriers, err := c.courierRepository.AvailableCouriers(ctx, locationID)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get available couriers")
 	}

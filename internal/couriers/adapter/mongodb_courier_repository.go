@@ -7,6 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type CourierRepository struct {
@@ -19,8 +21,13 @@ func NewCourierRepository(db *mongo.Database) *CourierRepository {
 	}
 }
 
-func (c *CourierRepository) AvailableCouriers(ctx context.Context, locationID primitive.ObjectID) ([]domain.Courier, error) {
-	filter := bson.M{"location_id": locationID, "status": "available"}
+func (c *CourierRepository) AvailableCouriers(ctx context.Context, locationID string) ([]domain.Courier, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationID)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid location ID format")
+	}
+
+	filter := bson.M{"location_id": locationObjId, "status": "available"}
 	cursor, err := c.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
