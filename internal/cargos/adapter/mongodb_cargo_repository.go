@@ -63,7 +63,8 @@ func (c *CargoRepository) CreateCargo(ctx context.Context, cargo domain.Cargo) (
 	}
 
 	logrus.WithField("cargo_id", result.InsertedID).Info("Cargo created successfully")
-	return result.InsertedID.(string), nil
+	insertedId := result.InsertedID.(primitive.ObjectID)
+	return insertedId.Hex(), nil
 }
 
 func (c *CargoRepository) GetCargos(ctx context.Context, ids []string) ([]*domain.Cargo, error) {

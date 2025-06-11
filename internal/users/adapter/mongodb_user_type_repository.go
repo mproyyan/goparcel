@@ -39,10 +39,15 @@ func (u *UserTypeRepository) FindUserType(ctx context.Context, userType string) 
 	return &userTypeModel, nil
 }
 
-func (u *UserTypeRepository) FindUserTypeById(ctx context.Context, id primitive.ObjectID) (*user.UserType, error) {
+func (u *UserTypeRepository) FindUserTypeById(ctx context.Context, id string) (*user.UserType, error) {
+	userTypeObjId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user type id is not valid object id")
+	}
+
 	// Find user type by id
 	var userTypeResult UserType
-	err := u.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&userTypeResult)
+	err = u.collection.FindOne(ctx, bson.M{"_id": userTypeObjId}).Decode(&userTypeResult)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
 	}

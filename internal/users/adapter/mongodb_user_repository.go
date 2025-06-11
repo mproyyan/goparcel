@@ -66,10 +66,15 @@ func (u *UserRepository) CheckEmailAvailability(ctx context.Context, email strin
 	return len(results) == 0, nil
 }
 
-func (u *UserRepository) GetUser(ctx context.Context, id primitive.ObjectID) (*user.User, error) {
+func (u *UserRepository) GetUser(ctx context.Context, id string) (*user.User, error) {
+	userObjId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "user id is not valid object id")
+	}
+
 	// Find a single user by ID with a projection to only retrieve specific fields
 	var usr User
-	err := u.collection.FindOne(ctx, bson.M{"_id": id}, options.FindOne().SetProjection(bson.M{
+	err = u.collection.FindOne(ctx, bson.M{"_id": userObjId}, options.FindOne().SetProjection(bson.M{
 		"_id":      1,
 		"model_id": 1,
 		"entity":   1,
@@ -83,13 +88,23 @@ func (u *UserRepository) GetUser(ctx context.Context, id primitive.ObjectID) (*u
 	return &userResponse, nil
 }
 
-func (u *UserRepository) GetUsers(ctx context.Context, ids []primitive.ObjectID) ([]*user.User, error) {
+func (u *UserRepository) GetUsers(ctx context.Context, ids []string) ([]*user.User, error) {
+	userObjIds := make([]primitive.ObjectID, 0, len(ids))
+	for _, id := range ids {
+		userObjId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "user id is not valid object id")
+		}
+
+		userObjIds = append(userObjIds, userObjId)
+	}
+
 	var users []*User
 	query := bson.M{}
 
 	// If a list of IDs is provided, filter users by these IDs
 	if len(ids) > 0 {
-		query["_id"] = bson.M{"$in": ids}
+		query["_id"] = bson.M{"$in": userObjIds}
 	}
 
 	// Execute the find query with a projection to retrieve only specific fields

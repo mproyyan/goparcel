@@ -4,11 +4,9 @@ package courier
 
 import (
 	"context"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CourierRepository interface {
 	CreateCourier(ctx context.Context, courier Courier) (string, error)
-	GetCouriers(ctx context.Context, ids []primitive.ObjectID) ([]*Courier, error)
+	GetCouriers(ctx context.Context, ids []string) ([]*Courier, error)
 }

@@ -41,12 +41,22 @@ func (o *OperatorRepository) CreateOperator(ctx context.Context, operator operat
 	return insertedId.Hex(), nil
 }
 
-func (o *OperatorRepository) GetOperators(ctx context.Context, ids []primitive.ObjectID) ([]*operator.Operator, error) {
+func (o *OperatorRepository) GetOperators(ctx context.Context, ids []string) ([]*operator.Operator, error) {
+	operatorObjIds := make([]primitive.ObjectID, 0, len(ids))
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
+		}
+
+		operatorObjIds = append(operatorObjIds, objId)
+	}
+
 	filter := bson.M{}
 
 	// If ids not empty then fetch operator based on the ids
 	if len(ids) > 0 {
-		filter["_id"] = bson.M{"$in": ids}
+		filter["_id"] = bson.M{"$in": operatorObjIds}
 	}
 
 	cursor, err := o.collection.Find(ctx, filter)

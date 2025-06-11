@@ -41,12 +41,22 @@ func (c *CourierRepository) CreateCourier(ctx context.Context, courier courier.C
 	return insertedID.Hex(), nil
 }
 
-func (c *CourierRepository) GetCouriers(ctx context.Context, ids []primitive.ObjectID) ([]*courier.Courier, error) {
+func (c *CourierRepository) GetCouriers(ctx context.Context, ids []string) ([]*courier.Courier, error) {
+	courierObjIds := make([]primitive.ObjectID, 0, len(ids))
+	for _, id := range ids {
+		objId, err := db.ConvertToObjectId(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
+		}
+
+		courierObjIds = append(courierObjIds, objId)
+	}
+
 	filter := bson.M{}
 
 	// If ids not empty then fetch courier based on the ids
 	if len(ids) > 0 {
-		filter["_id"] = bson.M{"$in": ids}
+		filter["_id"] = bson.M{"$in": courierObjIds}
 	}
 
 	cursor, err := c.collection.Find(ctx, filter)

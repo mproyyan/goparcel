@@ -41,12 +41,22 @@ func (c *CarrierRepository) CreateCarrier(ctx context.Context, carrier carrier.C
 	return insertedID.Hex(), nil
 }
 
-func (c *CarrierRepository) GetCarriers(ctx context.Context, ids []primitive.ObjectID) ([]*carrier.Carrier, error) {
+func (c *CarrierRepository) GetCarriers(ctx context.Context, ids []string) ([]*carrier.Carrier, error) {
+	carrierObjIds := make([]primitive.ObjectID, 0, len(ids))
+	for _, id := range ids {
+		objId, err := db.ConvertToObjectId(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
+		}
+
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
 	filter := bson.M{}
 
 	// If ids not empty then fetch courier based on the ids
 	if len(ids) > 0 {
-		filter["_id"] = bson.M{"$in": ids}
+		filter["_id"] = bson.M{"$in": carrierObjIds}
 	}
 
 	cursor, err := c.collection.Find(ctx, filter)

@@ -46,12 +46,7 @@ func NewUserService(
 }
 
 func (u UserService) GetUser(ctx context.Context, id string) (*user.User, error) {
-	objId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "user id is not valid object id")
-	}
-
-	user, err := u.userRepository.GetUser(ctx, objId)
+	user, err := u.userRepository.GetUser(ctx, id)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get user from repository")
 	}
@@ -60,16 +55,7 @@ func (u UserService) GetUser(ctx context.Context, id string) (*user.User, error)
 }
 
 func (u UserService) GetUsers(ctx context.Context, ids []string) ([]*user.User, error) {
-	var objIds []primitive.ObjectID
-	for _, id := range ids {
-		objId, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, status.Error(codes.Internal, "user id is not valid object id")
-		}
-		objIds = append(objIds, objId)
-	}
-
-	users, err := u.userRepository.GetUsers(ctx, objIds)
+	users, err := u.userRepository.GetUsers(ctx, ids)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get users from repository")
 	}
@@ -303,16 +289,7 @@ func (u UserService) RegisterAsCourier(ctx context.Context, name, email, passwor
 }
 
 func (u UserService) GetOperators(ctx context.Context, ids []string) ([]*operator.Operator, error) {
-	var objIds []primitive.ObjectID
-	for _, id := range ids {
-		objId, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, status.Error(codes.Internal, "operator id is not valid object id")
-		}
-		objIds = append(objIds, objId)
-	}
-
-	operators, err := u.operatorRepository.GetOperators(ctx, objIds)
+	operators, err := u.operatorRepository.GetOperators(ctx, ids)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get operators from repository")
 	}
@@ -321,16 +298,7 @@ func (u UserService) GetOperators(ctx context.Context, ids []string) ([]*operato
 }
 
 func (u UserService) GetCouriers(ctx context.Context, ids []string) ([]*courier.Courier, error) {
-	var objIds []primitive.ObjectID
-	for _, id := range ids {
-		objId, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, status.Error(codes.Internal, "operator id is not valid object id")
-		}
-		objIds = append(objIds, objId)
-	}
-
-	couriers, err := u.courierRepository.GetCouriers(ctx, objIds)
+	couriers, err := u.courierRepository.GetCouriers(ctx, ids)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get couriers from repository")
 	}
@@ -339,16 +307,7 @@ func (u UserService) GetCouriers(ctx context.Context, ids []string) ([]*courier.
 }
 
 func (u UserService) GetCarriers(ctx context.Context, ids []string) ([]*carrier.Carrier, error) {
-	var objIds []primitive.ObjectID
-	for _, id := range ids {
-		objId, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, status.Error(codes.Internal, "operator id is not valid object id")
-		}
-		objIds = append(objIds, objId)
-	}
-
-	carriers, err := u.carrierRepository.GetCarriers(ctx, objIds)
+	carriers, err := u.carrierRepository.GetCarriers(ctx, ids)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get carriers from repository")
 	}
