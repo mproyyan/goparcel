@@ -61,9 +61,14 @@ func (l *LocationRepository) CreateLocation(ctx context.Context, location domain
 	return insertedID.Hex(), nil
 }
 
-func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID primitive.ObjectID) ([]*domain.Location, error) {
+func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID string) ([]*domain.Location, error) {
+	locationObjID, err := primitive.ObjectIDFromHex(locationID)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
 	// Fetch current location
-	location, err := l.FindLocation(ctx, locationID.Hex())
+	location, err := l.FindLocation(ctx, locationID)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to find current location")
 	}
@@ -81,7 +86,7 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 		// Create filter
 		filter := bson.M{
 			"$and": []bson.M{
-				{"_id": bson.M{"$ne": locationID}}, // Exclude the current location
+				{"_id": bson.M{"$ne": locationObjID}}, // Exclude the current location
 				{
 					"$or": []bson.M{
 						{"_id": warehouseObjId},          // Get warehouse that belong to this depot
@@ -108,7 +113,7 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 	if location.IsWarehouse() {
 		filter := bson.M{
 			"type":         domain.Depot.String(),
-			"warehouse_id": locationID, // Depots belonging to this warehouse
+			"warehouse_id": locationObjID, // Depots belonging to this warehouse
 		}
 
 		logrus.WithField("filter", filter).Debug("Transit place query filter when current location is warehouse")
@@ -127,12 +132,22 @@ func (l *LocationRepository) FindTransitPlaces(ctx context.Context, locationID p
 	return locationsModelToDomain(transitPlaces), nil
 }
 
-func (l *LocationRepository) GetLocations(ctx context.Context, locationIds []primitive.ObjectID) ([]*domain.Location, error) {
+func (l *LocationRepository) GetLocations(ctx context.Context, locationIds []string) ([]*domain.Location, error) {
+	locationObjIds := make([]primitive.ObjectID, 0, len(locationIds))
+	for _, id := range locationIds {
+		objID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+		}
+
+		locationObjIds = append(locationObjIds, objID)
+	}
+
 	filter := bson.M{}
 
 	// If location ids not empty then fetch location based on the location ids
-	if len(locationIds) > 0 {
-		filter["_id"] = bson.M{"$in": locationIds}
+	if len(locationObjIds) > 0 {
+		filter["_id"] = bson.M{"$in": locationObjIds}
 	}
 
 	cursor, err := l.collection.Find(ctx, filter)
