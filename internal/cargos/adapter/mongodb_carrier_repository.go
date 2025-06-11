@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Models
@@ -32,10 +34,15 @@ func NewCarrierRepository(db *mongo.Database) *CarrierRepository {
 	return &CarrierRepository{collection: db.Collection("carriers")}
 }
 
-func (c *CarrierRepository) GetCarrier(ctx context.Context, id primitive.ObjectID) (*domain.Carrier, error) {
+func (c *CarrierRepository) GetCarrier(ctx context.Context, id string) (*domain.Carrier, error) {
+	carrierObjId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+	}
+
 	var carrier *CarrierModel
-	filter := bson.M{"_id": id}
-	err := c.collection.FindOne(ctx, filter).Decode(&carrier)
+	filter := bson.M{"_id": carrierObjId}
+	err = c.collection.FindOne(ctx, filter).Decode(&carrier)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
 	}
@@ -43,10 +50,15 @@ func (c *CarrierRepository) GetCarrier(ctx context.Context, id primitive.ObjectI
 	return carrierModelToDomain(carrier), nil
 }
 
-func (c *CarrierRepository) GetIdleCarriers(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Carrier, error) {
+func (c *CarrierRepository) GetIdleCarriers(ctx context.Context, locationId string) ([]*domain.Carrier, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
 	var carriers []*CarrierModel
 	filter := bson.M{
-		"location_id": locationId,
+		"location_id": locationObjId,
 		"status":      domain.CarrierIdle.String(),
 	}
 
@@ -72,20 +84,35 @@ func (c *CarrierRepository) GetIdleCarriers(ctx context.Context, locationId prim
 	return carriersModelsTodomain(carriers), nil
 }
 
-func (c *CarrierRepository) AssignCargo(ctx context.Context, carrierIds []primitive.ObjectID, cargoId primitive.ObjectID) error {
-	if len(carrierIds) == 0 {
+func (c *CarrierRepository) AssignCargo(ctx context.Context, carrierIds []string, cargoId string) error {
+	carrierObjIds := make([]primitive.ObjectID, 0, len(carrierIds))
+	for _, id := range carrierIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+		}
+
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
+	}
+
+	if len(carrierObjIds) == 0 {
 		return nil // No carriers to assign
 	}
 
-	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
+	filter := bson.M{"_id": bson.M{"$in": carrierObjIds}}
 	update := bson.M{
 		"$set": bson.M{
-			"cargo_id": cargoId,
+			"cargo_id": cargoObjId,
 			"status":   domain.CarrierActive.String(),
 		},
 	}
 
-	_, err := c.collection.UpdateMany(ctx, filter, update)
+	_, err = c.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
@@ -93,12 +120,22 @@ func (c *CarrierRepository) AssignCargo(ctx context.Context, carrierIds []primit
 	return nil
 }
 
-func (c *CarrierRepository) ClearAssignedCargo(ctx context.Context, carrierIds []primitive.ObjectID) error {
-	if len(carrierIds) == 0 {
+func (c *CarrierRepository) ClearAssignedCargo(ctx context.Context, carrierIds []string) error {
+	carrierObjIds := make([]primitive.ObjectID, 0, len(carrierIds))
+	for _, id := range carrierIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+		}
+
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
+	if len(carrierObjIds) == 0 {
 		return nil // No carriers to clear
 	}
 
-	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
+	filter := bson.M{"_id": bson.M{"$in": carrierObjIds}}
 	update := bson.M{
 		"$set": bson.M{
 			"cargo_id": nil,
@@ -114,13 +151,23 @@ func (c *CarrierRepository) ClearAssignedCargo(ctx context.Context, carrierIds [
 	return nil
 }
 
-func (c *CarrierRepository) UpdateCarrierStatus(ctx context.Context, carrierIds []primitive.ObjectID, status domain.CarrierStatus) error {
+func (c *CarrierRepository) UpdateCarrierStatus(ctx context.Context, carrierIds []string, carrierStatus domain.CarrierStatus) error {
+	carrierObjIds := make([]primitive.ObjectID, 0, len(carrierIds))
+	for _, id := range carrierIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+		}
+
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
 	if len(carrierIds) == 0 {
 		return nil // No carriers to update
 	}
 
-	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
-	update := bson.M{"$set": bson.M{"status": status.String()}}
+	filter := bson.M{"_id": bson.M{"$in": carrierObjIds}}
+	update := bson.M{"$set": bson.M{"status": carrierStatus.String()}}
 
 	_, err := c.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -130,15 +177,30 @@ func (c *CarrierRepository) UpdateCarrierStatus(ctx context.Context, carrierIds 
 	return nil
 }
 
-func (c *CarrierRepository) UpdateLocation(ctx context.Context, carrierIds []primitive.ObjectID, locationId primitive.ObjectID) error {
+func (c *CarrierRepository) UpdateLocation(ctx context.Context, carrierIds []string, locationId string) error {
+	carrierObjIds := make([]primitive.ObjectID, 0, len(carrierIds))
+	for _, id := range carrierIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+		}
+
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
 	if len(carrierIds) == 0 {
 		return nil // No carriers to update
 	}
 
-	filter := bson.M{"_id": bson.M{"$in": carrierIds}}
-	update := bson.M{"$set": bson.M{"location_id": locationId}}
+	filter := bson.M{"_id": bson.M{"$in": carrierObjIds}}
+	update := bson.M{"$set": bson.M{"location_id": locationObjId}}
 
-	_, err := c.collection.UpdateMany(ctx, filter, update)
+	_, err = c.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}

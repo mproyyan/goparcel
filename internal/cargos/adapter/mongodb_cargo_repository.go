@@ -51,27 +51,37 @@ func NewCargoRepository(db *mongo.Database) *CargoRepository {
 	return &CargoRepository{collection: db.Collection("cargos")}
 }
 
-func (c *CargoRepository) CreateCargo(ctx context.Context, cargo domain.Cargo) (primitive.ObjectID, error) {
+func (c *CargoRepository) CreateCargo(ctx context.Context, cargo domain.Cargo) (string, error) {
 	cargoModel, err := domainToCargoModel(&cargo)
 	if err != nil {
-		return primitive.NilObjectID, cuserr.Decorate(err, "failed to convert domain to cargo model")
+		return "", cuserr.Decorate(err, "failed to convert domain to cargo model")
 	}
 
 	result, err := c.collection.InsertOne(ctx, cargoModel)
 	if err != nil {
-		return primitive.NilObjectID, cuserr.MongoError(err)
+		return "", cuserr.MongoError(err)
 	}
 
 	logrus.WithField("cargo_id", result.InsertedID).Info("Cargo created successfully")
-	return result.InsertedID.(primitive.ObjectID), nil
+	return result.InsertedID.(string), nil
 }
 
-func (c *CargoRepository) GetCargos(ctx context.Context, ids []primitive.ObjectID) ([]*domain.Cargo, error) {
+func (c *CargoRepository) GetCargos(ctx context.Context, ids []string) ([]*domain.Cargo, error) {
+	cargoObjIds := make([]primitive.ObjectID, 0, len(ids))
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid cargo ID format")
+		}
+
+		cargoObjIds = append(cargoObjIds, objId)
+	}
+
 	filter := bson.M{}
 
 	// If ids not empty then fetch cargos based on the ids
 	if len(ids) > 0 {
-		filter["_id"] = bson.M{"$in": ids}
+		filter["_id"] = bson.M{"$in": cargoObjIds}
 	}
 
 	cursor, err := c.collection.Find(ctx, filter)
@@ -88,7 +98,17 @@ func (c *CargoRepository) GetCargos(ctx context.Context, ids []primitive.ObjectI
 	return cargoModelsToDomain(cargos), nil
 }
 
-func (c *CargoRepository) FindMatchingCargos(ctx context.Context, origin primitive.ObjectID, destination primitive.ObjectID) ([]*domain.Cargo, error) {
+func (c *CargoRepository) FindMatchingCargos(ctx context.Context, origin, destination string) ([]*domain.Cargo, error) {
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid origin ID format")
+	}
+
+	destinationObjId, err := primitive.ObjectIDFromHex(destination)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid destination ID format")
+	}
+
 	var cargos []*CargoModel
 
 	// Define the filter to find cargos that have both origin and destination in their itineraries
@@ -96,16 +116,18 @@ func (c *CargoRepository) FindMatchingCargos(ctx context.Context, origin primiti
 		// Ensure that the cargo contains both origin and destination in the itineraries array
 		"itineraries": bson.M{
 			"$elemMatch": bson.M{
-				"location": bson.M{"$in": []primitive.ObjectID{origin, destination}},
+				"location": bson.M{"$in": []primitive.ObjectID{originObjId, destinationObjId}},
 			},
 		},
+
 		// Ensure that the index of origin in the itineraries array is before the index of destination
 		"$expr": bson.M{
 			"$lt": []interface{}{
-				bson.M{"$indexOfArray": []interface{}{"$itineraries.location", origin}},
-				bson.M{"$indexOfArray": []interface{}{"$itineraries.location", destination}},
+				bson.M{"$indexOfArray": []interface{}{"$itineraries.location", originObjId}},
+				bson.M{"$indexOfArray": []interface{}{"$itineraries.location", destinationObjId}},
 			},
 		},
+
 		// Exclude cargos that have already passed the origin location, but allow cargos at the origin location
 		"$or": []bson.M{
 			// Include cargos where last_known_location is not set (new cargo)
@@ -114,7 +136,7 @@ func (c *CargoRepository) FindMatchingCargos(ctx context.Context, origin primiti
 			{"$expr": bson.M{
 				"$lte": []interface{}{
 					bson.M{"$indexOfArray": []interface{}{"$itineraries.location", "$last_known_location"}},
-					bson.M{"$indexOfArray": []interface{}{"$itineraries.location", origin}},
+					bson.M{"$indexOfArray": []interface{}{"$itineraries.location", originObjId}},
 				},
 			}},
 		},
@@ -135,26 +157,41 @@ func (c *CargoRepository) FindMatchingCargos(ctx context.Context, origin primiti
 	return cargoModelsToDomain(cargos), nil
 }
 
-func (c *CargoRepository) LoadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error {
-	filter := bson.M{"_id": cargoId}
-	update := bson.M{"$addToSet": bson.M{"shipments": shipmentId}}
-	_, err := c.collection.UpdateOne(ctx, filter, update)
+func (c *CargoRepository) LoadShipment(ctx context.Context, cargoId, shipmentId string) error {
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid shipment ID format")
+	}
+
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid cargo ID format")
+	}
+
+	filter := bson.M{"_id": cargoObjId}
+	update := bson.M{"$addToSet": bson.M{"shipments": shipmentObjId}}
+	_, err = c.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"cargo_id":    cargoId,
-		"shipment_id": shipmentId,
+		"cargo_id":    cargoObjId,
+		"shipment_id": shipmentObjId,
 	}).Info("Shipment loaded to cargo")
 
 	return nil
 }
 
-func (c *CargoRepository) GetCargo(ctx context.Context, id primitive.ObjectID) (*domain.Cargo, error) {
+func (c *CargoRepository) GetCargo(ctx context.Context, id string) (*domain.Cargo, error) {
+	cargoObjId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid cargo ID format")
+	}
+
 	var cargo *CargoModel
-	filter := bson.M{"_id": id}
-	err := c.collection.FindOne(ctx, filter).Decode(&cargo)
+	filter := bson.M{"_id": cargoObjId}
+	err = c.collection.FindOne(ctx, filter).Decode(&cargo)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
 	}
@@ -162,12 +199,22 @@ func (c *CargoRepository) GetCargo(ctx context.Context, id primitive.ObjectID) (
 	return cargoModelToDomain(cargo), nil
 }
 
-func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId primitive.ObjectID, locationId primitive.ObjectID) error {
+func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId, locationId string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid cargo ID format")
+	}
+
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid location ID format")
+	}
+
 	filter := bson.M{
-		"_id": cargoId,
+		"_id": cargoObjId,
 		"itineraries": bson.M{
 			"$elemMatch": bson.M{
-				"location":            locationId,
+				"location":            locationObjId,
 				"actual_time_arrival": bson.M{"$exists": false}, // Ensure we only update itineraries that haven't been marked
 			},
 		},
@@ -175,12 +222,12 @@ func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId primitive.Obj
 
 	update := bson.M{
 		"$set": bson.M{
-			"last_known_location":               locationId,
+			"last_known_location":               locationObjId,
 			"itineraries.$.actual_time_arrival": time.Now(), // Only update the first matching itinerary
 		},
 	}
 
-	_, err := c.collection.UpdateOne(ctx, filter, update)
+	_, err = c.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
@@ -193,69 +240,104 @@ func (c *CargoRepository) MarkArrival(ctx context.Context, cargoId primitive.Obj
 	return nil
 }
 
-func (c *CargoRepository) UnloadShipment(ctx context.Context, cargoId, shipmentId primitive.ObjectID) error {
-	filter := bson.M{"_id": cargoId}
-	update := bson.M{
-		"$pull": bson.M{"shipments": shipmentId},
+func (c *CargoRepository) UnloadShipment(ctx context.Context, cargoId, shipmentId string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid cargo ID format")
 	}
 
-	_, err := c.collection.UpdateOne(ctx, filter, update)
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid shipment ID format")
+	}
+
+	filter := bson.M{"_id": cargoObjId}
+	update := bson.M{
+		"$pull": bson.M{"shipments": shipmentObjId},
+	}
+
+	_, err = c.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"cargo_id":    cargoId,
-		"shipment_id": shipmentId,
+		"cargo_id":    cargoObjId,
+		"shipment_id": shipmentObjId,
 	}).Info("Shipment unloaded from cargo")
 
 	return nil
 }
 
-func (c *CargoRepository) AssignCarrier(ctx context.Context, cargoId primitive.ObjectID, carrierIds []primitive.ObjectID) error {
-	filter := bson.M{"_id": cargoId}
+func (c *CargoRepository) AssignCarrier(ctx context.Context, cargoId string, carrierIds []string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
+	}
+
+	var carrierObjIds []primitive.ObjectID
+	for _, carrierId := range carrierIds {
+		objId, err := primitive.ObjectIDFromHex(carrierId)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
+		}
+
+		carrierObjIds = append(carrierObjIds, objId)
+	}
+
+	filter := bson.M{"_id": cargoObjId}
 	update := bson.M{
 		"$set": bson.M{
-			"carriers": carrierIds,
+			"carriers": carrierObjIds,
 		},
 	}
 
-	_, err := c.collection.UpdateOne(ctx, filter, update)
+	_, err = c.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"cargo_id":    cargoId,
-		"carrier_ids": carrierIds,
+		"cargo_id":    cargoObjId,
+		"carrier_ids": carrierObjIds,
 	}).Info("Carriers replaced for cargo")
 
 	return nil
 }
 
-func (c *CargoRepository) AssignRoute(ctx context.Context, cargoId primitive.ObjectID, itinerary []domain.Itinerary) error {
-	filter := bson.M{"_id": cargoId}
+func (c *CargoRepository) AssignRoute(ctx context.Context, cargoId string, itinerary []domain.Itinerary) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
+	}
+
+	filter := bson.M{"_id": cargoObjId}
 	update := bson.M{
 		"$set": bson.M{
 			"itineraries": domainToItinerariesModel(itinerary),
 		},
 	}
 
-	_, err := c.collection.UpdateOne(ctx, filter, update)
+	_, err = c.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"cargo_id": cargoId,
+		"cargo_id": cargoObjId,
 	}).Info("Route assigned to cargo")
 
 	return nil
 }
 
-func (c *CargoRepository) GetUnroutedCargos(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Cargo, error) {
+func (c *CargoRepository) GetUnroutedCargos(ctx context.Context, locationId string) ([]*domain.Cargo, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
 	filter := bson.M{
-		"last_known_location": locationId,
+		"last_known_location": locationObjId,
 		"$or": []bson.M{
 			{"itineraries": bson.M{"$size": 0}},
 			{"itineraries": bson.M{"$exists": false}},
@@ -278,9 +360,14 @@ func (c *CargoRepository) GetUnroutedCargos(ctx context.Context, locationId prim
 	return cargoModelsToDomain(cargos), nil
 }
 
-func (c *CargoRepository) FindCargosWithoutCarrier(ctx context.Context, locationId primitive.ObjectID) ([]*domain.Cargo, error) {
+func (c *CargoRepository) FindCargosWithoutCarrier(ctx context.Context, locationId string) ([]*domain.Cargo, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
 	filter := bson.M{
-		"last_known_location": locationId,
+		"last_known_location": locationObjId,
 		"$or": []bson.M{
 			{"carriers": bson.M{"$size": 0}},       // Cargos with empty carriers array
 			{"carriers": bson.M{"$exists": false}}, // Cargos with no carriers field
@@ -303,8 +390,13 @@ func (c *CargoRepository) FindCargosWithoutCarrier(ctx context.Context, location
 	return cargoModelsToDomain(cargos), nil
 }
 
-func (c *CargoRepository) ResetCompletedCargo(ctx context.Context, cargoId primitive.ObjectID) error {
-	filter := bson.M{"_id": cargoId}
+func (c *CargoRepository) ResetCompletedCargo(ctx context.Context, cargoId string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid cargo ID format")
+	}
+
+	filter := bson.M{"_id": cargoObjId}
 	update := bson.M{
 		"$set": bson.M{
 			"status":      domain.CargoIdle.String(),
@@ -313,7 +405,7 @@ func (c *CargoRepository) ResetCompletedCargo(ctx context.Context, cargoId primi
 		},
 	}
 
-	_, err := c.collection.UpdateOne(ctx, filter, update)
+	_, err = c.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
@@ -322,18 +414,23 @@ func (c *CargoRepository) ResetCompletedCargo(ctx context.Context, cargoId primi
 	return nil
 }
 
-func (c *CargoRepository) UpdateCargoStatus(ctx context.Context, cargoId primitive.ObjectID, status domain.CargoStatus) error {
-	filter := bson.M{"_id": cargoId}
-	update := bson.M{"$set": bson.M{"status": status.String()}}
+func (c *CargoRepository) UpdateCargoStatus(ctx context.Context, cargoId string, cargoStatus domain.CargoStatus) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "invalid cargo ID format")
+	}
 
-	_, err := c.collection.UpdateOne(ctx, filter, update)
+	filter := bson.M{"_id": cargoObjId}
+	update := bson.M{"$set": bson.M{"status": cargoStatus.String()}}
+
+	_, err = c.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
 		"cargo_id": cargoId,
-		"status":   status.String(),
+		"status":   cargoStatus.String(),
 	}).Info("Cargo status updated")
 
 	return nil

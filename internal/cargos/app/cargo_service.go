@@ -7,9 +7,6 @@ import (
 	cuserr "github.com/mproyyan/goparcel/internal/common/errors"
 	_ "github.com/mproyyan/goparcel/internal/common/logger"
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type CargoService struct {
@@ -42,24 +39,14 @@ func (s CargoService) CreateCargo(ctx context.Context, cargo domain.Cargo) error
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"cargo_id": cargoId.Hex(),
+		"cargo_id": cargoId,
 	}).Info("Cargo created successfully")
 
 	return nil
 }
 
 func (s CargoService) GetCargos(ctx context.Context, ids []string) ([]*domain.Cargo, error) {
-	var objIds []primitive.ObjectID
-	for _, id := range ids {
-		objId, err := primitive.ObjectIDFromHex(id)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "id is not valid object id")
-		}
-
-		objIds = append(objIds, objId)
-	}
-
-	cargos, err := s.cargoRepository.GetCargos(ctx, objIds)
+	cargos, err := s.cargoRepository.GetCargos(ctx, ids)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get cargos from repository")
 	}
@@ -68,17 +55,7 @@ func (s CargoService) GetCargos(ctx context.Context, ids []string) ([]*domain.Ca
 }
 
 func (c CargoService) FindMatchingCargos(ctx context.Context, origin, destination string) ([]*domain.Cargo, error) {
-	originObjId, err := primitive.ObjectIDFromHex(origin)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "origin is not valid object id")
-	}
-
-	destinationObjId, err := primitive.ObjectIDFromHex(destination)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "destination is not valid object id")
-	}
-
-	cargos, err := c.cargoRepository.FindMatchingCargos(ctx, originObjId, destinationObjId)
+	cargos, err := c.cargoRepository.FindMatchingCargos(ctx, origin, destination)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to find matching cargos from repository")
 	}
@@ -87,38 +64,18 @@ func (c CargoService) FindMatchingCargos(ctx context.Context, origin, destinatio
 }
 
 func (c CargoService) LoadShipment(ctx context.Context, carrierId, locationId, shipmentId string) error {
-	carrierObjId, err := primitive.ObjectIDFromHex(carrierId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
-	}
-
-	locationObjId, err := primitive.ObjectIDFromHex(locationId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "location id is not valid object id")
-	}
-
-	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
-	}
-
 	// Get carrier info
-	carrier, err := c.carrierRepository.GetCarrier(ctx, carrierObjId)
+	carrier, err := c.carrierRepository.GetCarrier(ctx, carrierId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to get carrier")
 	}
 
-	cargoObjId, err := primitive.ObjectIDFromHex(carrier.CargoID)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
-	}
-
-	err = c.cargoRepository.LoadShipment(ctx, cargoObjId, shipmentObjId)
+	err = c.cargoRepository.LoadShipment(ctx, carrier.CargoID, shipmentId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to load shipment using repository")
 	}
 
-	err = c.shipmentService.AddItineraryHistory(ctx, []string{shipmentId}, locationObjId.Hex(), "load")
+	err = c.shipmentService.AddItineraryHistory(ctx, []string{shipmentId}, locationId, "load")
 	if err != nil {
 		return cuserr.Decorate(err, "shipment service failed to add itinerary hostory")
 	}
@@ -127,25 +84,15 @@ func (c CargoService) LoadShipment(ctx context.Context, carrierId, locationId, s
 }
 
 func (c CargoService) MarkArrival(ctx context.Context, cargoId, locationId string) error {
-	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
-	}
-
-	locationObjId, err := primitive.ObjectIDFromHex(locationId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "location id is not valid object id")
-	}
-
 	// Get cargo
-	cargo, err := c.cargoRepository.GetCargo(ctx, cargoObjId)
+	cargo, err := c.cargoRepository.GetCargo(ctx, cargoId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to get cargo from repository")
 	}
 
 	// If cargo has shipment, add itineries for that shipments with current location
 	if cargo.HasShipments() {
-		err = c.shipmentService.AddItineraryHistory(ctx, cargo.Shipments, locationObjId.Hex(), "arrive")
+		err = c.shipmentService.AddItineraryHistory(ctx, cargo.Shipments, locationId, "arrive")
 		if err != nil {
 			return cuserr.Decorate(err, "failed to add itinerary history")
 		}
@@ -158,46 +105,26 @@ func (c CargoService) MarkArrival(ctx context.Context, cargoId, locationId strin
 	}
 
 	// Update last known location of cargo with current location
-	err = c.cargoRepository.MarkArrival(ctx, cargoObjId, locationObjId)
+	err = c.cargoRepository.MarkArrival(ctx, cargoId, locationId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to mark arrival with current location")
 	}
 
-	carrierObjIds := make([]primitive.ObjectID, 0, len(cargo.Carriers))
-	for _, carrierId := range cargo.Carriers {
-		objId, err := primitive.ObjectIDFromHex(carrierId)
-		if err != nil {
-			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
-		}
-
-		carrierObjIds = append(carrierObjIds, objId)
-	}
-
-	err = c.carrierRepository.UpdateLocation(ctx, carrierObjIds, locationObjId)
+	err = c.carrierRepository.UpdateLocation(ctx, cargo.Carriers, locationId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to update carrier location")
 	}
 
-	cargo, _ = c.cargoRepository.GetCargo(ctx, cargoObjId)
+	cargo, _ = c.cargoRepository.GetCargo(ctx, cargoId)
 	if cargo.AllItinerariesCompleted() {
 		// Reset cargo if all itineraries are completed
-		err = c.cargoRepository.ResetCompletedCargo(ctx, cargoObjId)
+		err = c.cargoRepository.ResetCompletedCargo(ctx, cargoId)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to reset completed cargo")
 		}
 
 		// Reset carriers assigned to this cargo
-		carrierObjIds := make([]primitive.ObjectID, 0, len(cargo.Carriers))
-		for _, carrierId := range cargo.Carriers {
-			objId, err := primitive.ObjectIDFromHex(carrierId)
-			if err != nil {
-				return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
-			}
-
-			carrierObjIds = append(carrierObjIds, objId)
-		}
-
-		err = c.carrierRepository.ClearAssignedCargo(ctx, carrierObjIds)
+		err = c.carrierRepository.ClearAssignedCargo(ctx, cargo.Carriers)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to clear assigned cargo for carriers")
 		}
@@ -207,17 +134,7 @@ func (c CargoService) MarkArrival(ctx context.Context, cargoId, locationId strin
 }
 
 func (c CargoService) UnloadShipment(ctx context.Context, cargoId, shipmentId string) error {
-	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
-	}
-
-	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
-	}
-
-	err = c.cargoRepository.UnloadShipment(ctx, cargoObjId, shipmentObjId)
+	err := c.cargoRepository.UnloadShipment(ctx, cargoId, shipmentId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to unload shipment using repository")
 	}
@@ -226,43 +143,28 @@ func (c CargoService) UnloadShipment(ctx context.Context, cargoId, shipmentId st
 }
 
 func (c CargoService) AssignCarrier(ctx context.Context, cargoId string, carrierIds []string) error {
-	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
-	}
-
-	cargo, err := c.cargoRepository.GetCargo(ctx, cargoObjId)
+	cargo, err := c.cargoRepository.GetCargo(ctx, cargoId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to get cargo from repository")
 	}
 
-	var carrierObjIds []primitive.ObjectID
-	for _, carrierId := range carrierIds {
-		objId, err := primitive.ObjectIDFromHex(carrierId)
-		if err != nil {
-			return status.Error(codes.InvalidArgument, "carrier id is not valid object id")
-		}
-
-		carrierObjIds = append(carrierObjIds, objId)
-	}
-
-	err = c.cargoRepository.AssignCarrier(ctx, cargoObjId, carrierObjIds)
+	err = c.cargoRepository.AssignCarrier(ctx, cargo.ID, carrierIds)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to assign carriers to cargo")
 	}
 
-	err = c.carrierRepository.AssignCargo(ctx, carrierObjIds, cargoObjId)
+	err = c.carrierRepository.AssignCargo(ctx, carrierIds, cargoId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to assign cargo to carriers")
 	}
 
-	err = c.carrierRepository.UpdateCarrierStatus(ctx, carrierObjIds, domain.CarrierActive)
+	err = c.carrierRepository.UpdateCarrierStatus(ctx, carrierIds, domain.CarrierActive)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to update carrier status to active")
 	}
 
 	if cargo.HasItineraries() {
-		err = c.cargoRepository.UpdateCargoStatus(ctx, cargoObjId, domain.CargoActive)
+		err = c.cargoRepository.UpdateCargoStatus(ctx, cargo.ID, domain.CargoActive)
 		if err != nil {
 			return cuserr.Decorate(err, "failed to update cargo status to active")
 		}
@@ -272,35 +174,28 @@ func (c CargoService) AssignCarrier(ctx context.Context, cargoId string, carrier
 }
 
 func (c CargoService) AssignRoute(ctx context.Context, cargoId string, itinerary []domain.Itinerary) error {
-	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, "cargo id is not valid object id")
-	}
-
-	cargo, err := c.cargoRepository.GetCargo(ctx, cargoObjId)
+	cargo, err := c.cargoRepository.GetCargo(ctx, cargoId)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to get cargo from repository")
 	}
 
-	err = c.cargoRepository.AssignRoute(ctx, cargoObjId, itinerary)
+	err = c.cargoRepository.AssignRoute(ctx, cargo.ID, itinerary)
 	if err != nil {
 		return cuserr.Decorate(err, "failed to assign route to cargo")
 	}
 
 	if cargo.HasCarriers() {
-		err = c.cargoRepository.UpdateCargoStatus(ctx, cargoObjId, domain.CargoActive)
+		err = c.cargoRepository.UpdateCargoStatus(ctx, cargo.ID, domain.CargoActive)
+		if err != nil {
+			return cuserr.Decorate(err, "failed to update cargo status to active")
+		}
 	}
 
 	return nil
 }
 
 func (c CargoService) GetUnroutedCargos(ctx context.Context, locationId string) ([]*domain.Cargo, error) {
-	locationObjId, err := primitive.ObjectIDFromHex(locationId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
-	}
-
-	cargos, err := c.cargoRepository.GetUnroutedCargos(ctx, locationObjId)
+	cargos, err := c.cargoRepository.GetUnroutedCargos(ctx, locationId)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get unrouted cargos from repository")
 	}
@@ -309,12 +204,7 @@ func (c CargoService) GetUnroutedCargos(ctx context.Context, locationId string) 
 }
 
 func (c CargoService) FindCargosWithoutCarrier(ctx context.Context, locationId string) ([]*domain.Cargo, error) {
-	locationObjId, err := primitive.ObjectIDFromHex(locationId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
-	}
-
-	cargos, err := c.cargoRepository.FindCargosWithoutCarrier(ctx, locationObjId)
+	cargos, err := c.cargoRepository.FindCargosWithoutCarrier(ctx, locationId)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to find cargos without carrier from repository")
 	}
@@ -323,12 +213,7 @@ func (c CargoService) FindCargosWithoutCarrier(ctx context.Context, locationId s
 }
 
 func (c CargoService) GetIdleCarriers(ctx context.Context, locationId string) ([]*domain.Carrier, error) {
-	locationObjId, err := primitive.ObjectIDFromHex(locationId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "location id is not valid object id")
-	}
-
-	carriers, err := c.carrierRepository.GetIdleCarriers(ctx, locationObjId)
+	carriers, err := c.carrierRepository.GetIdleCarriers(ctx, locationId)
 	if err != nil {
 		return nil, cuserr.Decorate(err, "failed to get idle carriers from repository")
 	}
