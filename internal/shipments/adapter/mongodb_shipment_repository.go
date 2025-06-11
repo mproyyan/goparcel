@@ -71,7 +71,22 @@ func (s *ShipmentRepository) CreateShipment(ctx context.Context, origin string, 
 	return id.Hex(), nil
 }
 
-func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentIds []primitive.ObjectID, locationID primitive.ObjectID, activityType domain.ActivityType) error {
+func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentIds []string, locationID string, activityType domain.ActivityType) error {
+	var shipmentObjIds []primitive.ObjectID
+	for _, id := range shipmentIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+		}
+
+		shipmentObjIds = append(shipmentObjIds, objId)
+	}
+
+	locationObjId, err := primitive.ObjectIDFromHex(locationID)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
 	// Validate activity type
 	if activityType == domain.Unknown {
 		return status.Error(codes.InvalidArgument, "activity type is not valid")
@@ -81,27 +96,32 @@ func (s *ShipmentRepository) LogItinerary(ctx context.Context, shipmentIds []pri
 	logEntry := ItineraryLog{
 		ActivityType: activityType.String(),
 		Timestamp:    time.Now(),
-		Location:     &locationID,
+		Location:     &locationObjId,
 	}
 
 	// Push itinerary to itinerary logs
-	filter := bson.M{"_id": bson.M{"$in": shipmentIds}}
+	filter := bson.M{"_id": bson.M{"$in": shipmentObjIds}}
 	update := bson.M{"$push": bson.M{"itinerary_logs": logEntry}}
-	_, err := s.collection.UpdateMany(ctx, filter, update)
+	_, err = s.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"shipment_ids":    shipmentIds,
-		"total_shipments": len(shipmentIds),
+		"shipment_ids":    shipmentObjIds,
+		"total_shipments": len(shipmentObjIds),
 		"location_id":     locationID,
 	})
 
 	return nil
 }
 
-func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationId primitive.ObjectID, routingStatus domain.RoutingStatus) ([]*domain.Shipment, error) {
+func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context, locationId string, routingStatus domain.RoutingStatus) ([]*domain.Shipment, error) {
+	locationObjID, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
 	// Build query
 	query := bson.M{
 		"$expr": bson.M{
@@ -109,7 +129,7 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 				// Retrieve the location of the last itinerary log entry
 				bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}},
 				// Compare it with the provided location ID
-				locationId,
+				locationObjID,
 			},
 		},
 		// Filter by routing_status to ensure it matches the given parameter
@@ -124,7 +144,7 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 				bson.M{
 					"$eq": bson.A{
 						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.location", -1}},
-						locationId,
+						locationObjID,
 					},
 				},
 				bson.M{
@@ -153,11 +173,21 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 	return shipmentModelsToDomain(shipments), nil
 }
 
-func (s *ShipmentRepository) GetShipments(ctx context.Context, ids []primitive.ObjectID) ([]*domain.Shipment, error) {
+func (s *ShipmentRepository) GetShipments(ctx context.Context, ids []string) ([]*domain.Shipment, error) {
+	shipmentObjIds := make([]primitive.ObjectID, 0, len(ids))
+	for _, id := range ids {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+		}
+
+		shipmentObjIds = append(shipmentObjIds, objId)
+	}
+
 	filter := bson.M{}
 
 	// If ids not empty then fetch shipments based on the ids
-	if len(ids) > 0 {
+	if len(shipmentObjIds) > 0 {
 		filter["_id"] = bson.M{"$in": ids}
 	}
 
@@ -175,9 +205,14 @@ func (s *ShipmentRepository) GetShipments(ctx context.Context, ids []primitive.O
 	return shipmentModelsToDomain(shipments), nil
 }
 
-func (s *ShipmentRepository) GetShipment(ctx context.Context, id primitive.ObjectID) (*domain.Shipment, error) {
+func (s *ShipmentRepository) GetShipment(ctx context.Context, id string) (*domain.Shipment, error) {
+	shipmentObjId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+	}
+
 	var shipment ShipmentModel
-	err := s.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&shipment)
+	err = s.collection.FindOne(ctx, bson.M{"_id": shipmentObjId}).Decode(&shipment)
 	if err != nil {
 		return nil, cuserr.MongoError(err)
 	}
@@ -185,9 +220,19 @@ func (s *ShipmentRepository) GetShipment(ctx context.Context, id primitive.Objec
 	return shipmentModelToDomain(&shipment), nil
 }
 
-func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipmentIds []primitive.ObjectID, status domain.TransportStatus) error {
-	filter := bson.M{"_id": bson.M{"$in": shipmentIds}}
-	update := bson.M{"$set": bson.M{"transport_status": status.String()}}
+func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipmentIds []string, transportStatus domain.TransportStatus) error {
+	var shipmentIdsObj []primitive.ObjectID
+	for _, id := range shipmentIds {
+		objId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+		}
+
+		shipmentIdsObj = append(shipmentIdsObj, objId)
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": shipmentIdsObj}}
+	update := bson.M{"$set": bson.M{"transport_status": transportStatus.String()}}
 
 	logrus.WithFields(logrus.Fields{
 		"filter": filter,
@@ -202,13 +247,13 @@ func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipment
 	logrus.WithFields(logrus.Fields{
 		"shipment_ids":    shipmentIds,
 		"total_shipments": len(shipmentIds),
-		"status":          status.String(),
+		"status":          transportStatus.String(),
 	}).Info("Shipment transport status updated")
 
 	return nil
 }
 
-func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmentId, locationId primitive.ObjectID) error {
+func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmentId, locationId string) error {
 	filter := bson.M{"_id": shipmentId}
 	update := bson.M{"$set": bson.M{"destination": locationId, "routing_status": domain.Routed.String()}}
 

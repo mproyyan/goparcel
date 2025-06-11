@@ -14,6 +14,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Models
@@ -61,9 +63,14 @@ func NewTransferRequestRepository(db *mongo.Database) *TransferRequestRepository
 	return &TransferRequestRepository{collection: db.Collection("transfer_requests")}
 }
 
-func (t *TransferRequestRepository) LatestPendingTransferRequest(ctx context.Context, shipmentId primitive.ObjectID) (*domain.TransferRequest, bool, error) {
+func (t *TransferRequestRepository) LatestPendingTransferRequest(ctx context.Context, shipmentId string) (*domain.TransferRequest, bool, error) {
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return nil, false, status.Error(codes.InvalidArgument, "invalid shipment ID format")
+	}
+
 	filter := bson.M{
-		"shipment_id": shipmentId,
+		"shipment_id": shipmentObjId,
 		"status":      domain.StatusPending.String(),
 	}
 
@@ -71,7 +78,7 @@ func (t *TransferRequestRepository) LatestPendingTransferRequest(ctx context.Con
 
 	var transferRequest TransferRequestModel
 	opts := options.FindOne().SetSort(bson.M{"created_at": -1})
-	err := t.collection.FindOne(ctx, filter, opts).Decode(&transferRequest)
+	err = t.collection.FindOne(ctx, filter, opts).Decode(&transferRequest)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, false, nil
@@ -83,19 +90,44 @@ func (t *TransferRequestRepository) LatestPendingTransferRequest(ctx context.Con
 	return &response, true, nil
 }
 
-func (t *TransferRequestRepository) CreateTransitRequest(ctx context.Context, shipmentId, origin, destination, courierId, requestedBy primitive.ObjectID) (string, error) {
+func (t *TransferRequestRepository) CreateTransitRequest(ctx context.Context, shipmentId, origin, destination, courierId, requestedBy string) (string, error) {
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return "", status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return "", status.Error(codes.InvalidArgument, "origin is not valid object id")
+	}
+
+	destinationObjId, err := primitive.ObjectIDFromHex(destination)
+	if err != nil {
+		return "", status.Error(codes.InvalidArgument, "destination is not valid object id")
+	}
+
+	courierObjId, err := primitive.ObjectIDFromHex(courierId)
+	if err != nil {
+		return "", status.Error(codes.InvalidArgument, "courier is not valid object id")
+	}
+
+	requestedByObjId, err := primitive.ObjectIDFromHex(requestedBy)
+	if err != nil {
+		return "", status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
 	transitRequest := TransferRequestModel{
 		ID:          primitive.NewObjectID(),
 		RequestType: domain.RequestTypeTransit.String(),
-		ShipmentID:  shipmentId,
+		ShipmentID:  shipmentObjId,
 		Origin: Origin{
-			Location:    origin,
-			RequestedBy: requestedBy,
+			Location:    originObjId,
+			RequestedBy: requestedByObjId,
 		},
 		Destination: Destination{
-			Location: &destination,
+			Location: &destinationObjId,
 		},
-		CourierID: &courierId,
+		CourierID: &courierObjId,
 		Status:    domain.StatusPending.String(),
 		CreatedAt: time.Now(),
 	}
@@ -109,10 +141,15 @@ func (t *TransferRequestRepository) CreateTransitRequest(ctx context.Context, sh
 	return insertedID.Hex(), nil
 }
 
-func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locationId primitive.ObjectID) ([]*domain.TransferRequest, error) {
+func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locationId string) ([]*domain.TransferRequest, error) {
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "location_id is not valid object id")
+	}
+
 	filter := bson.M{
 		"status":               domain.StatusPending.String(),
-		"destination.location": locationId,
+		"destination.location": locationObjId,
 	}
 
 	logrus.WithField("filter", filter).Debug("Querying incoming shipments in a location")
@@ -131,46 +168,81 @@ func (t *TransferRequestRepository) IncomingShipments(ctx context.Context, locat
 	return transferRequestModelsToDomain(shipments), nil
 }
 
-func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context, requestId, acceptedBy primitive.ObjectID) error {
-	filter := bson.M{"_id": requestId, "status": domain.StatusPending.String()}
-	update := bson.M{"$set": bson.M{"status": domain.StatusCompleted.String(), "destination.accepted_by": acceptedBy}}
+func (t *TransferRequestRepository) CompleteTransferRequest(ctx context.Context, requestId, acceptedBy string) error {
+	requestedByObjId, err := primitive.ObjectIDFromHex(requestId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "request_id is not valid object id")
+	}
+
+	acceptedByObjId, err := primitive.ObjectIDFromHex(acceptedBy)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "accepted_by is not valid object id")
+	}
+
+	filter := bson.M{"_id": requestedByObjId, "status": domain.StatusPending.String()}
+	update := bson.M{"$set": bson.M{"status": domain.StatusCompleted.String(), "destination.accepted_by": acceptedByObjId}}
 
 	logrus.WithFields(logrus.Fields{
 		"filter": filter,
 		"update": update,
 	}).Debug("Completing transfer request")
 
-	_, err := t.collection.UpdateOne(ctx, filter, update)
+	_, err = t.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":    acceptedBy,
+		"user_id":    acceptedByObjId,
 		"status":     domain.StatusCompleted.String(),
-		"request_id": requestId,
+		"request_id": requestedByObjId,
 	}).Info("Transfer request status updated")
 
 	return nil
 }
 
-func (t *TransferRequestRepository) RequestShipPackage(ctx context.Context, shipmentId, cargoId, origin, destination, requestedBy primitive.ObjectID) error {
+func (t *TransferRequestRepository) RequestShipPackage(ctx context.Context, shipmentId, cargoId, origin, destination, requestedBy string) error {
+	cargoObjId, err := primitive.ObjectIDFromHex(cargoId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "cargo_id is not valid object id")
+	}
+
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "origin is not valid object id")
+	}
+
+	requestedByObjId, err := primitive.ObjectIDFromHex(requestedBy)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "user_id is not valid object id")
+	}
+
+	destinationObjId, err := primitive.ObjectIDFromHex(destination)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "destination is not valid object id")
+	}
+
+	shipmentIdObj, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
 	transitRequest := TransferRequestModel{
 		RequestType: domain.RequestTypeShipment.String(),
-		ShipmentID:  shipmentId,
+		ShipmentID:  shipmentIdObj,
 		Origin: Origin{
-			Location:    origin,
-			RequestedBy: requestedBy,
+			Location:    originObjId,
+			RequestedBy: requestedByObjId,
 		},
 		Destination: Destination{
-			Location: &destination,
+			Location: &destinationObjId,
 		},
-		CargoID:   &cargoId,
+		CargoID:   &cargoObjId,
 		Status:    domain.StatusPending.String(),
 		CreatedAt: time.Now(),
 	}
 
-	_, err := t.collection.InsertOne(ctx, transitRequest)
+	_, err = t.collection.InsertOne(ctx, transitRequest)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
@@ -178,13 +250,33 @@ func (t *TransferRequestRepository) RequestShipPackage(ctx context.Context, ship
 	return nil
 }
 
-func (t *TransferRequestRepository) RequestPackageDelivery(ctx context.Context, origin, shipmentId, courierId, requestedBy primitive.ObjectID, recipient domain.Entity) error {
+func (t *TransferRequestRepository) RequestPackageDelivery(ctx context.Context, origin, shipmentId, courierId, requestedBy string, recipient domain.Entity) error {
+	originObjId, err := primitive.ObjectIDFromHex(origin)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "origin is not valid object id")
+	}
+
+	requestedByObjId, err := primitive.ObjectIDFromHex(requestedBy)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "user_id is not valid object id")
+	}
+
+	courierObjId, err := primitive.ObjectIDFromHex(courierId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "courier id is not valid object id")
+	}
+
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment_id is not valid object id")
+	}
+
 	transitRequest := TransferRequestModel{
 		RequestType: domain.RequestTypeDelivery.String(),
-		ShipmentID:  shipmentId,
+		ShipmentID:  shipmentObjId,
 		Origin: Origin{
-			Location:    origin,
-			RequestedBy: requestedBy,
+			Location:    originObjId,
+			RequestedBy: requestedByObjId,
 		},
 		Destination: Destination{
 			RecipientDetail: &RecipientDetail{
@@ -198,12 +290,12 @@ func (t *TransferRequestRepository) RequestPackageDelivery(ctx context.Context, 
 				ZipCode:     recipient.Address.ZipCode,
 			},
 		},
-		CourierID: &courierId,
+		CourierID: &courierObjId,
 		Status:    domain.StatusPending.String(),
 		CreatedAt: time.Now(),
 	}
 
-	_, err := t.collection.InsertOne(ctx, transitRequest)
+	_, err = t.collection.InsertOne(ctx, transitRequest)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
