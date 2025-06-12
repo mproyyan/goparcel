@@ -3,6 +3,7 @@ module github.com/mproyyan/goparcel/internal/couriers
 go 1.23.4
 
 require (
+	github.com/mproyyan/goparcel/internal/common v0.0.0-20250312124121-1795e433369e
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.2
 	go.uber.org/mock v0.5.0
@@ -15,6 +16,7 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
