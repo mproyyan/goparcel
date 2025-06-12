@@ -1,26 +1,23 @@
 #!/bin/bash
 
-# Initialize MongoDB server as a replica set
-# NOTE: This is a workaround since initializing the MongoDB server as
-# a replica set cannot be done in the script placed in the
-# /docker-entrypoint-initdb.d/ directory.
+# Initialize MongoDB server as a replica set (unauthenticated version)
 
-if [[ $(mongosh --quiet -u "$MONGODB_INITDB_ROOT_USERNAME" -p "$MONGODB_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "rs.status().ok") -ne 1 ]]; then
+if [[ $(mongosh --quiet --eval "rs.status().ok" 2>/dev/null) -ne 1 ]]; then
     echo "Replica set not initialized, attempting to initiate..."
-    if ! mongosh --quiet -u "$MONGODB_INITDB_ROOT_USERNAME" -p "$MONGODB_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "rs.initiate()"; then
-        echo "Failed to initiate replica set"
+    if ! mongosh --quiet --eval "rs.initiate()" >/dev/null; then
+        echo "❌ Failed to initiate replica set"
         exit 1
     else
-        echo "Replica set initiated successfully."
+        echo "✅ Replica set initiated successfully."
     fi
 else
-    echo "Replica set is already initialized."
+    echo "ℹ️ Replica set is already initialized."
 fi
 
 # Final health check
-if [[ $(mongosh --quiet -u "$MONGODB_INITDB_ROOT_USERNAME" -p "$MONGODB_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "rs.status().ok") -ne 1 ]]; then
-    echo "Health check failed: Replica set is not ok."
+if [[ $(mongosh --quiet --eval "rs.status().ok" 2>/dev/null) -ne 1 ]]; then
+    echo "❌ Health check failed: Replica set is not ok."
     exit 1
 else
-    echo "Health check passed: Replica set is ok."
+    echo "✅ Health check passed: Replica set is ok."
 fi

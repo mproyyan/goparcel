@@ -2,12 +2,7 @@
 
 echo "Starting database seeding process..."
 
-if [ -z "$MONGODB_INITDB_ROOT_USERNAME" ] || [ -z "$MONGODB_INITDB_ROOT_PASSWORD" ]; then
-    echo "MongoDB authentication credentials are missing!"
-    exit 1
-fi
-
-mongosh --username "$MONGODB_INITDB_ROOT_USERNAME" --password "$MONGODB_INITDB_ROOT_PASSWORD" --authenticationDatabase admin <<EOF
+mongosh <<EOF
 use goparcel;
 
 db.createCollection("permissions");
