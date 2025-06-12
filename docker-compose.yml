@@ -105,13 +105,12 @@ services:
       - app_network
     volumes:
       - mongo_data:/data/db
-      - /etc/mongo-keyfile:/etc/mongo-keyfile
       - ./healthcheck.sh:/mongodb/healthcheck.sh
       - ./seed.sh:/docker-entrypoint-initdb.d/seed.sh
-    environment:
-      MONGODB_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGODB_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-    command: [ "mongod", "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo-keyfile", ]
+    # environment:
+    #   MONGODB_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+    #   MONGODB_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    command: [ "mongod", "--replSet", "rs0", "--bind_ip_all", ]
     healthcheck:
       test: /mongodb/healthcheck.sh
       interval: 1m30s
