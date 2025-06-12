@@ -164,7 +164,7 @@ func domainToUserModel(user user.User) (*User, error) {
 	// Convert string ObjectId to literal ObjectId
 	userID, err := db.ConvertToObjectId(user.ID)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "permission_id is not valid object id")
+		return nil, status.Error(codes.InvalidArgument, "user_id is not valid object id")
 	}
 
 	modelID, err := db.ConvertToObjectId(user.ModelID)

@@ -58,19 +58,17 @@ func (u *UserTypeRepository) FindUserTypeById(ctx context.Context, id string) (*
 
 // models
 type UserType struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty"`
-	Name         string             `bson:"name"`
-	Description  string             `bson:"description"`
-	PermissionID primitive.ObjectID `bson:"permission_id"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	Name        string             `bson:"name"`
+	Description string             `bson:"description"`
 }
 
 // Helper function to convert user type model to domain
 func userTypeModelToDomain(userTypeModel UserType) user.UserType {
 	return user.UserType{
-		ID:           userTypeModel.ID.Hex(),
-		Name:         userTypeModel.Name,
-		Description:  userTypeModel.Description,
-		PermissionID: userTypeModel.PermissionID.Hex(),
+		ID:          userTypeModel.ID.Hex(),
+		Name:        userTypeModel.Name,
+		Description: userTypeModel.Description,
 	}
 }
 
@@ -81,15 +79,9 @@ func domainToUserTypeModel(userType user.UserType) (*UserType, error) {
 		return nil, status.Error(codes.InvalidArgument, "user_type_id is not valid object id")
 	}
 
-	permissionID, err := db.ConvertToObjectId(userType.PermissionID)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "permission_id is not valid object id")
-	}
-
 	return &UserType{
-		ID:           userTypeID,
-		Name:         userType.Name,
-		Description:  userType.Description,
-		PermissionID: permissionID,
+		ID:          userTypeID,
+		Name:        userType.Name,
+		Description: userType.Description,
 	}, nil
 }

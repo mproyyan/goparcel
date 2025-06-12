@@ -5,7 +5,6 @@ echo "Starting database seeding process..."
 mongosh <<EOF
 use goparcel;
 
-db.createCollection("permissions");
 db.createCollection("user_types");
 db.createCollection("locations");
 db.createCollection("users");

@@ -10,8 +10,7 @@ type UserTypeRepository interface {
 }
 
 type UserType struct {
-	ID           string
-	Name         string
-	Description  string
-	PermissionID string
+	ID          string
+	Name        string
+	Description string
 }
