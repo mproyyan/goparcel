@@ -18,11 +18,17 @@ import (
 )
 
 const defaultPort = "1234"
+const defultHost = "127.0.0.1"
 
 func main() {
-	port := os.Getenv("PORT")
+	port := os.Getenv("API_GATEWAY_PORT")
 	if port == "" {
 		port = defaultPort
+	}
+
+	host := os.Getenv("API_GATEWAY_HOST")
+	if host == "" {
+		host = defultHost
 	}
 
 	// Connect to location service
@@ -89,6 +95,6 @@ func main() {
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	log.Printf("connect to http://%s:%s/ for GraphQL playground", host, port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
