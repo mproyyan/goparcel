@@ -150,7 +150,7 @@ func (s *ShipmentRepository) RetrieveShipmentsFromLocations(ctx context.Context,
 				bson.M{
 					"$in": bson.A{
 						bson.M{"$arrayElemAt": bson.A{"$itinerary_logs.activity_type", -1}},
-						bson.A{"transit", "unload"},
+						bson.A{"transit", "unload", "receive"},
 					},
 				},
 			},
@@ -188,7 +188,7 @@ func (s *ShipmentRepository) GetShipments(ctx context.Context, ids []string) ([]
 
 	// If ids not empty then fetch shipments based on the ids
 	if len(shipmentObjIds) > 0 {
-		filter["_id"] = bson.M{"$in": ids}
+		filter["_id"] = bson.M{"$in": shipmentObjIds}
 	}
 
 	cursor, err := s.collection.Find(ctx, filter)
@@ -259,8 +259,13 @@ func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmen
 		return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
 	}
 
+	locationObjId, err := primitive.ObjectIDFromHex(locationId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "location id is not valid object id")
+	}
+
 	filter := bson.M{"_id": shipmentObjId}
-	update := bson.M{"$set": bson.M{"destination": locationId, "routing_status": domain.Routed.String()}}
+	update := bson.M{"$set": bson.M{"destination": locationObjId, "routing_status": domain.Routed.String()}}
 
 	logrus.WithFields(logrus.Fields{
 		"filter": filter,
