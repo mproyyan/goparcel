@@ -254,7 +254,12 @@ func (s *ShipmentRepository) UpdateTransportStatus(ctx context.Context, shipment
 }
 
 func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmentId, locationId string) error {
-	filter := bson.M{"_id": shipmentId}
+	shipmentObjId, err := primitive.ObjectIDFromHex(shipmentId)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "shipment id is not valid object id")
+	}
+
+	filter := bson.M{"_id": shipmentObjId}
 	update := bson.M{"$set": bson.M{"destination": locationId, "routing_status": domain.Routed.String()}}
 
 	logrus.WithFields(logrus.Fields{
@@ -262,7 +267,7 @@ func (s *ShipmentRepository) AddShipmentDestination(ctx context.Context, shipmen
 		"update": update,
 	}).Debug("Routing shipment")
 
-	_, err := s.collection.UpdateOne(ctx, filter, update)
+	_, err = s.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return cuserr.MongoError(err)
 	}
